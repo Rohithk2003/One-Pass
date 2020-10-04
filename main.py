@@ -1,11 +1,11 @@
 import pygame
 pygame.init()
-#for display
-win = pygame.display.set_mode((800,600))
+# for display
+win = pygame.display.set_mode((800, 600))
 idle = pygame.image.load('idle.png')
 jump = pygame.image.load('jump.png')
-low = [pygame.image.load('low1.png'),pygame.image.load('low2.png')]
-run = [pygame.image.load('run1.png'),pygame.image.load('run2.png')]
+low = [pygame.image.load('low1.png'), pygame.image.load('low2.png')]
+run = [pygame.image.load('run1.png'), pygame.image.load('run2.png')]
 back = pygame.image.load('back.png')
 running = False
 jumping = False
@@ -13,21 +13,31 @@ low1 = False
 x = 50
 y = 425
 walkcount = 0
-# for the movement and display of the game
+# color
+black = (0, 0, 0)
+white = (255, 255, 255)
+red = (255, 0, 0)
+blue = (0,255,0)
+
+# for the movement and display of the game and display player images as sprite
+
+
 def redraw():
     global walkcount
-    win.fill((0,0,0))
+    win.fill((0, 0, 0))
     if walkcount + 1 >= 6:
         walkcount = 0
     if running:
-        win.blit(run[walkcount//3],(x,y))
+        win.blit(run[walkcount // 3], (x, y))
         walkcount += 1
     elif low1:
-        win.blit(low[walkcount//3],(x,y))
+        win.blit(low[walkcount // 3], (x, y))
     else:
-        win.blit(idle,(x,y))
+        win.blit(idle, (x, y))
 
     pygame.display.update()
+
+
 while True:
 
     for e in pygame.event.get():
@@ -36,7 +46,7 @@ while True:
             quit()
     keys = pygame.key.get_pressed()
     if keys[pygame.K_RIGHT]:
-        x+=0.5
+        x += 0.5
         running = True
         jumping = False
         low1 = False
