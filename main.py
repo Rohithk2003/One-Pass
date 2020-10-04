@@ -1,5 +1,6 @@
 import pygame
 pygame.init()
+#for display
 win = pygame.display.set_mode((800,600))
 idle = pygame.image.load('idle.png')
 jump = pygame.image.load('jump.png')
@@ -11,7 +12,7 @@ jumping = False
 low1 = False
 x = 50
 y = 425
-walkcount = 0 
+walkcount = 0
 #player movement
 class testing(pygame.sprite.Sprite):
     def __init__(self,pos_x,pos_y):
@@ -30,7 +31,7 @@ def redraw():
         win.blit(low[walkcount//3],(x,y))
     else:
         win.blit(idle,(x,y))
-    
+
     pygame.display.update()
 while True:
 
@@ -58,5 +59,3 @@ while True:
         low1 = False
         walkcount = 0
     redraw()
-    
-        
