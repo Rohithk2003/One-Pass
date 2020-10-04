@@ -13,12 +13,7 @@ low1 = False
 x = 50
 y = 425
 walkcount = 0
-#player movement
-class testing(pygame.sprite.Sprite):
-    def __init__(self,pos_x,pos_y):
-        super().__init__()
-        self.image = pygame.image.load('jet.png')
-        self.rect = self.image.get_rect()
+# for the movement and display of the game
 def redraw():
     global walkcount
     win.fill((0,0,0))
