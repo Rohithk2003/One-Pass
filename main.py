@@ -13,12 +13,6 @@ root.title('ONE-PASS')  # windows title
 password = 0
 username = 0
 
-def iserror(func, *args, **kw):
-    try:
-        func(*args, **kw)
-        return False
-    except Exception:
-        return True
 def login():
     login_window = Tk()
     input_entry = Entry(login_window, text='Username:')
@@ -32,13 +26,13 @@ def login():
         username = input_entry.get()
 
         try:
-            (pyAesCrypt.decryptFile(
-                'user.bin.aes', 'usero1.bin', password, bufferSize))
+            pyAesCrypt.decryptFile(
+                'user.bin.aes', 'usero1.bin', password, bufferSize)
+
         except:
                 root = Tk()
                 root.withdraw()
-                messagebox.showinfo('Error', 'Wrong Password')
-
+                messagebox.showinfo('Error', 'Wrong Password or Username')
                 root.destroy()
 
     but = Button(login_window, text='Login', command=check)
@@ -58,7 +52,7 @@ def register():
     input_entry1 = Entry(login_window1)
     login = Label(login_window1, text='Username:')
     pass1 = Label(login_window1, text='Password:')
-    pass_entry1 = Entry(login_window1)
+    pass_entry1 = Entry(login_window1,show='*')
 
     lbl = Label(login_window1, text='Please enter your username and password:')
     text = '!!Do not forgot the password,it is impossible to recover it'
@@ -76,7 +70,6 @@ def register():
         pyAesCrypt.encryptFile(
             'user.bin', 'user.bin.aes', password, bufferSize)
         f.close()
-        os.remove('user.bin')
 
     but = Button(login_window1, text='Register', command=inputing)
 
@@ -111,3 +104,4 @@ register_text.grid(row=8, column=1, columnspan=2)
 reg_button.grid(row=9, column=1, columnspan=2)
 root.resizable(False, False)
 root.mainloop()
+   
