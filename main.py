@@ -6,12 +6,16 @@ import os
 import threading
 import mysql.connector
 from tkinter import messagebox
-
+import pygame
+display_height = 800
+display_width = 600
+pygame.init()
 bufferSize = 64 * 1024
 root = Tk()  # main windows were the login screen and register screen goes
 root.title('ONE-PASS')  # windows title
 password = 0
 username = 0
+
 
 def login():
     login_window = Tk()
@@ -30,11 +34,21 @@ def login():
                 'user.bin.aes', 'usero1.bin', password, bufferSize)
 
         except:
+            root = Tk()
+            root.withdraw()
+            messagebox.showinfo('Error', 'Wrong Password or Username')
+            root.destroy()
+        f = open('usero1.bin', 'rb')
+        line = pickle.load(f)
+        print(line)
+        for a in line:
+            if a[1] == password:
                 root = Tk()
                 root.withdraw()
-                messagebox.showinfo('Error', 'Wrong Password or Username')
+                messagebox.showinfo('Success','Success')
+                pygame.display.set_mode((display_height,display_width))
+                login_window.withdraw()
                 root.destroy()
-
     but = Button(login_window, text='Login', command=check)
     login.grid(row=2, column=2)
     lbl.grid(row=0, column=2, columnspan=2)
@@ -43,6 +57,7 @@ def login():
     pass_entry.grid(row=6, column=3)
     but.grid(row=8, column=3)
     root.destroy()
+    login_window.resizable(False, False)
 
 
 def register():
@@ -52,7 +67,7 @@ def register():
     input_entry1 = Entry(login_window1)
     login = Label(login_window1, text='Username:')
     pass1 = Label(login_window1, text='Password:')
-    pass_entry1 = Entry(login_window1,show='*')
+    pass_entry1 = Entry(login_window1, show='*')
 
     lbl = Label(login_window1, text='Please enter your username and password:')
     text = '!!Do not forgot the password,it is impossible to recover it'
@@ -104,4 +119,3 @@ register_text.grid(row=8, column=1, columnspan=2)
 reg_button.grid(row=9, column=1, columnspan=2)
 root.resizable(False, False)
 root.mainloop()
-   
