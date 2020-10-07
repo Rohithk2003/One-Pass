@@ -15,7 +15,14 @@ root = Tk()  # main windows were the login screen and register screen goes
 root.title('ONE-PASS')  # windows title
 password = 0
 username = 0
-
+def gameloop():
+    while True:
+        for e in pygame.event.get():
+            if e.type ==pygame.QUIT:
+                pygame.quit()
+                quit()
+                os.remove('usero1.bin')
+                os.remove('user.bin')
 
 def login():
     login_window = Tk()
@@ -28,27 +35,29 @@ def login():
     def check():
         password = pass_entry.get()
         username = input_entry.get()
-
+        TEST = username + '' + password
         try:
             pyAesCrypt.decryptFile(
                 'user.bin.aes', 'usero1.bin', password, bufferSize)
-
+            f = open('usero1.bin', 'rb')
+            line = pickle.load(f)
         except:
             root = Tk()
             root.withdraw()
             messagebox.showinfo('Error', 'Wrong Password or Username')
             root.destroy()
-        f = open('usero1.bin', 'rb')
-        line = pickle.load(f)
-        print(line)
-        for a in line:
-            if a[1] == password:
-                root = Tk()
-                root.withdraw()
-                messagebox.showinfo('Success','Success')
-                pygame.display.set_mode((display_height,display_width))
-                login_window.withdraw()
-                root.destroy()
+        try:
+            for a in line:
+                    if a[1] ==  password:
+                        root = Tk()
+                        root.withdraw()
+                        messagebox.showinfo('Success','Success')
+                        pygame.display.set_mode((display_height,display_width))
+                        gameloop()
+                        login_window.withdraw()
+                        root.destroy()
+        except:
+            messagebox.showinfo('Error','No account exist')
     but = Button(login_window, text='Login', command=check)
     login.grid(row=2, column=2)
     lbl.grid(row=0, column=2, columnspan=2)
@@ -82,6 +91,7 @@ def register():
         l.append(password)
         a.append(l)
         pickle.dump(a, f)
+        HSP = username + '' + password
         pyAesCrypt.encryptFile(
             'user.bin', 'user.bin.aes', password, bufferSize)
         f.close()
