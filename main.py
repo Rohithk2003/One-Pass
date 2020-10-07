@@ -1,164 +1,113 @@
-import pygame
-from pygame.locals import *
-import os
-import sys
+from tkinter import *
 import math
-import time
+import pickle
+import pyAesCrypt
+import os
+import threading
+import mysql.connector
+from tkinter import messagebox
 
-pygame.init()
-clock = pygame.time.Clock()
-# for display
-win = pygame.display.set_mode((1400, 447))
-idle = [pygame.image.load(os.path.join(
-    'data', 'idle' + str(x)+'.png')) for x in range(0, 10)]
-low = [pygame.image.load(os.path.join(
-    'data', 'slide' + str(x)+'.png')) for x in range(0, 10)]
-run = [pygame.image.load(os.path.join('data', 'run' + str(x)+'.png'))
-       for x in range(0, 10)]
-back = pygame.image.load('bg.png')
-jump = [pygame.image.load(os.path.join(
-    'data', 'jump' + str(x)+'.png')) for x in range(0, 10)]
-fight = [pygame.image.load(os.path.join(
-    'data', 'attack' + str(x)+'.png')) for x in range(0, 10)]
+bufferSize = 64 * 1024
+root = Tk()  # main windows were the login screen and register screen goes
+root.title('ONE-PASS')  # windows title
+password = 0
+username = 0
 
-bgX = 0
-bgX2 = back.get_width()
+def iserror(func, *args, **kw):
+    try:
+        func(*args, **kw)
+        return False
+    except Exception:
+        return True
+def login():
+    login_window = Tk()
+    input_entry = Entry(login_window, text='Username:')
+    login = Label(login_window, text='Username:')
+    pass1 = Label(login_window, text='Password:')
+    pass_entry = Entry(login_window, text='Password:', show='*')
+    lbl = Label(login_window, text='Please enter your username and password:')
 
+    def check():
+        password = pass_entry.get()
+        username = input_entry.get()
 
-class player(object):
-    def __init__(self, player_x, player_y):
-        self.x = player_x
-        self.y = player_y
-        self.running = False
-        self.low1 = False
-        self.isjump = False
-        self.jumpcount = 10
-        self.walkcount = 0
-        self.idle1 = False
-        self.fighting = False
-        self.testing_count = 0
+        try:
+            (pyAesCrypt.decryptFile(
+                'user.bin.aes', 'usero1.bin', password, bufferSize))
+        except:
+                root = Tk()
+                root.withdraw()
+                messagebox.showinfo('Error', 'Wrong Password')
 
-    def draw(self, win):
-        if self.walkcount + 1 >= 27:
-            self.walkcount = 0
-        if self.running:
-            self.walkcount += 1
-            win.blit(run[self.walkcount // 3], (self.x, self.y))
-        elif self.low1:
-            win.blit(low[self.walkcount // 3], (self.x, self.y))
-            self.walkcount += 1
+                root.destroy()
 
-        elif self.idle1:
-            win.blit(idle[int(self.walkcount // 3)], (self.x, self.y))
-
-    def testing(self, win):
-        if self.testing_count > 27:
-            self.testing_count = 0
-        if self.fighting:
-            win.blit(fight[(self.testing_count // 3)], (self.x, self.y))
-            self.testing_count += 1
+    but = Button(login_window, text='Login', command=check)
+    login.grid(row=2, column=2)
+    lbl.grid(row=0, column=2, columnspan=2)
+    pass1.grid(row=6, column=2)
+    input_entry.grid(row=2, column=3)
+    pass_entry.grid(row=6, column=3)
+    but.grid(row=8, column=3)
+    root.destroy()
 
 
-# color
-black = (0, 0, 0)
-white = (255, 255, 255)
-red = (255, 0, 0)
-blue = (0, 255, 0)
-green = (0, 0, 255)
+def register():
+    login_window1 = Tk()
+    root.destroy()
 
-# for the movement and display of the game and display player images as sprite
+    input_entry1 = Entry(login_window1)
+    login = Label(login_window1, text='Username:')
+    pass1 = Label(login_window1, text='Password:')
+    pass_entry1 = Entry(login_window1)
 
-man = player(100, 320)
+    lbl = Label(login_window1, text='Please enter your username and password:')
+    text = '!!Do not forgot the password,it is impossible to recover it'
+    a = []
 
+    def inputing():
+        f = open('user.bin', 'ab')
+        l = []
+        password = pass_entry1.get()
+        username = input_entry1.get()
+        l.append(username)
+        l.append(password)
+        a.append(l)
+        pickle.dump(a, f)
+        pyAesCrypt.encryptFile(
+            'user.bin', 'user.bin.aes', password, bufferSize)
+        f.close()
+        os.remove('user.bin')
 
-def redraw():
+    but = Button(login_window1, text='Register', command=inputing)
 
-    win.blit(back, (bgX, 0))
-    win.blit(back, (bgX2, 0))
+    lbl1 = Label(login_window1, text=text)
 
-    man.draw(win)
-    man.testing(win)
-    pygame.display.update()
+    login.grid(row=2, column=0)
 
+    lbl.grid(row=0, column=1)
 
-pygame.time.set_timer(USEREVENT + 1, 500)  # Sets the timer for 0.5 seconds
-fps = 27
+    pass1.grid(row=6, column=0)
 
+    input_entry1.grid(row=2, column=1)
 
-def gameloop():
-    global fps
-    global bgX
-    global bgX2
-    a = False
-    while True:
-        redraw()
-        if a:
-            bgX -= 2
-            bgX2 -= 2
-        if bgX < back.get_width() * -1:  # If our bg is at the -width then reset its position
-            bgX = back.get_width()
+    pass_entry1.grid(row=6, column=1)
 
-        if bgX2 < back.get_width() * -1:
-            bgX2 = back.get_width()
-        for e in pygame.event.get():
-            if e.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-            if e.type == USEREVENT + 1:
-                fps += 1
+    lbl1.grid(row=7, column=1)
 
-        keys = pygame.key.get_pressed()
-        man.running = True
-        if keys[pygame.K_RIGHT]:
-            man.x += 0.1
-            a = True
-            man.low1 = False
-            man.fighting = False
-            man.idle1 = False
-
-            if keys[pygame.K_c]:
-                man.x += 0.1
-                man.low1 = True
-                man.running = False
-                man.fighting = False
-                man.idle1 = False
-
-        elif keys[pygame.K_c]:
-            man.x += 0.1
-            a = False
-            man.low1 = True
-            man.running = False
-            man.fighting = False
-            man.idle1 = False
-        elif keys[pygame.K_p]:
-            man.fighting = True
-            man.low1 = False
-            man.running = False
-            man.idle1 = False
-        else:
-            a = False
-            man.fighting = False
-            man.idle1 = True
-            man.running = False
-            man.low1 = False
-
-            man.walkcount = 0
-        if not(man.isjump) and man.low1 == False:
-            if keys[pygame.K_SPACE]:
-                man.isjump = True
-        elif man.isjump == True and man.low1 == False:
-            if man.jumpcount >= -10:
-                if man.jumpcount < 0:
-                    var = -1
-                else:
-                    var = 1
-                man.y -= ((man.jumpcount**2) / 5) * var
-                man.jumpcount -= 0.5
-
-            else:
-                man.isjump = False
-                man.jumpcount = 10
-        clock.tick(fps)
+    but.grid(row=8, column=1)
 
 
-gameloop()
+main = Label(root, text='Welcome to ONE-PASS manager')
+login_text = Label(root, text='Do you already have an account')
+register_text = Label(
+    root, text='If you don"t have an account please register')
+reg_button = Button(root, text='Register', command=register)
+login_button = Button(root, text='login', command=login)  # added login button
+
+main.grid(row=0, column=1, columnspan=2)
+login_button.grid(row=7, column=1, columnspan=2)
+login_text.grid(row=6, column=1, columnspan=2)
+register_text.grid(row=8, column=1, columnspan=2)
+reg_button.grid(row=9, column=1, columnspan=2)
+root.resizable(False, False)
+root.mainloop()
