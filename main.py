@@ -1,64 +1,114 @@
-from tkinter import *
-import math
-import pickle
-import pyAesCrypt
 import os
-import threading
-import mysql.connector
+import pickle
+import sys
+from tkinter import *
 from tkinter import messagebox
+
+import pyAesCrypt
 import pygame
-display_height = 800
-display_width = 600
+
 pygame.init()
 bufferSize = 64 * 1024
 root = Tk()  # main windows were the login screen and register screen goes
-root.title('ONE-PASS')  # windows title
+root.title("ONE-PASS")  # windows title
 password = 0
 username = 0
-def gameloop():
+social_media = []
+
+num_enemies = 5
+facebook = pygame.image.load("facebook.png")
+instagram = pygame.image.load("instagram.png")
+google = pygame.image.load("google.png")
+github = pygame.image.load("github.png")
+
+# getting the size of the facebook image
+fb_size = facebook.get_rect()
+# social_media.append(facebook)
+# social_media.append(instagram)
+# social_media.append(google)
+# social_media.append(github)
+
+# colors
+black = (0, 0, 0)
+white = (255, 255, 255)
+red = (255, 0, 0)
+blue = (0, 0, 255)
+green = (0, 255, 0)
+catch_error = True
+
+
+def text_object(text, font, color):
+    textsurf = font.render(text, True, color)
+    return textsurf, textsurf.get_rect()
+
+
+# added message display function to blit text on to the window
+
+
+def message_display_small(text, a, b, color, display):
+    smalltext = pygame.font.Font('comic.ttf', 30)
+    textsurf, textrect = text_object(text, smalltext, color)
+    textrect.center = (int(a), int(b))
+    display.blit(textsurf, textrect)
+
+
+def gameloop(a, username, password):
+    file_remove = username + password
+    fb = 'Facebook'
     while True:
+        a.fill((255, 255, 255))
         for e in pygame.event.get():
-            if e.type ==pygame.QUIT:
+            if e.type == pygame.QUIT:
                 pygame.quit()
+                sys.exit()
                 quit()
-                os.remove('usero1.bin')
-                os.remove('user.bin')
+                break
+        a.blit(facebook, (20, 20))
+        message_display_small(fb, 45 + facebook.get_width() - 100 + 10,
+                              25 + facebook.get_height() + 10, black, a)
+        pygame.display.update()
+
 
 def login():
     login_window = Tk()
-    input_entry = Entry(login_window, text='Username:')
-    login = Label(login_window, text='Username:')
-    pass1 = Label(login_window, text='Password:')
-    pass_entry = Entry(login_window, text='Password:', show='*')
-    lbl = Label(login_window, text='Please enter your username and password:')
+    input_entry = Entry(login_window, text="Username:")
+    login = Label(login_window, text="Username:")
+    pass1 = Label(login_window, text="Password:")
+    pass_entry = Entry(login_window, text="Password:", show="*")
+    lbl = Label(login_window, text="Please enter your username and password:")
 
     def check():
+        testing = True
         password = pass_entry.get()
         username = input_entry.get()
-        TEST = username + '' + password
+        main_password = username + "" + password
+        file_name = username + password
         try:
             pyAesCrypt.decryptFile(
-                'user.bin.aes', 'usero1.bin', password, bufferSize)
-            f = open('usero1.bin', 'rb')
-            line = pickle.load(f)
+                file_name + '.bin.aes', file_name + 'decrypted' + '.bin', main_password, bufferSize)
+            f = open(file_name + 'decrypted' + '.bin', 'rb')
+            logins = pickle.load(f)
+            for a in logins:
+                if a[1] == password:
+                    root = Tk()
+                    root.withdraw()
+                    messagebox.showinfo("Success", "Success")
+                    login_window.destroy()
+                    root.destroy()
+            testing = False
         except:
+            testing = True
             root = Tk()
             root.withdraw()
-            messagebox.showinfo('Error', 'Wrong Password or Username')
+            messagebox.showinfo("Error", "Wrong Password or Username")
             root.destroy()
-        try:
-            for a in line:
-                    if a[1] ==  password:
-                        root = Tk()
-                        root.withdraw()
-                        messagebox.showinfo('Success','Success')
-                        pygame.display.set_mode((display_height,display_width))
-                        gameloop()
-                        login_window.withdraw()
-                        root.destroy()
-        except:
-            messagebox.showinfo('Error','No account exist')
-    but = Button(login_window, text='Login', command=check)
+        if testing == False:
+            d = pygame.display.set_mode((800, 600))
+            gameloop(d, username, password)
+
+        else:
+            pass
+    but = Button(login_window, text="Login", command=check)
     login.grid(row=2, column=2)
     lbl.grid(row=0, column=2, columnspan=2)
     pass1.grid(row=6, column=2)
@@ -74,16 +124,16 @@ def register():
     root.destroy()
 
     input_entry1 = Entry(login_window1)
-    login = Label(login_window1, text='Username:')
-    pass1 = Label(login_window1, text='Password:')
-    pass_entry1 = Entry(login_window1, show='*')
+    login = Label(login_window1, text="Username:")
+    pass1 = Label(login_window1, text="Password:")
+    pass_entry1 = Entry(login_window1, show="*")
 
-    lbl = Label(login_window1, text='Please enter your username and password:')
-    text = '!!Do not forgot the password,it is impossible to recover it'
+    lbl = Label(login_window1, text="Please enter your username and password:")
+    text = "!!Do not forgot the password,it is impossible to recover it"
     a = []
 
     def inputing():
-        f = open('user.bin', 'ab')
+        f = open("user.bin", "ab")
         l = []
         password = pass_entry1.get()
         username = input_entry1.get()
@@ -91,12 +141,13 @@ def register():
         l.append(password)
         a.append(l)
         pickle.dump(a, f)
-        HSP = username + '' + password
-        pyAesCrypt.encryptFile(
-            'user.bin', 'user.bin.aes', password, bufferSize)
+        HSP = username + "" + password
         f.close()
+        file_name = username + password
+        pyAesCrypt.encryptFile("user.bin", file_name +
+                               '.bin.aes', HSP, bufferSize)
 
-    but = Button(login_window1, text='Register', command=inputing)
+    but = Button(login_window1, text="Register", command=inputing)
 
     lbl1 = Label(login_window1, text=text)
 
@@ -115,12 +166,12 @@ def register():
     but.grid(row=8, column=1)
 
 
-main = Label(root, text='Welcome to ONE-PASS manager')
-login_text = Label(root, text='Do you already have an account')
+main = Label(root, text="Welcome to ONE-PASS manager")
+login_text = Label(root, text="Do you already have an account")
 register_text = Label(
     root, text='If you don"t have an account please register')
-reg_button = Button(root, text='Register', command=register)
-login_button = Button(root, text='login', command=login)  # added login button
+reg_button = Button(root, text="Register", command=register)
+login_button = Button(root, text="login", command=login)  # added login button
 
 main.grid(row=0, column=1, columnspan=2)
 login_button.grid(row=7, column=1, columnspan=2)
