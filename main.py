@@ -23,6 +23,7 @@ github = pygame.image.load("github.png")
 
 # getting the size of the facebook image
 fb_size = facebook.get_rect()
+
 # social_media.append(facebook)
 # social_media.append(instagram)
 # social_media.append(google)
@@ -39,7 +40,9 @@ catch_error = True
 fb_user_text = ''
 active_fb = False
 
-font = pygame.font.Font('freesansbold.ttf',30)
+font = pygame.font.Font('freesansbold.ttf', 30)
+
+
 def text_object(text, font, color):
     textsurf = font.render(text, True, color)
     return textsurf, textsurf.get_rect()
@@ -62,77 +65,17 @@ def fb_text(text, a, b, color, display):
     display.blit(textsurf, textrect)
 
 
-def fb_button(File):
-    a = open(File, 'rb')
-    list = pickle.load(a)
-    global fb_user_text
-    global active
-    for i in list:
-        if i[0] == 'www.facebook.com':
-            fb_window = pygame.display.set_mode((400, 400))
-            while True:
-                for events in pygame.event.get():
-                    if events.type == pygame.QUIT:
-                        pygame.quit()
-                        quit()
-                        break
-                fb_text('Username:', 100, 100, black)
-                fb_text('Password:', 100, 150, black)
-                pygame.display.update()
-        else:
-            fb_window = pygame.display.set_mode((400, 400))
-            active = False
-            while True:
-                fb_window.fill(white)
-                
-                fb_text('Username:', 100, 100, black,fb_window)
-                fb_text('Password:', 100, 150, black,fb_window)
-                color = black
-                a = 100
-                d = 20
-                rect_x = 160
-                rect_y = 100
-                text_surface = font.render(fb_user_text, True, black)
-                fb_window.blit(text_surface, (rect_x + 4, rect_y + 4))
-                a = max(100, text_surface.get_width() + 10)
-                p = pygame.draw.rect(fb_window, color, (rect_x, rect_y, a, d), 2)
-                fb_details = []
-                keys = pygame.key.get_pressed()
-                text = fb_user_text
-                trying = ''
-                for a in text:
-                    if a.isalpha():
-                        trying += a
-                if keys[pygame.K_RETURN]:
-                    fb_details.append('www.facebook.com')
-                    fb_details.append(trying)
-                    f = open(File, 'wb')
-                    pickle.load(fb_details,f)
-                    f.close()
-                for events in pygame.event.get():
-                    if events.type == pygame.QUIT:
-                        pygame.quit()
-                        quit()
-                    if events.type == pygame.KEYDOWN:
-                        if active == False:
-                            if events.key == pygame.K_BACKSPACE:
-                                fb_user_text = fb_user_text[:-1]
-                            else:
-                                fb_user_text += events.unicode
-                        if events.type == pygame.MOUSEBUTTONDOWN:
-                            if p.collidepoint(events.pos):
-                                active = True
-                                color = red
-                            else:
-                                active = False
-                                color = black
-                pygame.display.update()
+def fb_button():
+
+    root = Tk()
 
 
-def gameloop(a, username, passwor,file):
+def gameloop(a, username, passwor, file):
     fb = 'Facebook'
+    update = True
     while True:
-        a.fill((255, 255, 255))
+        if update == True:
+            a.fill((255, 255, 255))
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 pygame.quit()
@@ -144,9 +87,13 @@ def gameloop(a, username, passwor,file):
         a.blit(facebook, (20, 20))
         message_display_small(fb, 45 + facebook.get_width() - 100 + 10,
                               25 + facebook.get_height() + 10, black, a)
-        if mouse[0] == 1 and 20 < mouse_pos[0] < 20 + facebook.get_width() and 25 < mouse_pos[1] < 25 + facebook.get_height():
-            fb_button(file)
-        pygame.display.update()
+        if mouse[0] == 1 and 20 < mouse_pos[0] < 20 + facebook.get_width() and 20 < mouse_pos[1] < 20 + facebook.get_height():
+            fb_button()
+            update = False
+        if update == True:
+            pygame.display.update()
+        else:
+            pass
 
 
 def login():
@@ -184,7 +131,7 @@ def login():
             root.destroy()
         if testing == False:
             d = pygame.display.set_mode((800, 600))
-            gameloop(d, username, password,file_name + 'decrypted' + '.bin')
+            gameloop(d, username, password, file_name + 'decrypted' + '.bin')
 
         else:
             pass
