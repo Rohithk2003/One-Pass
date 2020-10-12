@@ -6,6 +6,7 @@ from tkinter import messagebox
 import pyAesCrypt
 import pygame
 import os.path
+import webbrowser
 
 pygame.init()
 bufferSize = 64 * 1024
@@ -66,7 +67,7 @@ def fb_text(text, a, b, color, display):
 
 
 def fb_button(username, password):
-    file_name = str(username) + str(password) + ".bin"
+    file_name = str(username) +  ".bin"
     if os.path.exists(file_name):
         root = Tk()
         f1 = open(file_name, "rb")
@@ -81,37 +82,38 @@ def fb_button(username, password):
     else:
         second = Tk()
         second.title("Facebook Login")
-        username1 = Label(second, text="Username:")
-        password1 = Label(second, text="Password:")
+        username1 = Label(second, text="Facebook_Username:")
+        password1 = Label(second, text="Facebook_Password:")
         username1_entry = Entry(second)
         password1_entry = Entry(second, show="*")
         login_text1 = "Please provide Facebook account and password"
-        change = "Do you want to change password or username"
+        change = "change?"
+        redirect_message = 'Facebook login'
         change_button = Button(second, text=change)
         login_text = Label(second, text=login_text1)
         username1.grid(row=2, column=0)
         password1.grid(row=3, column=0)
         username1_entry.grid(row=2, column=1)
         password1_entry.grid(row=3, column=1, columnspan=2)
-
         username_list = []
-
         def save():
             username2 = username1_entry.get()
             password2 = password1_entry.get()
-            a = str(username2)
+            a = str(username) + '_facebook'
             b = str(password2)
             username_list.append(a)
             username_list.append(b)
-            fie = a
-            f = open(fie + ".bin", "wb")
+            f = open(a + ".bin", "wb")
             pickle.dump(username_list, f)
             f.close()
+        def redirect():
+                webbrowser.open('https://en-gb.facebook.com/login/')
+        redirect_button = Button(second, text=redirect_message,command=redirect)
 
         saving = Button(second, text="Save", command=save)
-        saving.grid(row=3, column=1)
-        change_button.grid(row=4, column=1)
-
+        saving.grid(row=4, column=1)
+        change_button.grid(row=4, column=4)
+        redirect_button.grid(row=5, column=4)
 
 def gameloop(a, file):
     fb = "Facebook"
@@ -142,6 +144,7 @@ def gameloop(a, file):
             quitting = False
             pygame.quit()
             fb_button(username, password)
+            break
         pygame.display.update()
 
 
@@ -153,7 +156,7 @@ def login():
     pass_entry = Entry(login_window, text="Password:", show="*")
     lbl = Label(login_window, text="Please enter your username and password:")
 
-    def check():
+    def login_checking():
         testing = False
         password = pass_entry.get()
         username = input_entry.get()
@@ -186,7 +189,7 @@ def login():
             d = pygame.display.set_mode((800, 600))
             gameloop(d, file_name + "decrypted" + ".bin")
 
-    but = Button(login_window, text="Login", command=check)
+    but = Button(login_window, text="Login", command=login_checking)
     login.grid(row=2, column=2)
     lbl.grid(row=0, column=2, columnspan=2)
     pass1.grid(row=6, column=2)
@@ -209,14 +212,14 @@ def register():
     lbl = Label(login_window1, text="Please enter your username and password:")
     text = "!!Do not forgot the password,it is impossible to recover it"
     a = []
-
+    fb = True
     def inputing():
         password = pass_entry1.get()
         username = input_entry1.get()
         if os.path.exists(username  + ".bin"):
             messagebox.showinfo("Error", "The account with the same username exist!!")
         else:
-            f = open(username + password + ".bin", "wb")
+            f = open(username  + ".bin", "wb")
             l = []
             l.append(username)
             l.append(password)
@@ -231,7 +234,14 @@ def register():
                 HSP,
                 bufferSize,
             )
+            fb = False
+    if fb == False:
+            hsp = pass_entry1.get()
+            pyAesCrypt.decryptFile(file_name + ".bin.aes" ,file_name+'decrypted'+'.bin',hsp,bufferSize)
 
+            d = pygame.display.set_mode((800, 600))
+            gameloop(d, file_name + "decrypted" + ".bin")
+    
     but = Button(login_window1, text="Register", command=inputing)
 
     lbl1 = Label(login_window1, text=text)
