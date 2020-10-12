@@ -73,7 +73,7 @@ def fb_text(text, a, b, color, display):
 
 
 def fb_button(username, password):
-    file_name = str(username) +  ".bin"
+    file_name = str(username) + '_facebook' +  ".bin"
     if os.path.exists(file_name):
         root = Tk()
         root.configure(bg='red')
