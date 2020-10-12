@@ -1,21 +1,22 @@
-import os
+from os import *
 import pickle
 import sys
 from tkinter import *
 from tkinter import messagebox
 import pyAesCrypt
 import pygame
-import os.path
-import webbrowser
 
-pygame.init()
+
 bufferSize = 64 * 1024
 root = Tk()  # main windows were the login screen and register screen goes
-root.title("ONE-PASS")  # windows title
+root.title("ONE-PASS")
+root.configure(bg='black')
+  # windows title
 password = 0
 username = 0
 social_media = []
-
+pygame.init()
+'------------------------------------loading images------------------------------------'
 num_enemies = 5
 facebook = pygame.image.load("facebook.png")
 instagram = pygame.image.load("instagram.png")
@@ -70,6 +71,7 @@ def fb_button(username, password):
     file_name = str(username) +  ".bin"
     if os.path.exists(file_name):
         root = Tk()
+        root.configure(bg='red')
         f1 = open(file_name, "rb")
         line = pickle.load(f1)
         root.title("Facebook Account")
@@ -81,6 +83,7 @@ def fb_button(username, password):
         a2_text.grid(row=1, column=0)
     else:
         second = Tk()
+        root.configure(bg='black')
         second.title("Facebook Login")
         username1 = Label(second, text="Facebook_Username:")
         password1 = Label(second, text="Facebook_Password:")
@@ -150,6 +153,7 @@ def gameloop(a, file):
 
 def login():
     login_window = Tk()
+    login_window.configure(bg='red')
     input_entry = Entry(login_window, text="Username:")
     login = Label(login_window, text="Username:")
     pass1 = Label(login_window, text="Password:")
@@ -164,7 +168,7 @@ def login():
         file_name = username 
         try:
             pyAesCrypt.decryptFile(
-                file_name + ".bin.aes",
+                file_name + ".bin.fenc",
                 file_name + "decrypted" + ".bin",
                 main_password,
                 bufferSize,
@@ -203,7 +207,7 @@ def login():
 def register():
     login_window1 = Tk()
     root.destroy()
-
+    login_window.configure(bg='black')
     input_entry1 = Entry(login_window1)
     login = Label(login_window1, text="Username:")
     pass1 = Label(login_window1, text="Password:")
@@ -230,7 +234,7 @@ def register():
             file_name = str(username) 
             pyAesCrypt.encryptFile(
                 str(username) + ".bin",
-                file_name + ".bin.aes",
+                file_name + ".bin.fenc",
                 HSP,
                 bufferSize,
             )
