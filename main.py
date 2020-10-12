@@ -1,3 +1,4 @@
+'------------------------------------importing modules------------------------------------'
 from os import *
 import pickle
 import sys
@@ -7,11 +8,15 @@ import pyAesCrypt
 import pygame
 
 
+'------------------------------------main tkinter window------------------------------------'
+
 bufferSize = 64 * 1024
 root = Tk()  # main windows were the login screen and register screen goes
 root.title("ONE-PASS")
 root.configure(bg='black')
   # windows title
+
+  
 password = 0
 username = 0
 social_media = []
