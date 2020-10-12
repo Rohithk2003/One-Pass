@@ -93,14 +93,17 @@ def fb_button(username, password):
         password1.grid(row=3, column=0)
         username1_entry.grid(row=2, column=1)
         password1_entry.grid(row=3, column=1, columnspan=2)
-        username2 = username1_entry.get()
-        password2 = password1_entry.get()
+
         username_list = []
 
         def save():
-            username_list.append(username2)
-            username_list.append(password2)
-            fie = str(username) + str(password)
+            username2 = username1_entry.get()
+            password2 = password1_entry.get()
+            a = str(username2)
+            b = str(password2)
+            username_list.append(a)
+            username_list.append(b)
+            fie = a
             f = open(fie + ".bin", "wb")
             pickle.dump(username_list, f)
             f.close()
@@ -113,7 +116,7 @@ def fb_button(username, password):
 def gameloop(a, file):
     fb = "Facebook"
     quitting = True
-    while True:
+    while quitting:
         a.fill((255, 255, 255))
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
@@ -136,11 +139,10 @@ def gameloop(a, file):
             and 20 < mouse_pos[0] < 20 + facebook.get_width()
             and 20 < mouse_pos[1] < 20 + facebook.get_height()
         ):
-            pygame.quit()
             quitting = False
+            pygame.quit()
             fb_button(username, password)
-        if quitting:
-            pygame.display.update()
+        pygame.display.update()
 
 
 def login():
@@ -156,7 +158,7 @@ def login():
         password = pass_entry.get()
         username = input_entry.get()
         main_password = username + "" + password
-        file_name = username + password
+        file_name = username 
         try:
             pyAesCrypt.decryptFile(
                 file_name + ".bin.aes",
@@ -211,7 +213,7 @@ def register():
     def inputing():
         password = pass_entry1.get()
         username = input_entry1.get()
-        if os.path.exists(username + password + ".bin"):
+        if os.path.exists(username  + ".bin"):
             messagebox.showinfo("Error", "The account with the same username exist!!")
         else:
             f = open(username + password + ".bin", "wb")
@@ -222,9 +224,9 @@ def register():
             pickle.dump(a, f)
             HSP = username + "" + password
             f.close()
-            file_name = str(username) + str(password)
+            file_name = str(username) 
             pyAesCrypt.encryptFile(
-                str(username) + str(password) + ".bin",
+                str(username) + ".bin",
                 file_name + ".bin.aes",
                 HSP,
                 bufferSize,
