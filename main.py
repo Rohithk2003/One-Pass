@@ -7,7 +7,7 @@ from tkinter import messagebox
 import pyAesCrypt
 import pygame
 
-
+import game.py
 '------------------------------------main tkinter window------------------------------------'
 
 bufferSize = 64 * 1024
@@ -96,8 +96,11 @@ def fb_button(username, password):
         password1_entry = Entry(second, show="*")
         login_text1 = "Please provide Facebook account and password"
         change = "change?"
+        def chang1():
+            
+            player = pygame.image.load('player.png')    
         redirect_message = 'Facebook login'
-        change_button = Button(second, text=change)
+        change_button = Button(second, text=change,command= chang1)
         login_text = Label(second, text=login_text1)
         username1.grid(row=2, column=0)
         password1.grid(row=3, column=0)
