@@ -1,35 +1,21 @@
-'------------------------------------importing modules------------------------------------'
-from os import *
+import os
 import pickle
 import sys
 from tkinter import *
 from tkinter import messagebox
 import pyAesCrypt
 import pygame
+import os.path
 
-import game.py
-'------------------------------------main tkinter window------------------------------------'
-
+pygame.init()
 bufferSize = 64 * 1024
 root = Tk()  # main windows were the login screen and register screen goes
-root.title("ONE-PASS")
-root.configure(bg='black')
-width_window = 300
-height_window = 300
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
-x = screen_width/2 - width_window/2
-y = screen_height/2 - height_window/2
-root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
-  # windows titLE
-
-  
+root.title("ONE-PASS")  # windows title
 password = 0
 username = 0
 social_media = []
-pygame.init()
-'------------------------------------loading images------------------------------------'
-num_password_account = 5
+
+num_enemies = 5
 facebook = pygame.image.load("facebook.png")
 instagram = pygame.image.load("instagram.png")
 google = pygame.image.load("google.png")
@@ -43,7 +29,7 @@ fb_size = facebook.get_rect()
 # social_media.append(google)
 # social_media.append(github)
 
-'------------------------------------ Colors ------------------------------------'
+# colors
 black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
@@ -80,17 +66,9 @@ def fb_text(text, a, b, color, display):
 
 
 def fb_button(username, password):
-    file_name = str(username) + '_facebook' +  ".bin"
+    file_name = str(username) + str(password) + ".bin"
     if os.path.exists(file_name):
         root = Tk()
-        root.configure(bg='red')
-        width_window = 300
-        height_window = 300
-        screen_width = root.winfo_screenwidth()
-        screen_height = root.winfo_screenheight()
-        x = screen_width/2 - width_window/2
-        y = screen_height/2 - height_window/2
-        root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
         f1 = open(file_name, "rb")
         line = pickle.load(f1)
         root.title("Facebook Account")
@@ -100,57 +78,44 @@ def fb_button(username, password):
         a2_text = Label(root, text=second)
         a1_text.grid(row=0, column=0)
         a2_text.grid(row=1, column=0)
+        
     else:
         second = Tk()
-        width_window = 300
-        height_window = 300
-        screen_width = second.winfo_screenwidth()
-        screen_height = second.winfo_screenheight()
-        x = screen_width/2 - width_window/2
-        y = screen_height/2 - height_window/2
-        second.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
-        second.configure(bg='black')
         second.title("Facebook Login")
-        username1 = Label(second, text="Facebook_Username:")
-        password1 = Label(second, text="Facebook_Password:")
+        username1 = Label(second, text="Username:")
+        password1 = Label(second, text="Password:")
         username1_entry = Entry(second)
         password1_entry = Entry(second, show="*")
         login_text1 = "Please provide Facebook account and password"
-        change = "change?"
-        def chang1():
-            
-            player = pygame.image.load('player.png')    
-        redirect_message = 'Facebook login'
-        change_button = Button(second, text=change,command= chang1)
+        change = "Do you want to change password or username"
+        change_button = Button(second, text=change)
         login_text = Label(second, text=login_text1)
         username1.grid(row=2, column=0)
         password1.grid(row=3, column=0)
         username1_entry.grid(row=2, column=1)
         password1_entry.grid(row=3, column=1, columnspan=2)
+
         username_list = []
+
         def save():
             username2 = username1_entry.get()
             password2 = password1_entry.get()
-            a = str(username) + '_facebook'
-            b = str(password2)
-            username_list.append(a)
-            username_list.append(b)
-            f = open(a + ".bin", "wb")
+            username_list.append(username2)
+            username_list.append(password2)
+            fie = str(username) + str(password)
+            f = open(fie + ".bin", "wb")
             pickle.dump(username_list, f)
             f.close()
-        def redirect():
-                webbrowser.open('https://en-gb.facebook.com/login/')
-        redirect_button = Button(second, text=redirect_message,command=redirect)
 
         saving = Button(second, text="Save", command=save)
-        saving.grid(row=4, column=1)
-        change_button.grid(row=4, column=4)
-        redirect_button.grid(row=5, column=4)
+        saving.grid(row=3, column=1)
+        change_button.grid(row=4, column=1)
+
 
 def gameloop(a, file):
     fb = "Facebook"
     quitting = True
-    while quitting:
+    while True:
         a.fill((255, 255, 255))
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
@@ -173,38 +138,30 @@ def gameloop(a, file):
             and 20 < mouse_pos[0] < 20 + facebook.get_width()
             and 20 < mouse_pos[1] < 20 + facebook.get_height()
         ):
-            quitting = False
             pygame.quit()
+            quitting = False
             fb_button(username, password)
-            break
-        pygame.display.update()
+        if quitting:
+            pygame.display.update()
 
 
 def login():
     login_window = Tk()
-    width_window = 300
-    height_window = 300
-    screen_width = login_window.winfo_screenwidth()
-    screen_height = login_window.winfo_screenheight()
-    x = screen_width/2 - width_window/2
-    y = screen_height/2 - height_window/2
-    login_window.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
-    login_window.configure(bg='black')
     input_entry = Entry(login_window, text="Username:")
     login = Label(login_window, text="Username:")
     pass1 = Label(login_window, text="Password:")
     pass_entry = Entry(login_window, text="Password:", show="*")
     lbl = Label(login_window, text="Please enter your username and password:")
 
-    def login_checking():
+    def check():
         testing = False
         password = pass_entry.get()
         username = input_entry.get()
         main_password = username + "" + password
-        file_name = username 
+        file_name = username + password
         try:
             pyAesCrypt.decryptFile(
-                file_name + ".bin.fenc",
+                file_name + ".bin.aes",
                 file_name + "decrypted" + ".bin",
                 main_password,
                 bufferSize,
@@ -229,7 +186,7 @@ def login():
             d = pygame.display.set_mode((800, 600))
             gameloop(d, file_name + "decrypted" + ".bin")
 
-    but = Button(login_window, text="Login", command=login_checking)
+    but = Button(login_window, text="Login", command=check)
     login.grid(row=2, column=2)
     lbl.grid(row=0, column=2, columnspan=2)
     pass1.grid(row=6, column=2)
@@ -242,13 +199,8 @@ def login():
 
 def register():
     login_window1 = Tk()
-    screen_width = login_window1.winfo_screenwidth()
-    screen_height = login_window1.winfo_screenheight()
-    x = screen_width/2 - width_window/2
-    y = screen_height/2 - height_window/2
-    login_window1.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
     root.destroy()
-    login_window.configure(bg='black')
+
     input_entry1 = Entry(login_window1)
     login = Label(login_window1, text="Username:")
     pass1 = Label(login_window1, text="Password:")
@@ -257,14 +209,14 @@ def register():
     lbl = Label(login_window1, text="Please enter your username and password:")
     text = "!!Do not forgot the password,it is impossible to recover it"
     a = []
-    fb = True
+
     def inputing():
         password = pass_entry1.get()
         username = input_entry1.get()
-        if os.path.exists(username  + ".bin"):
+        if os.path.exists(username + password + ".bin"):
             messagebox.showinfo("Error", "The account with the same username exist!!")
         else:
-            f = open(username  + ".bin", "wb")
+            f = open(username + password + ".bin", "wb")
             l = []
             l.append(username)
             l.append(password)
@@ -272,21 +224,14 @@ def register():
             pickle.dump(a, f)
             HSP = username + "" + password
             f.close()
-            file_name = str(username) 
+            file_name = str(username) + str(password)
             pyAesCrypt.encryptFile(
-                str(username) + ".bin",
-                file_name + ".bin.fenc",
+                str(username) + str(password) + ".bin",
+                file_name + ".bin.aes",
                 HSP,
                 bufferSize,
             )
-            fb = False
-    if fb == False:
-            hsp = pass_entry1.get()
-            pyAesCrypt.decryptFile(file_name + ".bin.aes" ,file_name+'decrypted'+'.bin',hsp,bufferSize)
 
-            d = pygame.display.set_mode((800, 600))
-            gameloop(d, file_name + "decrypted" + ".bin")
-    
     but = Button(login_window1, text="Register", command=inputing)
 
     lbl1 = Label(login_window1, text=text)
