@@ -14,7 +14,14 @@ bufferSize = 64 * 1024
 root = Tk()  # main windows were the login screen and register screen goes
 root.title("ONE-PASS")
 root.configure(bg='black')
-  # windows title
+width_window = 300
+height_window = 300
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+x = screen_width/2 - width_window/2
+y = screen_height/2 - height_window/2
+root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+  # windows titLE
 
   
 password = 0
@@ -22,7 +29,7 @@ username = 0
 social_media = []
 pygame.init()
 '------------------------------------loading images------------------------------------'
-num_enemies = 5
+num_password_account = 5
 facebook = pygame.image.load("facebook.png")
 instagram = pygame.image.load("instagram.png")
 google = pygame.image.load("google.png")
@@ -36,7 +43,7 @@ fb_size = facebook.get_rect()
 # social_media.append(google)
 # social_media.append(github)
 
-# colors
+'------------------------------------ Colors ------------------------------------'
 black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
@@ -77,6 +84,13 @@ def fb_button(username, password):
     if os.path.exists(file_name):
         root = Tk()
         root.configure(bg='red')
+        width_window = 300
+        height_window = 300
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x = screen_width/2 - width_window/2
+        y = screen_height/2 - height_window/2
+        root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
         f1 = open(file_name, "rb")
         line = pickle.load(f1)
         root.title("Facebook Account")
@@ -88,7 +102,14 @@ def fb_button(username, password):
         a2_text.grid(row=1, column=0)
     else:
         second = Tk()
-        root.configure(bg='black')
+        width_window = 300
+        height_window = 300
+        screen_width = second.winfo_screenwidth()
+        screen_height = second.winfo_screenheight()
+        x = screen_width/2 - width_window/2
+        y = screen_height/2 - height_window/2
+        second.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+        second.configure(bg='black')
         second.title("Facebook Login")
         username1 = Label(second, text="Facebook_Username:")
         password1 = Label(second, text="Facebook_Password:")
@@ -161,7 +182,14 @@ def gameloop(a, file):
 
 def login():
     login_window = Tk()
-    login_window.configure(bg='red')
+    width_window = 300
+    height_window = 300
+    screen_width = login_window.winfo_screenwidth()
+    screen_height = login_window.winfo_screenheight()
+    x = screen_width/2 - width_window/2
+    y = screen_height/2 - height_window/2
+    login_window.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+    login_window.configure(bg='black')
     input_entry = Entry(login_window, text="Username:")
     login = Label(login_window, text="Username:")
     pass1 = Label(login_window, text="Password:")
@@ -214,6 +242,11 @@ def login():
 
 def register():
     login_window1 = Tk()
+    screen_width = login_window1.winfo_screenwidth()
+    screen_height = login_window1.winfo_screenheight()
+    x = screen_width/2 - width_window/2
+    y = screen_height/2 - height_window/2
+    login_window1.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
     root.destroy()
     login_window.configure(bg='black')
     input_entry1 = Entry(login_window1)
