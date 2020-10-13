@@ -6,7 +6,6 @@ from tkinter import *
 from tkinter import messagebox
 import pyAesCrypt
 import pygame
-#testing
 '------------------------------------main tkinter window------------------------------------'
 
 bufferSize = 64 * 1024
