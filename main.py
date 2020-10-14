@@ -4,7 +4,6 @@ import os.path
 import pickle
 from tkinter import *
 from tkinter import messagebox
-
 import pyAesCrypt
 import pygame
 from selenium import webdriver
@@ -111,18 +110,7 @@ def fb_button(username, password):
 
         def redirect():
 
-            # Step 1) Open Firefox
-            browser = webdriver.Chrome()
-            # Step 2) Navigate to Facebook
-            browser.get("http://www.facebook.com")
-            # Step 3) Search & Enter the Email or Phone field & Enter Password
-            username = browser.find_element_by_id("email")
-            password = browser.find_element_by_id("pass")
-            submit = browser.find_element_by_id("loginbutton")
-            username.send_keys("you@email.com")
-            password.send_keys("yourpassword")
-            # Step 4) Click Login
-            submit.click()
+           pass
 
         redirect_message = 'Facebook login'
         redirect_button = Button(root, text=redirect_message, command=redirect)
@@ -148,6 +136,7 @@ def fb_button(username, password):
 
         def save():
             c = username1_entry.get()
+            print(username)
             fb_username = str(username)
             fb_password = password1_entry.get()
             a = fb_username + '_facebook'
@@ -158,9 +147,9 @@ def fb_button(username, password):
             f = open(a + ".bin", "wb")
             pickle.dump(username_list, f)
             f.close()
+            print(a)
             pyAesCrypt.encryptFile(a + '.bin', a + '_facebook' + '.bin.fenc', fb_account_cipher, bufferSize)
             os.remove(a + '.bin')
-            login()
 
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
@@ -847,7 +836,6 @@ def Amazon_button(username, password):
             f = open(a + ".bin", "wb")
             pickle.dump(username_list, f)
             f.close()
-            login()
 
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
@@ -886,7 +874,7 @@ def Flipkart_button(username, password):
 
         def redirect():
 
-            # Step 1) Open Firefox
+            # Step 1) Open Chrome
             browser = webdriver.Chrome()
             # Step 2) Navigate to Facebook
             browser.get("http://www.facebook.com")
@@ -933,7 +921,6 @@ def Flipkart_button(username, password):
             f = open(a + ".bin", "wb")
             pickle.dump(username_list, f)
             f.close()
-            login()
 
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
@@ -1011,7 +998,7 @@ def login():
                     messagebox.showinfo("Success", "Success")
                     login_window.destroy()
                     root.destroy()
-            testing = True
+                    testing = True
         except:
             testing = False
             root = Tk()
@@ -1056,12 +1043,15 @@ def register():
         password = pass_entry1.get()
         username = input_entry1.get()
         if os.path.exists(username + ".bin"):
+            roo1 = Tk()
+            roo1.withdraw()
             messagebox.showinfo("Error", "The account with the same username exist!!")
+            roo1.destroy()
         else:
             f = open(str(username) + ".bin", "wb")
             l = []
             l.append(str(username))
-            l.append((password))
+            l.append(str(password))
             a.append(l)
             pickle.dump(a, f)
             HSP = username + "" + password
@@ -1074,13 +1064,13 @@ def register():
                 bufferSize,
             )
             fb = False
-
+            os.remove(file_name + ".bin")
     if fb == False:
         hsp = username + "" + password
         pyAesCrypt.decryptFile(file_name + ".bin.fenc", file_name + 'decrypted' + '.bin', hsp, bufferSize)
 
         d = pygame.display.set_mode((800, 600))
-        gameloop(d, file_name + "decrypted" + ".bin")
+        gameloop(d, file_name + "decrypted" + ".bin",password)
 
     but = Button(login_window1, text="Register", command=inputing)
 
