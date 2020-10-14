@@ -1,0 +1,6 @@
+1.This is a simple password manager built in python using tkinter, pygame, pyAesCrypt
+2.To run this you have to do the following commands in cmd:
+	i)python3 -m pip install pygame
+	ii)python3 -m pip install pyAesCrypt
+3.You must have python in your system 
+4.To run just open cmd there then type python main.py
