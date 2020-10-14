@@ -1,31 +1,31 @@
 '------------------------------------importing modules------------------------------------'
-import pickle
-import sys
-from tkinter import *
-from tkinter import messagebox
-import pyAesCrypt
-import pygame
 import os
 import os.path
+import pickle
+from tkinter import *
+from tkinter import messagebox
+
+import pyAesCrypt
+import pygame
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
+
 '------------------------------------main tkinter window------------------------------------'
 
 bufferSize = 64 * 1024
-root = Tk() 
-pygame.init() # main windows were the login screen and register screen goes
+root = Tk()
+pygame.init()  # main windows were the login screen and register screen goes
 root.title("ONE-PASS")
 root.configure(bg='black')
 width_window = 300
 height_window = 300
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
-x = screen_width/2 - width_window/2
-y = screen_height/2 - height_window/2
-root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
-  # windows titLE
+x = screen_width / 2 - width_window / 2
+y = screen_height / 2 - height_window / 2
+root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+# windows titLE
 
-  
+
 password = 0
 username = 0
 social_media = []
@@ -80,9 +80,8 @@ def fb_text(text, a, b, color, display):
     display.blit(textsurf, textrect)
 
 
-
 def fb_button(username, password):
-    file_name = str(username) + '_facebook' +  ".bin"
+    file_name = str(username) + '_facebook' + ".bin.fenc"
     if os.path.exists(file_name):
         root = Tk()
         root.configure(bg='black')
@@ -90,12 +89,11 @@ def fb_button(username, password):
         height_window = 300
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
-        x = screen_width/2 - width_window/2
-        y = screen_height/2 - height_window/2
-        root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
-        width_window = 300
-        height_window = 300
-        f1 = open(file_name, "rb")
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+        pyAesCrypt.decryptFile(file_name, str(username) + '_facebook' + 'decrypted' + '.bin', password, bufferSize)
+        f1 = open(str(username) + '_facebook' + 'decrypted' + '.bin', "rb")
         line = pickle.load(f1)
         root.title("Facebook Account")
         first = line[0]
@@ -106,27 +104,29 @@ def fb_button(username, password):
         a2_text = Label(root, text=second)
         a1_text.grid(row=0, column=1)
         a2_text.grid(row=1, column=1)
-        fwq = Label(root,text=text12)
-        f12 = Label(root,text=text22)
-        fwq.grid(row=0,column=0)
+        fwq = Label(root, text=text12)
+        f12 = Label(root, text=text22)
+        fwq.grid(row=0, column=0)
         f12.grid(row=1, column=0)
+
         def redirect():
 
-                # Step 1) Open Firefox 
-                browser = webdriver.Chrome()
-                # Step 2) Navigate to Facebook
-                browser.get("http://www.facebook.com")
-                # Step 3) Search & Enter the Email or Phone field & Enter Password
-                username = browser.find_element_by_id("email")
-                password = browser.find_element_by_id("pass")
-                submit   = browser.find_element_by_id("loginbutton")
-                username.send_keys("you@email.com")
-                password.send_keys("yourpassword")
-                # Step 4) Click Login
-                submit.click()
+            # Step 1) Open Firefox
+            browser = webdriver.Chrome()
+            # Step 2) Navigate to Facebook
+            browser.get("http://www.facebook.com")
+            # Step 3) Search & Enter the Email or Phone field & Enter Password
+            username = browser.find_element_by_id("email")
+            password = browser.find_element_by_id("pass")
+            submit = browser.find_element_by_id("loginbutton")
+            username.send_keys("you@email.com")
+            password.send_keys("yourpassword")
+            # Step 4) Click Login
+            submit.click()
+
         redirect_message = 'Facebook login'
-        redirect_button = Button(root, text=redirect_message,command=redirect)
-        redirect_button.grid(row=3,column=0,columnspan=2)
+        redirect_button = Button(root, text=redirect_message, command=redirect)
+        redirect_button.grid(row=3, column=0, columnspan=2)
     else:
         second = Tk()
         width_window = 300
@@ -145,6 +145,7 @@ def fb_button(username, password):
         username1_entry.grid(row=2, column=1)
         password1_entry.grid(row=3, column=1, columnspan=2)
         username_list = []
+
         def save():
             c = username1_entry.get()
             fb_username = str(username)
@@ -157,16 +158,16 @@ def fb_button(username, password):
             f = open(a + ".bin", "wb")
             pickle.dump(username_list, f)
             f.close()
+            pyAesCrypt.encryptFile(a + '.bin', a + '_facebook' + '.bin.fenc', fb_account_cipher, bufferSize)
+            os.remove(a + '.bin')
             login()
-        
 
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
-        redirect_button.grid(row=5, column=4)
 
 
 def insta_button(username, password):
-    file_name = str(username) + '_facebook' +  ".bin"
+    file_name = str(username) + '_facebook' + ".bin"
     if os.path.exists(file_name):
         root = Tk()
         root.configure(bg='black')
@@ -174,9 +175,9 @@ def insta_button(username, password):
         height_window = 300
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
-        x = screen_width/2 - width_window/2
-        y = screen_height/2 - height_window/2
-        root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
         width_window = 300
         height_window = 300
         f1 = open(file_name, "rb")
@@ -190,27 +191,29 @@ def insta_button(username, password):
         a2_text = Label(root, text=second)
         a1_text.grid(row=0, column=1)
         a2_text.grid(row=1, column=1)
-        fwq = Label(root,text=text12)
-        f12 = Label(root,text=text22)
-        fwq.grid(row=0,column=0)
+        fwq = Label(root, text=text12)
+        f12 = Label(root, text=text22)
+        fwq.grid(row=0, column=0)
         f12.grid(row=1, column=0)
+
         def redirect():
 
-                # Step 1) Open Firefox 
-                browser = webdriver.Chrome()
-                # Step 2) Navigate to Facebook
-                browser.get("http://www.facebook.com")
-                # Step 3) Search & Enter the Email or Phone field & Enter Password
-                username = browser.find_element_by_id("email")
-                password = browser.find_element_by_id("pass")
-                submit   = browser.find_element_by_id("loginbutton")
-                username.send_keys("you@email.com")
-                password.send_keys("yourpassword")
-                # Step 4) Click Login
-                submit.click()
+            # Step 1) Open Firefox
+            browser = webdriver.Chrome()
+            # Step 2) Navigate to Facebook
+            browser.get("http://www.facebook.com")
+            # Step 3) Search & Enter the Email or Phone field & Enter Password
+            username = browser.find_element_by_id("email")
+            password = browser.find_element_by_id("pass")
+            submit = browser.find_element_by_id("loginbutton")
+            username.send_keys("you@email.com")
+            password.send_keys("yourpassword")
+            # Step 4) Click Login
+            submit.click()
+
         redirect_message = 'Facebook login'
-        redirect_button = Button(root, text=redirect_message,command=redirect)
-        redirect_button.grid(row=3,column=0,columnspan=2)
+        redirect_button = Button(root, text=redirect_message, command=redirect)
+        redirect_button.grid(row=3, column=0, columnspan=2)
     else:
         second = Tk()
         width_window = 300
@@ -229,6 +232,7 @@ def insta_button(username, password):
         username1_entry.grid(row=2, column=1)
         password1_entry.grid(row=3, column=1, columnspan=2)
         username_list = []
+
         def save():
             c = username1_entry.get()
             fb_username = str(username)
@@ -242,7 +246,6 @@ def insta_button(username, password):
             pickle.dump(username_list, f)
             f.close()
             login()
-        
 
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
@@ -250,7 +253,7 @@ def insta_button(username, password):
 
 
 def github_button(username, password):
-    file_name = str(username) + '_facebook' +  ".bin"
+    file_name = str(username) + '_facebook' + ".bin"
     if os.path.exists(file_name):
         root = Tk()
         root.configure(bg='black')
@@ -258,9 +261,9 @@ def github_button(username, password):
         height_window = 300
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
-        x = screen_width/2 - width_window/2
-        y = screen_height/2 - height_window/2
-        root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
         width_window = 300
         height_window = 300
         f1 = open(file_name, "rb")
@@ -274,27 +277,29 @@ def github_button(username, password):
         a2_text = Label(root, text=second)
         a1_text.grid(row=0, column=1)
         a2_text.grid(row=1, column=1)
-        fwq = Label(root,text=text12)
-        f12 = Label(root,text=text22)
-        fwq.grid(row=0,column=0)
+        fwq = Label(root, text=text12)
+        f12 = Label(root, text=text22)
+        fwq.grid(row=0, column=0)
         f12.grid(row=1, column=0)
+
         def redirect():
 
-                # Step 1) Open Firefox 
-                browser = webdriver.Chrome()
-                # Step 2) Navigate to Facebook
-                browser.get("http://www.facebook.com")
-                # Step 3) Search & Enter the Email or Phone field & Enter Password
-                username = browser.find_element_by_id("email")
-                password = browser.find_element_by_id("pass")
-                submit   = browser.find_element_by_id("loginbutton")
-                username.send_keys("you@email.com")
-                password.send_keys("yourpassword")
-                # Step 4) Click Login
-                submit.click()
+            # Step 1) Open Firefox
+            browser = webdriver.Chrome()
+            # Step 2) Navigate to Facebook
+            browser.get("http://www.facebook.com")
+            # Step 3) Search & Enter the Email or Phone field & Enter Password
+            username = browser.find_element_by_id("email")
+            password = browser.find_element_by_id("pass")
+            submit = browser.find_element_by_id("loginbutton")
+            username.send_keys("you@email.com")
+            password.send_keys("yourpassword")
+            # Step 4) Click Login
+            submit.click()
+
         redirect_message = 'Facebook login'
-        redirect_button = Button(root, text=redirect_message,command=redirect)
-        redirect_button.grid(row=3,column=0,columnspan=2)
+        redirect_button = Button(root, text=redirect_message, command=redirect)
+        redirect_button.grid(row=3, column=0, columnspan=2)
     else:
         second = Tk()
         width_window = 300
@@ -313,6 +318,7 @@ def github_button(username, password):
         username1_entry.grid(row=2, column=1)
         password1_entry.grid(row=3, column=1, columnspan=2)
         username_list = []
+
         def save():
             c = username1_entry.get()
             fb_username = str(username)
@@ -326,7 +332,6 @@ def github_button(username, password):
             pickle.dump(username_list, f)
             f.close()
             login()
-        
 
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
@@ -334,7 +339,7 @@ def github_button(username, password):
 
 
 def Google_button(username, password):
-    file_name = str(username) + '_facebook' +  ".bin"
+    file_name = str(username) + '_facebook' + ".bin"
     if os.path.exists(file_name):
         root = Tk()
         root.configure(bg='black')
@@ -342,9 +347,9 @@ def Google_button(username, password):
         height_window = 300
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
-        x = screen_width/2 - width_window/2
-        y = screen_height/2 - height_window/2
-        root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
         width_window = 300
         height_window = 300
         f1 = open(file_name, "rb")
@@ -358,27 +363,29 @@ def Google_button(username, password):
         a2_text = Label(root, text=second)
         a1_text.grid(row=0, column=1)
         a2_text.grid(row=1, column=1)
-        fwq = Label(root,text=text12)
-        f12 = Label(root,text=text22)
-        fwq.grid(row=0,column=0)
+        fwq = Label(root, text=text12)
+        f12 = Label(root, text=text22)
+        fwq.grid(row=0, column=0)
         f12.grid(row=1, column=0)
+
         def redirect():
 
-                # Step 1) Open Firefox 
-                browser = webdriver.Chrome()
-                # Step 2) Navigate to Facebook
-                browser.get("http://www.facebook.com")
-                # Step 3) Search & Enter the Email or Phone field & Enter Password
-                username = browser.find_element_by_id("email")
-                password = browser.find_element_by_id("pass")
-                submit   = browser.find_element_by_id("loginbutton")
-                username.send_keys("you@email.com")
-                password.send_keys("yourpassword")
-                # Step 4) Click Login
-                submit.click()
+            # Step 1) Open Firefox
+            browser = webdriver.Chrome()
+            # Step 2) Navigate to Facebook
+            browser.get("http://www.facebook.com")
+            # Step 3) Search & Enter the Email or Phone field & Enter Password
+            username = browser.find_element_by_id("email")
+            password = browser.find_element_by_id("pass")
+            submit = browser.find_element_by_id("loginbutton")
+            username.send_keys("you@email.com")
+            password.send_keys("yourpassword")
+            # Step 4) Click Login
+            submit.click()
+
         redirect_message = 'Facebook login'
-        redirect_button = Button(root, text=redirect_message,command=redirect)
-        redirect_button.grid(row=3,column=0,columnspan=2)
+        redirect_button = Button(root, text=redirect_message, command=redirect)
+        redirect_button.grid(row=3, column=0, columnspan=2)
     else:
         second = Tk()
         width_window = 300
@@ -397,6 +404,7 @@ def Google_button(username, password):
         username1_entry.grid(row=2, column=1)
         password1_entry.grid(row=3, column=1, columnspan=2)
         username_list = []
+
         def save():
             c = username1_entry.get()
             fb_username = str(username)
@@ -410,7 +418,6 @@ def Google_button(username, password):
             pickle.dump(username_list, f)
             f.close()
             login()
-        
 
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
@@ -418,7 +425,7 @@ def Google_button(username, password):
 
 
 def Stackoverflow_button(username, password):
-    file_name = str(username) + '_facebook' +  ".bin"
+    file_name = str(username) + '_facebook' + ".bin"
     if os.path.exists(file_name):
         root = Tk()
         root.configure(bg='black')
@@ -426,9 +433,9 @@ def Stackoverflow_button(username, password):
         height_window = 300
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
-        x = screen_width/2 - width_window/2
-        y = screen_height/2 - height_window/2
-        root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
         width_window = 300
         height_window = 300
         f1 = open(file_name, "rb")
@@ -442,27 +449,29 @@ def Stackoverflow_button(username, password):
         a2_text = Label(root, text=second)
         a1_text.grid(row=0, column=1)
         a2_text.grid(row=1, column=1)
-        fwq = Label(root,text=text12)
-        f12 = Label(root,text=text22)
-        fwq.grid(row=0,column=0)
+        fwq = Label(root, text=text12)
+        f12 = Label(root, text=text22)
+        fwq.grid(row=0, column=0)
         f12.grid(row=1, column=0)
+
         def redirect():
 
-                # Step 1) Open Firefox 
-                browser = webdriver.Chrome()
-                # Step 2) Navigate to Facebook
-                browser.get("http://www.facebook.com")
-                # Step 3) Search & Enter the Email or Phone field & Enter Password
-                username = browser.find_element_by_id("email")
-                password = browser.find_element_by_id("pass")
-                submit   = browser.find_element_by_id("loginbutton")
-                username.send_keys("you@email.com")
-                password.send_keys("yourpassword")
-                # Step 4) Click Login
-                submit.click()
+            # Step 1) Open Firefox
+            browser = webdriver.Chrome()
+            # Step 2) Navigate to Facebook
+            browser.get("http://www.facebook.com")
+            # Step 3) Search & Enter the Email or Phone field & Enter Password
+            username = browser.find_element_by_id("email")
+            password = browser.find_element_by_id("pass")
+            submit = browser.find_element_by_id("loginbutton")
+            username.send_keys("you@email.com")
+            password.send_keys("yourpassword")
+            # Step 4) Click Login
+            submit.click()
+
         redirect_message = 'Facebook login'
-        redirect_button = Button(root, text=redirect_message,command=redirect)
-        redirect_button.grid(row=3,column=0,columnspan=2)
+        redirect_button = Button(root, text=redirect_message, command=redirect)
+        redirect_button.grid(row=3, column=0, columnspan=2)
     else:
         second = Tk()
         width_window = 300
@@ -481,6 +490,7 @@ def Stackoverflow_button(username, password):
         username1_entry.grid(row=2, column=1)
         password1_entry.grid(row=3, column=1, columnspan=2)
         username_list = []
+
         def save():
             c = username1_entry.get()
             fb_username = str(username)
@@ -494,7 +504,6 @@ def Stackoverflow_button(username, password):
             pickle.dump(username_list, f)
             f.close()
             login()
-        
 
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
@@ -502,7 +511,7 @@ def Stackoverflow_button(username, password):
 
 
 def Steam_button(username, password):
-    file_name = str(username) + '_facebook' +  ".bin"
+    file_name = str(username) + '_facebook' + ".bin"
     if os.path.exists(file_name):
         root = Tk()
         root.configure(bg='black')
@@ -510,9 +519,9 @@ def Steam_button(username, password):
         height_window = 300
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
-        x = screen_width/2 - width_window/2
-        y = screen_height/2 - height_window/2
-        root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
         width_window = 300
         height_window = 300
         f1 = open(file_name, "rb")
@@ -526,27 +535,29 @@ def Steam_button(username, password):
         a2_text = Label(root, text=second)
         a1_text.grid(row=0, column=1)
         a2_text.grid(row=1, column=1)
-        fwq = Label(root,text=text12)
-        f12 = Label(root,text=text22)
-        fwq.grid(row=0,column=0)
+        fwq = Label(root, text=text12)
+        f12 = Label(root, text=text22)
+        fwq.grid(row=0, column=0)
         f12.grid(row=1, column=0)
+
         def redirect():
 
-                # Step 1) Open Firefox 
-                browser = webdriver.Chrome()
-                # Step 2) Navigate to Facebook
-                browser.get("http://www.facebook.com")
-                # Step 3) Search & Enter the Email or Phone field & Enter Password
-                username = browser.find_element_by_id("email")
-                password = browser.find_element_by_id("pass")
-                submit   = browser.find_element_by_id("loginbutton")
-                username.send_keys("you@email.com")
-                password.send_keys("yourpassword")
-                # Step 4) Click Login
-                submit.click()
+            # Step 1) Open Firefox
+            browser = webdriver.Chrome()
+            # Step 2) Navigate to Facebook
+            browser.get("http://www.facebook.com")
+            # Step 3) Search & Enter the Email or Phone field & Enter Password
+            username = browser.find_element_by_id("email")
+            password = browser.find_element_by_id("pass")
+            submit = browser.find_element_by_id("loginbutton")
+            username.send_keys("you@email.com")
+            password.send_keys("yourpassword")
+            # Step 4) Click Login
+            submit.click()
+
         redirect_message = 'Facebook login'
-        redirect_button = Button(root, text=redirect_message,command=redirect)
-        redirect_button.grid(row=3,column=0,columnspan=2)
+        redirect_button = Button(root, text=redirect_message, command=redirect)
+        redirect_button.grid(row=3, column=0, columnspan=2)
     else:
         second = Tk()
         width_window = 300
@@ -565,6 +576,7 @@ def Steam_button(username, password):
         username1_entry.grid(row=2, column=1)
         password1_entry.grid(row=3, column=1, columnspan=2)
         username_list = []
+
         def save():
             c = username1_entry.get()
             fb_username = str(username)
@@ -578,7 +590,6 @@ def Steam_button(username, password):
             pickle.dump(username_list, f)
             f.close()
             login()
-        
 
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
@@ -586,7 +597,7 @@ def Steam_button(username, password):
 
 
 def Mega_button(username, password):
-    file_name = str(username) + '_facebook' +  ".bin"
+    file_name = str(username) + '_facebook' + ".bin"
     if os.path.exists(file_name):
         root = Tk()
         root.configure(bg='black')
@@ -594,9 +605,9 @@ def Mega_button(username, password):
         height_window = 300
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
-        x = screen_width/2 - width_window/2
-        y = screen_height/2 - height_window/2
-        root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
         width_window = 300
         height_window = 300
         f1 = open(file_name, "rb")
@@ -610,27 +621,29 @@ def Mega_button(username, password):
         a2_text = Label(root, text=second)
         a1_text.grid(row=0, column=1)
         a2_text.grid(row=1, column=1)
-        fwq = Label(root,text=text12)
-        f12 = Label(root,text=text22)
-        fwq.grid(row=0,column=0)
+        fwq = Label(root, text=text12)
+        f12 = Label(root, text=text22)
+        fwq.grid(row=0, column=0)
         f12.grid(row=1, column=0)
+
         def redirect():
 
-                # Step 1) Open Firefox 
-                browser = webdriver.Chrome()
-                # Step 2) Navigate to Facebook
-                browser.get("http://www.facebook.com")
-                # Step 3) Search & Enter the Email or Phone field & Enter Password
-                username = browser.find_element_by_id("email")
-                password = browser.find_element_by_id("pass")
-                submit   = browser.find_element_by_id("loginbutton")
-                username.send_keys("you@email.com")
-                password.send_keys("yourpassword")
-                # Step 4) Click Login
-                submit.click()
+            # Step 1) Open Firefox
+            browser = webdriver.Chrome()
+            # Step 2) Navigate to Facebook
+            browser.get("http://www.facebook.com")
+            # Step 3) Search & Enter the Email or Phone field & Enter Password
+            username = browser.find_element_by_id("email")
+            password = browser.find_element_by_id("pass")
+            submit = browser.find_element_by_id("loginbutton")
+            username.send_keys("you@email.com")
+            password.send_keys("yourpassword")
+            # Step 4) Click Login
+            submit.click()
+
         redirect_message = 'Facebook login'
-        redirect_button = Button(root, text=redirect_message,command=redirect)
-        redirect_button.grid(row=3,column=0,columnspan=2)
+        redirect_button = Button(root, text=redirect_message, command=redirect)
+        redirect_button.grid(row=3, column=0, columnspan=2)
     else:
         second = Tk()
         width_window = 300
@@ -649,6 +662,7 @@ def Mega_button(username, password):
         username1_entry.grid(row=2, column=1)
         password1_entry.grid(row=3, column=1, columnspan=2)
         username_list = []
+
         def save():
             c = username1_entry.get()
             fb_username = str(username)
@@ -662,7 +676,6 @@ def Mega_button(username, password):
             pickle.dump(username_list, f)
             f.close()
             login()
-        
 
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
@@ -670,7 +683,7 @@ def Mega_button(username, password):
 
 
 def OneDrive_button(username, password):
-    file_name = str(username) + '_facebook' +  ".bin"
+    file_name = str(username) + '_facebook' + ".bin"
     if os.path.exists(file_name):
         root = Tk()
         root.configure(bg='black')
@@ -678,9 +691,9 @@ def OneDrive_button(username, password):
         height_window = 300
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
-        x = screen_width/2 - width_window/2
-        y = screen_height/2 - height_window/2
-        root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
         width_window = 300
         height_window = 300
         f1 = open(file_name, "rb")
@@ -694,27 +707,29 @@ def OneDrive_button(username, password):
         a2_text = Label(root, text=second)
         a1_text.grid(row=0, column=1)
         a2_text.grid(row=1, column=1)
-        fwq = Label(root,text=text12)
-        f12 = Label(root,text=text22)
-        fwq.grid(row=0,column=0)
+        fwq = Label(root, text=text12)
+        f12 = Label(root, text=text22)
+        fwq.grid(row=0, column=0)
         f12.grid(row=1, column=0)
+
         def redirect():
 
-                # Step 1) Open Firefox 
-                browser = webdriver.Chrome()
-                # Step 2) Navigate to Facebook
-                browser.get("http://www.facebook.com")
-                # Step 3) Search & Enter the Email or Phone field & Enter Password
-                username = browser.find_element_by_id("email")
-                password = browser.find_element_by_id("pass")
-                submit   = browser.find_element_by_id("loginbutton")
-                username.send_keys("you@email.com")
-                password.send_keys("yourpassword")
-                # Step 4) Click Login
-                submit.click()
+            # Step 1) Open Firefox
+            browser = webdriver.Chrome()
+            # Step 2) Navigate to Facebook
+            browser.get("http://www.facebook.com")
+            # Step 3) Search & Enter the Email or Phone field & Enter Password
+            username = browser.find_element_by_id("email")
+            password = browser.find_element_by_id("pass")
+            submit = browser.find_element_by_id("loginbutton")
+            username.send_keys("you@email.com")
+            password.send_keys("yourpassword")
+            # Step 4) Click Login
+            submit.click()
+
         redirect_message = 'Facebook login'
-        redirect_button = Button(root, text=redirect_message,command=redirect)
-        redirect_button.grid(row=3,column=0,columnspan=2)
+        redirect_button = Button(root, text=redirect_message, command=redirect)
+        redirect_button.grid(row=3, column=0, columnspan=2)
     else:
         second = Tk()
         width_window = 300
@@ -733,6 +748,7 @@ def OneDrive_button(username, password):
         username1_entry.grid(row=2, column=1)
         password1_entry.grid(row=3, column=1, columnspan=2)
         username_list = []
+
         def save():
             c = username1_entry.get()
             fb_username = str(username)
@@ -746,7 +762,6 @@ def OneDrive_button(username, password):
             pickle.dump(username_list, f)
             f.close()
             login()
-        
 
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
@@ -754,7 +769,7 @@ def OneDrive_button(username, password):
 
 
 def Amazon_button(username, password):
-    file_name = str(username) + '_facebook' +  ".bin"
+    file_name = str(username) + '_facebook' + ".bin"
     if os.path.exists(file_name):
         root = Tk()
         root.configure(bg='black')
@@ -762,9 +777,9 @@ def Amazon_button(username, password):
         height_window = 300
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
-        x = screen_width/2 - width_window/2
-        y = screen_height/2 - height_window/2
-        root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
         width_window = 300
         height_window = 300
         f1 = open(file_name, "rb")
@@ -778,27 +793,29 @@ def Amazon_button(username, password):
         a2_text = Label(root, text=second)
         a1_text.grid(row=0, column=1)
         a2_text.grid(row=1, column=1)
-        fwq = Label(root,text=text12)
-        f12 = Label(root,text=text22)
-        fwq.grid(row=0,column=0)
+        fwq = Label(root, text=text12)
+        f12 = Label(root, text=text22)
+        fwq.grid(row=0, column=0)
         f12.grid(row=1, column=0)
+
         def redirect():
 
-                # Step 1) Open Firefox 
-                browser = webdriver.Chrome()
-                # Step 2) Navigate to Facebook
-                browser.get("http://www.facebook.com")
-                # Step 3) Search & Enter the Email or Phone field & Enter Password
-                username = browser.find_element_by_id("email")
-                password = browser.find_element_by_id("pass")
-                submit   = browser.find_element_by_id("loginbutton")
-                username.send_keys("you@email.com")
-                password.send_keys("yourpassword")
-                # Step 4) Click Login
-                submit.click()
+            # Step 1) Open Firefox
+            browser = webdriver.Chrome()
+            # Step 2) Navigate to Facebook
+            browser.get("http://www.facebook.com")
+            # Step 3) Search & Enter the Email or Phone field & Enter Password
+            username = browser.find_element_by_id("email")
+            password = browser.find_element_by_id("pass")
+            submit = browser.find_element_by_id("loginbutton")
+            username.send_keys("you@email.com")
+            password.send_keys("yourpassword")
+            # Step 4) Click Login
+            submit.click()
+
         redirect_message = 'Facebook login'
-        redirect_button = Button(root, text=redirect_message,command=redirect)
-        redirect_button.grid(row=3,column=0,columnspan=2)
+        redirect_button = Button(root, text=redirect_message, command=redirect)
+        redirect_button.grid(row=3, column=0, columnspan=2)
     else:
         second = Tk()
         width_window = 300
@@ -817,6 +834,7 @@ def Amazon_button(username, password):
         username1_entry.grid(row=2, column=1)
         password1_entry.grid(row=3, column=1, columnspan=2)
         username_list = []
+
         def save():
             c = username1_entry.get()
             fb_username = str(username)
@@ -830,7 +848,6 @@ def Amazon_button(username, password):
             pickle.dump(username_list, f)
             f.close()
             login()
-        
 
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
@@ -838,7 +855,7 @@ def Amazon_button(username, password):
 
 
 def Flipkart_button(username, password):
-    file_name = str(username) + '_facebook' +  ".bin"
+    file_name = str(username) + '_facebook' + ".bin"
     if os.path.exists(file_name):
         root = Tk()
         root.configure(bg='black')
@@ -846,9 +863,9 @@ def Flipkart_button(username, password):
         height_window = 300
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
-        x = screen_width/2 - width_window/2
-        y = screen_height/2 - height_window/2
-        root.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
         width_window = 300
         height_window = 300
         f1 = open(file_name, "rb")
@@ -862,27 +879,29 @@ def Flipkart_button(username, password):
         a2_text = Label(root, text=second)
         a1_text.grid(row=0, column=1)
         a2_text.grid(row=1, column=1)
-        fwq = Label(root,text=text12)
-        f12 = Label(root,text=text22)
-        fwq.grid(row=0,column=0)
+        fwq = Label(root, text=text12)
+        f12 = Label(root, text=text22)
+        fwq.grid(row=0, column=0)
         f12.grid(row=1, column=0)
+
         def redirect():
 
-                # Step 1) Open Firefox 
-                browser = webdriver.Chrome()
-                # Step 2) Navigate to Facebook
-                browser.get("http://www.facebook.com")
-                # Step 3) Search & Enter the Email or Phone field & Enter Password
-                username = browser.find_element_by_id("email")
-                password = browser.find_element_by_id("pass")
-                submit   = browser.find_element_by_id("loginbutton")
-                username.send_keys("you@email.com")
-                password.send_keys("yourpassword")
-                # Step 4) Click Login
-                submit.click()
+            # Step 1) Open Firefox
+            browser = webdriver.Chrome()
+            # Step 2) Navigate to Facebook
+            browser.get("http://www.facebook.com")
+            # Step 3) Search & Enter the Email or Phone field & Enter Password
+            username = browser.find_element_by_id("email")
+            password = browser.find_element_by_id("pass")
+            submit = browser.find_element_by_id("loginbutton")
+            username.send_keys("you@email.com")
+            password.send_keys("yourpassword")
+            # Step 4) Click Login
+            submit.click()
+
         redirect_message = 'Facebook login'
-        redirect_button = Button(root, text=redirect_message,command=redirect)
-        redirect_button.grid(row=3,column=0,columnspan=2)
+        redirect_button = Button(root, text=redirect_message, command=redirect)
+        redirect_button.grid(row=3, column=0, columnspan=2)
     else:
         second = Tk()
         width_window = 300
@@ -901,6 +920,7 @@ def Flipkart_button(username, password):
         username1_entry.grid(row=2, column=1)
         password1_entry.grid(row=3, column=1, columnspan=2)
         username_list = []
+
         def save():
             c = username1_entry.get()
             fb_username = str(username)
@@ -914,13 +934,13 @@ def Flipkart_button(username, password):
             pickle.dump(username_list, f)
             f.close()
             login()
-        
 
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
         redirect_button.grid(row=5, column=4)
 
-def gameloop(a, file,password):
+
+def gameloop(a, file, password):
     fb = "Facebook"
     quitting = True
     while quitting:
@@ -942,9 +962,9 @@ def gameloop(a, file,password):
             a,
         )
         if (
-            mouse[0] == 1
-            and 20 < mouse_pos[0] < 20 + facebook.get_width()
-            and 20 < mouse_pos[1] < 20 + facebook.get_height()
+                mouse[0] == 1
+                and 20 < mouse_pos[0] < 20 + facebook.get_width()
+                and 20 < mouse_pos[1] < 20 + facebook.get_height()
         ):
             quitting = False
             pygame.quit()
@@ -959,9 +979,9 @@ def login():
     height_window = 300
     screen_width = login_window.winfo_screenwidth()
     screen_height = login_window.winfo_screenheight()
-    x = screen_width/2 - width_window/2
-    y = screen_height/2 - height_window/2
-    login_window.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+    x = screen_width / 2 - width_window / 2
+    y = screen_height / 2 - height_window / 2
+    login_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
     login_window.configure(bg='black')
     input_entry = Entry(login_window, text="Username:")
     login = Label(login_window, text="Username:")
@@ -1000,7 +1020,7 @@ def login():
             root.destroy()
         if testing:
             d = pygame.display.set_mode((800, 600))
-            gameloop(d, file_name + "decrypted" + ".bin",main_password)
+            gameloop(d, file_name + "decrypted" + ".bin", main_password)
 
     but = Button(login_window, text="Login", command=login_checking)
     login.grid(row=2, column=2)
@@ -1017,9 +1037,9 @@ def register():
     login_window1 = Tk()
     screen_width = login_window1.winfo_screenwidth()
     screen_height = login_window1.winfo_screenheight()
-    x = screen_width/2 - width_window/2
-    y = screen_height/2 - height_window/2
-    login_window1.geometry("%dx%d+%d+%d" % (width_window,height_window,x,y))
+    x = screen_width / 2 - width_window / 2
+    y = screen_height / 2 - height_window / 2
+    login_window1.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
     root.destroy()
     login_window1.configure(bg='black')
     input_entry1 = Entry(login_window1)
@@ -1031,13 +1051,14 @@ def register():
     text = "!!Do not forgot the password,it is impossible to recover it"
     a = []
     fb = True
+
     def inputing():
         password = pass_entry1.get()
         username = input_entry1.get()
-        if os.path.exists(username  + ".bin"):
+        if os.path.exists(username + ".bin"):
             messagebox.showinfo("Error", "The account with the same username exist!!")
         else:
-            f = open(str(username)  + ".bin", "wb")
+            f = open(str(username) + ".bin", "wb")
             l = []
             l.append(str(username))
             l.append((password))
@@ -1045,7 +1066,7 @@ def register():
             pickle.dump(a, f)
             HSP = username + "" + password
             f.close()
-            file_name = str(username) 
+            file_name = str(username)
             pyAesCrypt.encryptFile(
                 file_name + ".bin",
                 file_name + ".bin.fenc",
@@ -1053,13 +1074,14 @@ def register():
                 bufferSize,
             )
             fb = False
-    if fb == False:
-            hsp = username + "" + password
-            pyAesCrypt.decryptFile(file_name + ".bin.fenc" ,file_name+'decrypted'+'.bin',hsp,bufferSize)
 
-            d = pygame.display.set_mode((800, 600))
-            gameloop(d, file_name + "decrypted" + ".bin")
-    
+    if fb == False:
+        hsp = username + "" + password
+        pyAesCrypt.decryptFile(file_name + ".bin.fenc", file_name + 'decrypted' + '.bin', hsp, bufferSize)
+
+        d = pygame.display.set_mode((800, 600))
+        gameloop(d, file_name + "decrypted" + ".bin")
+
     but = Button(login_window1, text="Register", command=inputing)
 
     lbl1 = Label(login_window1, text=text)
