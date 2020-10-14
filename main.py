@@ -6,10 +6,10 @@ from tkinter import *
 from tkinter import messagebox
 import pyAesCrypt
 import pygame
-from selenium import webdriver 
-from time import sleep 
-from webdriver_manager.chrome import ChromeDriverManager 
-from selenium.webdriver.chrome.options import Options 
+from selenium import webdriver
+from time import sleep
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
 '------------------------------------main tkinter window------------------------------------'
 
 bufferSize = 64 * 1024
@@ -92,7 +92,8 @@ def fb_button(username, password):
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
         root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-        pyAesCrypt.decryptFile(file_name, str(username) + '_facebook' + 'decrypted' + '.bin', password, bufferSize)
+        pyAesCrypt.decryptFile(file_name, str(
+            username) + '_facebook' + 'decrypted' + '.bin', password, bufferSize)
         f1 = open(str(username) + '_facebook' + 'decrypted' + '.bin', "rb")
         line = pickle.load(f1)
         root.title("Facebook Account")
@@ -108,56 +109,59 @@ def fb_button(username, password):
         f12 = Label(root, text=text22)
         fwq.grid(row=0, column=0)
         f12.grid(row=1, column=0)
+
         def _delete_window():
             try:
                 root.destroy()
             except:
                 pass
+
         def back1():
             pygame.init()
             root.destroy()
-            d = pygame.display.set_mode((800,600))
-            gameloop(d, str(username),password)
+            d = pygame.display.set_mode((800, 600))
+            gameloop(d, str(username), password)
+
         def _destroy(event):
             f1.close()
-            if os.path.exists(str(username) + '_facebook' + 'decrypted' + '.bin'):  
+            if os.path.exists(str(username) + '_facebook' + 'decrypted' + '.bin'):
                 os.remove(str(username) + '_facebook' + 'decrypted' + '.bin')
             else:
                 pass
+
         def remote():
 
+            usr = 'rohithkrishnan2003@gmail.com'
+            pwd = 'Batman@1234'
 
-            usr='rohithkrishnan2003@gmail.com'
-            pwd='Batman@1234'
+            driver = webdriver.Chrome(ChromeDriverManager().install())
+            driver.get('https://www.facebook.com/')
+            print("Opened facebook")
+            sleep(1)
 
-            driver = webdriver.Chrome(ChromeDriverManager().install()) 
-            driver.get('https://www.facebook.com/') 
-            print ("Opened facebook") 
-            sleep(1) 
+            username_box = driver.find_element_by_id('email')
+            username_box.send_keys(usr)
+            print("Email Id entered")
+            sleep(1)
 
-            username_box = driver.find_element_by_id('email') 
-            username_box.send_keys(usr) 
-            print ("Email Id entered") 
-            sleep(1) 
+            password_box = driver.find_element_by_id('pass')
+            password_box.send_keys(pwd)
+            print("Password entered")
 
-            password_box = driver.find_element_by_id('pass') 
-            password_box.send_keys(pwd) 
-            print ("Password entered") 
+            login_box = driver.find_element_by_id('u_0_b')
+            login_box.click()
 
-            login_box = driver.find_element_by_id('u_0_b') 
-            login_box.click() 
-
-            print ("Done") 
-            input('Press anything to quit') 
-            driver.quit() 
+            print("Done")
+            input('Press anything to quit')
+            driver.quit()
 
         root.protocol("WM_DELETE_WINDOW", _delete_window)
         root.bind("<Destroy>", _destroy)
 
-        back = Button(root,text='Go back!',command=back1,width=10)
-        back.grid(row=3,column=0,columnspan=2)
-        remote_login = Button(root,text='Facebook',command=remote,width=10)
-        remote_login.grid(row=4,column=0,columnspan=2)
+        back = Button(root, text='Go back!', command=back1, width=10)
+        back.grid(row=3, column=0, columnspan=2)
+        remote_login = Button(root, text='Facebook', command=remote, width=10)
+        remote_login.grid(row=4, column=0, columnspan=2)
 
     else:
         second = Tk()
@@ -192,7 +196,8 @@ def fb_button(username, password):
             pickle.dump(username_list, f)
             f.close()
             print(a)
-            pyAesCrypt.encryptFile(a + '.bin', a  + '.bin.fenc', fb_account_cipher, bufferSize)
+            pyAesCrypt.encryptFile(
+                a + '.bin', a + '.bin.fenc', fb_account_cipher, bufferSize)
             os.remove(a + '.bin')
 
         saving = Button(second, text="Save", command=save)
@@ -971,7 +976,7 @@ def Flipkart_button(username, password):
         redirect_button.grid(row=5, column=4)
 
 
-def gameloop(a, username,password):
+def gameloop(a, username, password):
     fb = "Facebook"
     quitting = True
     while quitting:
@@ -1051,7 +1056,7 @@ def login():
             root.destroy()
         if testing:
             d = pygame.display.set_mode((800, 600))
-            gameloop(d,file_name, main_password)
+            gameloop(d, file_name, main_password)
 
     but = Button(login_window, text="Login", command=login_checking)
     login.grid(row=2, column=2)
@@ -1089,7 +1094,8 @@ def register():
         if os.path.exists(username + ".bin"):
             roo1 = Tk()
             roo1.withdraw()
-            messagebox.showinfo("Error", "The account with the same username exist!!")
+            messagebox.showinfo(
+                "Error", "The account with the same username exist!!")
             roo1.destroy()
         else:
             f = open(str(username) + ".bin", "wb")
@@ -1111,10 +1117,11 @@ def register():
             os.remove(file_name + ".bin")
     if fb == False:
         hsp = username + "" + password
-        pyAesCrypt.decryptFile(file_name + ".bin.fenc", file_name + 'decrypted' + '.bin', hsp, bufferSize)
+        pyAesCrypt.decryptFile(file_name + ".bin.fenc",
+                               file_name + 'decrypted' + '.bin', hsp, bufferSize)
 
         d = pygame.display.set_mode((800, 600))
-        gameloop(d, file_name + "decrypted" + ".bin",password)
+        gameloop(d, file_name + "decrypted" + ".bin", password)
 
     but = Button(login_window1, text="Register", command=inputing)
 
@@ -1131,7 +1138,8 @@ def register():
 
 main = Label(root, text="Welcome to ONE-PASS manager")
 login_text = Label(root, text="Do you already have an account")
-register_text = Label(root, text='If you don"t have an account please register')
+register_text = Label(
+    root, text='If you don"t have an account please register')
 reg_button = Button(root, text="Register", command=register)
 login_button = Button(root, text="login", command=login)  # added login button
 
