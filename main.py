@@ -6,8 +6,10 @@ from tkinter import *
 from tkinter import messagebox
 import pyAesCrypt
 import pygame
-from selenium import webdriver
-
+from selenium import webdriver 
+from time import sleep 
+from webdriver_manager.chrome import ChromeDriverManager 
+from selenium.webdriver.chrome.options import Options 
 '------------------------------------main tkinter window------------------------------------'
 
 bufferSize = 64 * 1024
@@ -83,7 +85,6 @@ def fb_button(username, password):
     file_name = str(username) + '_facebook' + ".bin.fenc"
     if os.path.exists(file_name):
         root = Tk()
-        root.configure(bg='black')
         width_window = 300
         height_window = 300
         screen_width = root.winfo_screenwidth()
@@ -107,14 +108,57 @@ def fb_button(username, password):
         f12 = Label(root, text=text22)
         fwq.grid(row=0, column=0)
         f12.grid(row=1, column=0)
+        def _delete_window():
+            try:
+                root.destroy()
+            except:
+                pass
+        def back1():
+            pygame.init()
+            root.destroy()
+            d = pygame.display.set_mode((800,600))
+            gameloop(d, str(username),password)
+        def _destroy(event):
+            f1.close()
+            if os.path.exists(str(username) + '_facebook' + 'decrypted' + '.bin'):  
+                os.remove(str(username) + '_facebook' + 'decrypted' + '.bin')
+            else:
+                pass
+        def remote():
 
-        def redirect():
 
-           pass
+            usr='rohithkrishnan2003@gmail.com'
+            pwd='Batman@1234'
 
-        redirect_message = 'Facebook login'
-        redirect_button = Button(root, text=redirect_message, command=redirect)
-        redirect_button.grid(row=3, column=0, columnspan=2)
+            driver = webdriver.Chrome(ChromeDriverManager().install()) 
+            driver.get('https://www.facebook.com/') 
+            print ("Opened facebook") 
+            sleep(1) 
+
+            username_box = driver.find_element_by_id('email') 
+            username_box.send_keys(usr) 
+            print ("Email Id entered") 
+            sleep(1) 
+
+            password_box = driver.find_element_by_id('pass') 
+            password_box.send_keys(pwd) 
+            print ("Password entered") 
+
+            login_box = driver.find_element_by_id('u_0_b') 
+            login_box.click() 
+
+            print ("Done") 
+            input('Press anything to quit') 
+            driver.quit() 
+
+        root.protocol("WM_DELETE_WINDOW", _delete_window)
+        root.bind("<Destroy>", _destroy)
+
+        back = Button(root,text='Go back!',command=back1,width=10)
+        back.grid(row=3,column=0,columnspan=2)
+        remote_login = Button(root,text='Facebook',command=remote,width=10)
+        remote_login.grid(row=4,column=0,columnspan=2)
+
     else:
         second = Tk()
         width_window = 300
@@ -148,7 +192,7 @@ def fb_button(username, password):
             pickle.dump(username_list, f)
             f.close()
             print(a)
-            pyAesCrypt.encryptFile(a + '.bin', a + '_facebook' + '.bin.fenc', fb_account_cipher, bufferSize)
+            pyAesCrypt.encryptFile(a + '.bin', a  + '.bin.fenc', fb_account_cipher, bufferSize)
             os.remove(a + '.bin')
 
         saving = Button(second, text="Save", command=save)
@@ -927,7 +971,7 @@ def Flipkart_button(username, password):
         redirect_button.grid(row=5, column=4)
 
 
-def gameloop(a, file, password):
+def gameloop(a, username,password):
     fb = "Facebook"
     quitting = True
     while quitting:
@@ -1007,7 +1051,7 @@ def login():
             root.destroy()
         if testing:
             d = pygame.display.set_mode((800, 600))
-            gameloop(d, file_name + "decrypted" + ".bin", main_password)
+            gameloop(d,file_name, main_password)
 
     but = Button(login_window, text="Login", command=login_checking)
     login.grid(row=2, column=2)
