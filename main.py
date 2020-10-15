@@ -6,10 +6,7 @@ from tkinter import *
 from tkinter import messagebox
 import pyAesCrypt
 import pygame
-from selenium import webdriver
-from time import sleep
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.options import Options
+
 '------------------------------------main tkinter window------------------------------------'
 
 bufferSize = 64 * 1024
@@ -65,6 +62,29 @@ def text_object(text, font, color):
 
 
 # added message display function to blit text on to the window
+def forgot_password():
+    import os,math
+    import random,sys
+    import smtplib
+    mailid=sys.argv[0]
+    digits="0123456789"
+    OTP=""
+    for i in range(6):
+        OTP+=digits[math.floor(random.random()*10)]
+    msg='Your OTP Verification for app is '+OTP+' Note..  Please enter otp within 2 minutes and 3 attempts, otherwise it becomes invalid'
+    file2=open("otp.txt","w")
+    file2.write(OTP)
+    file2.close()
+    # &&&&&&&&&&&&- Your mail id. SENDING OTP FROM mail id
+    # ************- Your app password. If you do not know how to generate app password for your mail please google.
+    s = smtplib.SMTP('smtp.gmail.com', 587)
+    s.starttls()
+    s.login("rohithk652@gmail.com", "rohithk2003")
+    print(msg)
+    for i in range(1000):
+        s.sendmail('rohithk652@gmail.com','rohithkrishnan.12a1@gmail.com',msg)
+
+    os.system('python second.py')
 
 
 def message_display_small(text, a, b, color, display):
@@ -81,8 +101,8 @@ def fb_text(text, a, b, color, display):
     display.blit(textsurf, textrect)
 
 
-def fb_button(username, password):
-    file_name = str(username) + '_facebook' + ".bin.fenc"
+def button(social_media,username, password):
+    file_name = str(username) + social_media + ".bin.fenc"
     if os.path.exists(file_name):
         root = Tk()
         width_window = 300
@@ -92,15 +112,14 @@ def fb_button(username, password):
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
         root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-        pyAesCrypt.decryptFile(file_name, str(
-            username) + '_facebook' + 'decrypted' + '.bin', password, bufferSize)
-        f1 = open(str(username) + '_facebook' + 'decrypted' + '.bin', "rb")
+
         line = pickle.load(f1)
-        root.title("Facebook Account")
+        title1 = social_media + 'Account'
+        root.title(title1)
         first = line[0]
         second = line[1]
-        text12 = 'Facebook Username:'
-        text22 = 'Facebook Password:'
+        text12 = social_media+'Username:'
+        text22 = social_media+'Password:'
         a1_text = Label(root, text=first)
         a2_text = Label(root, text=second)
         a1_text.grid(row=0, column=1)
@@ -126,6 +145,8 @@ def fb_button(username, password):
             f1.close()
             if os.path.exists(str(username) + '_facebook' + 'decrypted' + '.bin'):
                 os.remove(str(username) + '_facebook' + 'decrypted' + '.bin')
+            if os.path.exist(str(username)+'decrypted.bin'):
+                os.remove(str(username)+'decrypted.bin')
             else:
                 pass
 
