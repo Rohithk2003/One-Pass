@@ -6,9 +6,14 @@ from tkinter import *
 from tkinter import messagebox
 import pyAesCrypt
 import pygame
-import math,random
+import math
+import random
 import sys
 import smtplib
+import mysql.connector
+import hashlib
+import base64
+import uuid
 '------------------------------------main tkinter window------------------------------------'
 
 bufferSize = 64 * 1024
@@ -25,7 +30,7 @@ y = screen_height / 2 - height_window / 2
 root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 # windows titLE
 
-
+'''  '''
 password = 0
 username = 0
 social_media = []
@@ -43,6 +48,23 @@ fb_size = facebook.get_rect()
 # social_media.append(instagram)
 # social_media.append(google)
 # social_media.append(github)
+'------------------------------------ mysql database ------------------------------------'
+my_database = mysql.connector.connect(
+    host='localhost', user='root', password='rohithk123')
+my_cursor = my_database.cursor()
+my_cursor.execute("set autocommit=1")
+try:
+    my_cursor.execute('create database USERS')
+    my_cursor.execute('use USERS')
+    my_cursor.execute(
+        'create table data_input (username varchar(20),password_hash_key varchar(20)')
+except:
+    my_cursor.execute('use USERS')
+    try:
+        my_cursor.execute(
+            'create table data_input (username varchar(20),password_hash_key varchar(20)')
+    except:
+        pass
 
 '------------------------------------ Colors ------------------------------------'
 black = (0, 0, 0)
@@ -57,53 +79,28 @@ active_fb = False
 
 font = pygame.font.Font("freesansbold.ttf", 30)
 
+
 def forgot_password():
-        mailid=sys.argv[0]
-        digits="0123456789"
-        OTP=""
-        for i in range(6):
-            OTP+=digits[math.floor(random.random()*10)]
-        msg='Your OTP Verification for app is '+OTP+' Note..  Please enter otp within 2 minutes and 3 attempts, otherwise it becomes invalid'
-        file2=open("otp.txt","w")
-        file2.write(OTP)
-        file2.close()
-        # &&&&&&&&&&&&- Your mail id. SENDING OTP FROM mail id
-        # ************- Your app password. If you do not know how to generate app password for your mail please google.
-        s = smtplib.SMTP('smtp.gmail.com', 587)
-        s.starttls()
-        s.login("rohithk652@gmail.com", "rohithk2003")
-        print(msg)
-        s.sendmail('rohithk652@gmail.com','rohithkrishnan.12a1@gmail.com',msg)
-
-def text_object(text, font, color):
-    textsurf = font.render(text, True, color)
-    return textsurf, textsurf.get_rect()
-
-
-# added message display function to blit text on to the window
-def forgot_password():
-    import os,math
-    import random,sys
-    import smtplib
-    mailid=sys.argv[0]
-    digits="0123456789"
-    OTP=""
+    mailid = sys.argv[0]
+    digits = "0123456789"
+    OTP = ""
     for i in range(6):
-        OTP+=digits[math.floor(random.random()*10)]
-    msg='Your OTP Verification for app is '+OTP+' Note..  Please enter otp within 2 minutes and 3 attempts, otherwise it becomes invalid'
-    file2=open("otp.txt","w")
+        OTP += digits[math.floor(random.random()*10)]
+    msg = 'Your OTP Verification for app is '+OTP + \
+        ' Note..  Please enter otp within 2 minutes and 3 attempts, otherwise it becomes invalid'
+    file2 = open("otp.txt", "w")
     file2.write(OTP)
     file2.close()
-    # &&&&&&&&&&&&- Your mail id. SENDING OTP FROM mail id
-    # ************- Your app password. If you do not know how to generate app password for your mail please google.
     s = smtplib.SMTP('smtp.gmail.com', 587)
     s.starttls()
     s.login("rohithk652@gmail.com", "rohithk2003")
     print(msg)
-    for i in range(1000):
-        s.sendmail('rohithk652@gmail.com','rohithkrishnan.12a1@gmail.com',msg)
+    s.sendmail('rohithk652@gmail.com', 'vivekvalsan.12a1@gmail.com', msg)
 
-    os.system('python second.py')
+
+def text_object(text, font, color):
+    textsurf = font.render(text, True, color)
+    return textsurf, textsurf.get_rect()
 
 
 def message_display_small(text, a, b, color, display):
@@ -120,7 +117,7 @@ def fb_text(text, a, b, color, display):
     display.blit(textsurf, textrect)
 
 
-def button(social_media,username, password):
+def button(social_media, username, password):
     file_name = str(username) + social_media + ".bin.fenc"
     if os.path.exists(file_name):
         root = Tk()
@@ -355,6 +352,7 @@ def register():
     text = "!!Do not forgot the password,it is impossible to recover it"
     a = []
     fb = True
+
     def inputing():
         password = pass_entry1.get()
         username = input_entry1.get()
