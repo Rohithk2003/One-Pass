@@ -5,6 +5,7 @@ import pickle
 from tkinter import *
 from tkinter import messagebox
 import pyAesCrypt
+
 import pygame
 import math
 import random
@@ -66,7 +67,7 @@ except:
     except:
         pass
 
-'------------------------------------ Colors ------------------------------------'
+'------------------------------------Colors------------------------------------'
 black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
@@ -269,7 +270,7 @@ def gameloop(a, username, password):
         ):
             quitting = False
             pygame.quit()
-            fb_button(username, password)
+            button('facebook',username, password)
             break
         pygame.display.update()
 
