@@ -1,10 +1,4 @@
-import uuid
-import base64
-import hashlib
-import sys
-from tkinter import messagebox
-import os.path
-'------------------------------------importing modules------------------------------------'
+"------------------------------------importing modules------------------------------------"
 import math
 import pickle
 import random
@@ -16,17 +10,22 @@ import pyAesCrypt
 import pygame
 from simplecrypt import encrypt
 import os
+import sys
+from tkinter import messagebox
+import os.path
 import time
 import atexit
-'------------------------------------importing modules------------------------------------'
+import ctypes
+import time
+from cryptography.fernet import Fernet
 
-'------------------------------------main tkinter window------------------------------------'
+"------------------------------------main tkinter window------------------------------------"
 
 bufferSize = 64 * 1024
 root = Tk()
 pygame.init()  # main windows were the login screen and register screen goes
 root.title("ONE-PASS")
-root.configure(bg='black')
+root.configure(bg="black")
 width_window = 300
 height_window = 300
 screen_width = root.winfo_screenwidth()
@@ -34,13 +33,11 @@ screen_height = root.winfo_screenheight()
 x = screen_width / 2 - width_window / 2
 y = screen_height / 2 - height_window / 2
 root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-# windows titLE
 
-'''  '''
 password = 0
 username = 0
 social_media = []
-'------------------------------------loading images------------------------------------'
+"------------------------------------loading images------------------------------------"
 num_password_account = 5
 facebook = pygame.image.load("facebook.png")
 instagram = pygame.image.load("instagram.png")
@@ -50,27 +47,26 @@ github = pygame.image.load("github.png")
 # getting the size of the facebook image
 fb_size = facebook.get_rect()
 
-# social_media.append(facebook)
-# social_media.append(instagram)
-# social_media.append(google)
-# social_media.append(github)
-'------------------------------------ mysql database ------------------------------------'
+
+"------------------------------------ mysql database ------------------------------------"
 my_database = mysql.connector.connect(
-    host='localhost', user='root', password='rohithk123')
+    host="localhost", user="root", password="rohithk123"
+)
 my_cursor = my_database.cursor()
 my_cursor.execute("set autocommit=1")
 try:
-    my_cursor.execute('create database USERS')
-    my_cursor.execute('use USERS')
+    my_cursor.execute("create database USERS")
+    my_cursor.execute("use USERS")
 except:
-    my_cursor.execute('use USERS')
+    my_cursor.execute("use USERS")
 try:
     my_cursor.execute(
-        'create table data_input (username varchar(100) primary key,email_id varchar(500) unique )')
+        "create table data_input (username varchar(100) primary key,email_id varchar(500) unique )"
+    )
 except:
     pass
 
-'------------------------------------Colors------------------------------------'
+"------------------------------------Colors------------------------------------"
 black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
@@ -78,29 +74,23 @@ blue = (0, 0, 255)
 green = (0, 255, 0)
 catch_error = True
 
-fb_user_text = ""
-active_fb = False
+social_media_user_text = ""
+social_media_active = False
 
 font = pygame.font.Font("freesansbold.ttf", 30)
 
+
 def delete_file(file):
     os.remove(file)
-def forgot_password():
+
+
+def forgot_password(OTP, email):
     mailid = sys.argv[0]
-    digits = "0123456789"
-    OTP = ""
-    for i in range(6):
-        OTP += digits[math.floor(random.random() * 10)]
-    msg = 'Your OTP Verification for app is ' + OTP + \
-          ' Note..  Please enter otp within 2 minutes and 3 attempts, otherwise it becomes invalid'
-    file2 = open("otp.txt", "w")
-    file2.write(OTP)
-    file2.close()
-    s = smtplib.SMTP('smtp.gmail.com', 587)
+    msg = OTP
+    s = smtplib.SMTP("smtp.gmail.com", 587)
     s.starttls()
     s.login("rohithk652@gmail.com", "rohithk2003")
-    print(msg)
-    s.sendmail('rohithk652@gmail.com', 'vivekvalsan.12a1@gmail.com', msg)
+    s.sendmail("rohithk652@gmail.com", email, msg)
 
 
 def text_object(text, font, color):
@@ -123,6 +113,43 @@ def fb_text(text, a, b, color, display):
 
 
 # def button(social_media_name,username,password):
+def login_password():
+    window = Tk()
+    window.title("Forgot Password")
+    text = "Please provide the recovery email and recovery email password that you provided while creating an account"
+    text_label = Label(window, text=text)
+    recover_email = Label(window, text="Email")
+    recover_password = Label(window, text="Password")
+    recover_email_entry = Entry(window)
+    recover_password_entry = Entry(window)
+    text_label.grid(row=0, column=0, columnspan=2)
+    recover_email.grid(row=1, column=0)
+    recover_password.grid(row=2, column=0)
+    recover_email_entry.grid(row=1, column=1)
+    recover_password_entry.grid(row=2, column=1)
+    key = Fernet.generate_key()
+    otp_label = Label(window, text="OTP:")
+    otp_entry = Entry(window)
+
+    def generate_key():
+        pyAesCrypt.encryptFile("otp.bin", "otp.bin.fenc", key, bufferSize)
+        messagebox.showinfo("OTP", "2 minutes to verify otp send to email")
+        os.remove("otp.txt")
+
+    email = str(recover_email_entry.get())
+    encrypted_data = f.encrypt()
+    digits = "1234567890"
+    OTP = ""
+    for i in range(6):
+        OTP += digits[math.floor(random.random() * 10)]
+    l = list(OTP)
+    f = open("otp.bin", "wb")
+    pickle.dump(l, f)
+    f.close()
+    generate_key()
+    Verification()
+    forgot_password(OTP, email)
+
 
 def login():
     login_window = Tk()
@@ -138,10 +165,11 @@ def login():
     pass1 = Label(login_window, text="Password:")
     pass_entry = Entry(login_window, text="Password:", show="*")
     lbl = Label(login_window, text="Please enter your username and password:")
+    forgot = Button(login_window, text="Forgot Password", command=login_password)
 
     def login_checking():
         testing = False
-        password = pass_entry.get()
+        password = str(pass_entry.get())
         username = str(input_entry.get())
         file_name = str(username)
         try:
@@ -153,7 +181,7 @@ def login():
             )
             f = open(file_name + "decrypted" + ".bin", "rb")
             logins = pickle.load(f)
-            messagebox.showinfo('Success','Success')
+            messagebox.showinfo("Success", "Success")
             testing = True
         except:
             testing = False
@@ -174,6 +202,10 @@ def login():
     but.grid(row=8, column=3)
     root.destroy()
     login_window.resizable(False, False)
+
+    forgot.grid(row=7, column=2)
+
+
 def register():
     login_window1 = Tk()
     root.destroy()
@@ -184,10 +216,10 @@ def register():
         email_id_register = str(email_id_entry.get())
         email_password_register = str(email_password_entry.get())
         word = email_id_register.split()
-        original = ''
+        original = ""
         for p in word:
             for i in p:
-                if i == '@':
+                if i == "@":
                     break
                 else:
                     original += i
@@ -200,48 +232,53 @@ def register():
         values[username_register] = password_register
         values_list.append(values)
         try:
-            my_cursor.execute('insert into  data_input values (%s,%s)',
-                          (username_register, cipher_text_deleted))
+            my_cursor.execute(
+                "insert into  data_input values (%s,%s)",
+                (username_register, cipher_text_deleted),
+            )
         except:
-            messagebox.showerror('Error','Username already exists')
-        file_name = username_register + '.bin'
+            messagebox.showerror("Error", "Username already exists")
+        file_name = username_register + ".bin"
         print(values)
-        f = open(file_name, 'wb')
+        f = open(file_name, "wb")
         pickle.dump(values_list, f)
         f.close()
-        pyAesCrypt.encryptFile(file_name, file_name +
-                               '.fenc', password_register, bufferSize)
+        pyAesCrypt.encryptFile(
+            file_name, file_name + ".fenc", password_register, bufferSize
+        )
         os.remove(file_name)
 
     def hide_password(entry, row, column, row1, column1):
-        text = entry.get()
-        text_str = str(text)
-        entry1 = Entry(login_window1, show='*')
-        entry1.grid(row=row, column=column)
-        entry1.delete(0, END)
-        entry1.insert(0,text_str)
-        show_both_11 = Button(login_window1, text='show password',
-                              command=lambda: show_password(entry1, row, column, row1, column1))
+        entry.config(show="*")
+        show_both_11 = Button(
+            login_window1,
+            text="show password",
+            command=lambda: show_password(entry, row, column, row1, column1),
+        )
         show_both_11.grid(row=row1, column=column1)
 
     def show_password(entry, row, column, row1, column1):
-        entry.config(show='')
-        show_both_11 = Button(login_window1, text='hide password',
-                              command=lambda: hide_password(entry, row, column, row1, column1))
+        entry.config(show="")
+        show_both_11 = Button(
+            login_window1,
+            text="hide password",
+            command=lambda: hide_password(entry, row, column, row1, column1),
+        )
         show_both_11.grid(row=row1, column=column1)
 
-    username = Label(login_window1, text='Username')
-    password = Label(login_window1, text='password')
-    email_id = Label(login_window1, text='Recovery Email :')
-    email_password = Label(login_window1, text='Recovery Email password')
+    username = Label(login_window1, text="Username")
+    password = Label(login_window1, text="password")
+    email_id = Label(login_window1, text="Recovery Email :")
+    email_password = Label(login_window1, text="Recovery Email password")
     username_entry = Entry(login_window1)
-    password_entry = Entry(login_window1, show='*')
+    password_entry = Entry(login_window1, show="*")
     email_id_entry = Entry(login_window1)
-    email_password_entry = Entry(login_window1, show='*')
+    email_password_entry = Entry(login_window1, show="*")
     width = login_window1.winfo_screenwidth()
+
     # register button
-    register_button = Button(
-        login_window1, text='Register', command=register_saving)
+    register_button = Button(login_window1, text="Register", command=register_saving)
+
     # putting the buttons and entries
     username.grid(row=2, column=0)
     password.grid(row=3, column=0)
@@ -251,10 +288,16 @@ def register():
     password_entry.grid(row=3, column=1)
     email_id_entry.grid(row=4, column=1)
     email_password_entry.grid(row=5, column=1)
-    show_both_1 = Button(login_window1, text='show password',
-                         command=lambda: show_password(password_entry, 3, 1, 3, 2))
-    show_both_2 = Button(login_window1, text='show password',
-                         command=lambda: show_password(email_password_entry, 5, 1, 5, 2))
+    show_both_1 = Button(
+        login_window1,
+        text="show password",
+        command=lambda: show_password(password_entry, 3, 1, 3, 2),
+    )
+    show_both_2 = Button(
+        login_window1,
+        text="show password",
+        command=lambda: show_password(email_password_entry, 5, 1, 5, 2),
+    )
     show_both_1.grid(row=3, column=2)
     show_both_2.grid(row=5, column=2)
 
@@ -263,8 +306,7 @@ def register():
 
 main = Label(root, text="Welcome to ONE-PASS manager")
 login_text = Label(root, text="Do you already have an account")
-register_text = Label(
-    root, text='If you don"t have an account please register')
+register_text = Label(root, text='If you don"t have an account please register')
 reg_button = Button(root, text="Register", command=register)
 login_button = Button(root, text="login", command=login)  # added login button
 
