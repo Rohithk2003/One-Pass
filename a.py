@@ -13,7 +13,6 @@ import os
 import sys
 from tkinter import messagebox
 import os.path
-import time
 import atexit
 import ctypes
 import time
@@ -54,19 +53,12 @@ my_database = mysql.connector.connect(
 )
 my_cursor = my_database.cursor()
 my_cursor.execute("set autocommit=1")
-try:
-    my_cursor.execute("create database USERS")
-    my_cursor.execute("use USERS")
-except:
-    my_cursor.execute("use USERS")
-try:
-    my_cursor.execute(
-        "create table data_input (username varchar(100) primary key,email_id varchar(500) unique )"
-    )
-except:
-    pass
-
-"------------------------------------Colors------------------------------------"
+my_cursor.execute("create database if not exists  USERS")
+my_cursor.execute("use USERS")
+my_cursor.execute(
+    "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password varchar(500))"
+)
+"******************************Colors******************************"
 black = (0, 0, 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
@@ -82,15 +74,6 @@ font = pygame.font.Font("freesansbold.ttf", 30)
 
 def delete_file(file):
     os.remove(file)
-
-
-def forgot_password(OTP, email):
-    mailid = sys.argv[0]
-    msg = OTP
-    s = smtplib.SMTP("smtp.gmail.com", 587)
-    s.starttls()
-    s.login("rohithk652@gmail.com", "rohithk2003")
-    s.sendmail("rohithk652@gmail.com", email, msg)
 
 
 def text_object(text, font, color):
@@ -118,37 +101,129 @@ def login_password():
     window.title("Forgot Password")
     text = "Please provide the recovery email and recovery email password that you provided while creating an account"
     text_label = Label(window, text=text)
+    username_forgot = Label(window, text="Username")
     recover_email = Label(window, text="Email")
     recover_password = Label(window, text="Password")
     recover_email_entry = Entry(window)
     recover_password_entry = Entry(window)
+    username_forgot_entry = Entry(window)
     text_label.grid(row=0, column=0, columnspan=2)
-    recover_email.grid(row=1, column=0)
-    recover_password.grid(row=2, column=0)
-    recover_email_entry.grid(row=1, column=1)
-    recover_password_entry.grid(row=2, column=1)
-    key = Fernet.generate_key()
-    otp_label = Label(window, text="OTP:")
-    otp_entry = Entry(window)
+    recover_email.grid(row=2, column=0)
+    recover_password.grid(row=3, column=0)
+    recover_email_entry.grid(row=2, column=1)
+    recover_password_entry.grid(row=3, column=1)
+    username_forgot_entry.grid(row=1, column=1)
+    username_forgot.grid(row=1, column=0)
+    key = ""
+    l = "abcdefghijklmnopqrstuvwxyz"
+    for i in range(7):
+        key += random.choice(l)
 
-    def generate_key():
-        pyAesCrypt.encryptFile("otp.bin", "otp.bin.fenc", key, bufferSize)
+    running = False
+
+    def generate_key1(file):
+        pyAesCrypt.encryptFile(file, "otp.bin.fenc", key, bufferSize)
         messagebox.showinfo("OTP", "2 minutes to verify otp send to email")
-        os.remove("otp.txt")
+        os.remove(file)
 
-    email = str(recover_email_entry.get())
-    encrypted_data = f.encrypt()
-    digits = "1234567890"
-    OTP = ""
-    for i in range(6):
-        OTP += digits[math.floor(random.random() * 10)]
-    l = list(OTP)
-    f = open("otp.bin", "wb")
-    pickle.dump(l, f)
-    f.close()
-    generate_key()
-    Verification()
-    forgot_password(OTP, email)
+    def Verification(password, otp_entry):
+        ot = str(otp_entry)
+        pyAesCrypt.decryptFile(
+            "otp.bin.fenc", "otp_decyrpted.bin", password, bufferSize
+        )
+        f11 = open("otp_decyrpted.bin", "rb")
+        list = pickle.load(f11)
+        print(list)
+        str_value = ""
+        for i in list:
+            str_value += str(i)
+        if str_value == ot:
+            messagebox.showinfo("Success", "OTP is verified")
+            os.remove("otp_decyrpted.bin")
+            os.remove("otp.bin.fenc")
+
+    def forgot_password(OTP, email, username):
+        global running
+        running = True
+        mailid = sys.argv[0]
+        SUBJECT = "OTP verification"
+        otp = (
+            "Hey"
+            + username
+            + "! Your otp for ONE-PASS is  "
+            + OTP
+            + "This OTP will expire in 2 minutes"
+        )
+        msg = "Subject: {}\n\n{}".format(SUBJECT, OTP)
+        s = smtplib.SMTP("smtp.gmail.com", 587)
+        s.starttls()
+        s.login("rohithk652@gmail.com", "rohithk2003")
+        s.sendmail("rohithk652@gmail.com", email, msg)
+
+    def main(key):
+        run = False
+        global running
+        otp_window = Tk()
+
+        otp_label = Label(otp_window, text="OTP:")
+        otp_entry = Entry(otp_window)
+        otp_entry.grid(row=6, column=0)
+        otp_entry_button = Button(
+            otp_window,
+            text="verify otp",
+            command=lambda: Verification(key, otp_entry.get()),
+        )
+        otp_entry_button.grid(row=8, column=0)
+        username_verify = str(username_forgot_entry.get())
+        recover_email_entry_verify = str(recover_email_entry.get())
+        recover_password_entry_verify = str(recover_password_entry.get())
+        window.destroy()
+        verify_password = ""
+        for i in recover_email_entry_verify:
+            if i == "@":
+                break
+            else:
+                verify_password += i
+        verify_password += recover_password_entry_verify
+        try:
+            my_cursor.execute(
+                "select email_id from data_input where username = (%s)",
+                (username_verify,),
+            )
+            values_fetch = my_cursor.fetchall()
+            for i in values_fetch:
+                for a in i:
+                    if a == recover_email_entry_verify:
+                        run = True
+                    else:
+                        run = False
+                        messagebox.showerror("Error", "Wrong Recovey email")
+        except:
+            messagebox.showerror("Error", "No user exist with the provided username")
+
+        if run:
+            digits = "1234567890"
+            OTP = ""
+            for i in range(6):
+                OTP += random.choice(digits)
+            l = list(OTP)
+            f = open("otp.bin", "wb")
+            pickle.dump(l, f)
+            f.close()
+            generate_key1("otp.bin")
+            forgot_password(OTP, recover_email_entry_verify, username_verify)
+            Verification(key)
+            starttime = time.time()
+            while running:
+                time.sleep(120.0 - ((time.time() - starttime) % 10.0))
+                if os.path.exists("otp.bin.fenc"):
+                    os.remove("otp.bin.fenc")
+                if os.path.exists("otp_decyrpted.bin"):
+                    os.remove("otp_decyrpted.bin")
+                messagebox.showinfo("Info", "OTP expired re-verify")
+
+    forgot_password_button = Button(window, text="verify", command=lambda: main(key))
+    forgot_password_button.grid(row=5, column=1)
 
 
 def login():
@@ -233,13 +308,16 @@ def register():
         values_list.append(values)
         try:
             my_cursor.execute(
-                "insert into  data_input values (%s,%s)",
-                (username_register, cipher_text_deleted),
+                "insert into  data_input values (%s,%s,%s)",
+                (
+                    username_register,
+                    email_id_register,
+                    cipher_text_deleted,
+                ),
             )
         except:
             messagebox.showerror("Error", "Username already exists")
         file_name = username_register + ".bin"
-        print(values)
         f = open(file_name, "wb")
         pickle.dump(values_list, f)
         f.close()
