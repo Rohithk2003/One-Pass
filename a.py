@@ -8,7 +8,7 @@ import glob
 import pyAesCrypt
 import mysql.connector
 import pygame
-from simplecrypt import encrypt
+from simplecrypt import encrypt,decrypt
 import os
 import sys
 from tkinter import messagebox
@@ -73,7 +73,10 @@ font = pygame.font.Font("freesansbold.ttf", 30)
 
 
 def delete_file(file):
-    os.remove(file)
+    try:
+        os.remove(file)
+    except:
+        return 'error'
 
 
 def text_object(text, font, color):
@@ -151,42 +154,39 @@ def login_password():
         password_decrypt += password1
         for i in values_password:
             for op in i:
-                try:
-                    pass_value = "b" + "'" + op
-                    decrypted_string = decrypt(pass_value, password_decrypt)
-                    pyAesCrypt.decryptFile(
-                        file_name_reentry,
-                        username12 + ".bin",
-                        decrypted_string,
-                        bufferSize,
-                    )
-                    os.remove(file_name_reentry)
-                    f = open(username12 + ".bin", "r")
-                    list_b = pickle.load(f)
-                    list_b.pop(0)
-                    pol = {}
-                    pol[str(new_username_entry.get())] = str(new_password_entry.get())
-                    list_b.append(pol)
-                    pickle.dump(list_b, f)
-                    f.close()
-                    my_cursor.execute(
-                        "delete from data_input where username=(%s)", (username12)
-                    )
-                    re_encrypt = encrypt(
-                        password_decrypt, str(new_password_entry.get())
-                    )
-                    pyAesCrypt.encryptFile(
-                        username12 + ".bin",
-                        new_username + ".bin.fenc",
-                        str(new_password_entry.get()),
-                        bufferSize,
-                    )
-                    my_cursor.execute(
-                        "insert into data_input values(%s,%s,%s)",
-                        (str(new_username.get()), email, re_encrypt),
-                    )
-                except:
-                    messagebox.showinfo("Error", "Wrong Recovery password")
+                pass_value = bytes(op,'utf-8')
+                decrypted_string = decrypt(password_decrypt, pass_value)
+                pyAesCrypt.decryptFile(
+                    file_name_reentry,
+                    username12 + ".bin",
+                    decrypted_string,
+                    bufferSize,
+                )
+                os.remove(file_name_reentry)
+                f = open(username12 + ".bin", "r")
+                list_b = pickle.load(f)
+                list_b.pop(0)
+                pol = {}
+                pol[str(new_username_entry.get())] = str(new_password_entry.get())
+                list_b.append(pol)
+                pickle.dump(list_b, f)
+                f.close()
+                my_cursor.execute(
+                    "delete from data_input where username=(%s)", (username12)
+                )
+                re_encrypt = encrypt(
+                    password_decrypt, str(new_password_entry.get())
+                )
+                pyAesCrypt.encryptFile(
+                    username12 + ".bin",
+                    new_username + ".bin.fenc",
+                    str(new_password_entry.get()),
+                    bufferSize,
+                )
+                my_cursor.execute(
+                    "insert into data_input values(%s,%s,%s)",
+                    (str(new_username.get()), email, re_encrypt),
+                )
 
     def Verification(password, otp_entry, email, email_password, username12):
         ot = str(otp_entry)
@@ -362,39 +362,39 @@ def button(social_media, username, password):
             else:
                 pass
 
-        def remote():
+        # def remote():
 
-            usr = "rohithkrishnan2003@gmail.com"
-            pwd = "Batman@1234"
+        #     usr = "rohithkrishnan2003@gmail.com"
+        #     pwd = "Batman@1234"
 
-            driver = webdriver.Chrome(ChromeDriverManager().install())
-            driver.get("https://www.facebook.com/")
-            print("Opened facebook")
-            sleep(1)
+        #     driver = webdriver.Chrome(ChromeDriverManager().install())
+        #     driver.get("https://www.facebook.com/")
+        #     print("Opened facebook")
+        #     sleep(1)
 
-            username_box = driver.find_element_by_id("email")
-            username_box.send_keys(usr)
-            print("Email Id entered")
-            sleep(1)
+        #     username_box = driver.find_element_by_id("email")
+        #     username_box.send_keys(usr)
+        #     print("Email Id entered")
+        #     sleep(1)
 
-            password_box = driver.find_element_by_id("pass")
-            password_box.send_keys(pwd)
-            print("Password entered")
+        #     password_box = driver.find_element_by_id("pass")
+        #     password_box.send_keys(pwd)
+        #     print("Password entered")
 
-            login_box = driver.find_element_by_id("u_0_b")
-            login_box.click()
+        #     login_box = driver.find_element_by_id("u_0_b")
+        #     login_box.click()
 
-            print("Done")
-            input("Press anything to quit")
-            driver.quit()
+        #     print("Done")
+        #     input("Press anything to quit")
+        #     driver.quit()
 
-        root.protocol("WM_DELETE_WINDOW", _delete_window)
-        root.bind("<Destroy>", _destroy)
+        # root.protocol("WM_DELETE_WINDOW", _delete_window)
+        # root.bind("<Destroy>", _destroy)
 
         back = Button(root, text="Go back!", command=back1, width=10)
         back.grid(row=3, column=0, columnspan=2)
-        remote_login = Button(root, text="Facebook", command=remote, width=10)
-        remote_login.grid(row=4, column=0, columnspan=2)
+        # remote_login = Button(root, text="Facebook", command=remote, width=10)
+        # remote_login.grid(row=4, column=0, columnspan=2)
 
     else:
         second = Tk()
@@ -489,6 +489,7 @@ def login():
         password = str(pass_entry.get())
         username = str(input_entry.get())
         file_name = str(username)
+        main_password = password
         try:
             pyAesCrypt.decryptFile(
                 file_name + ".bin.fenc",
