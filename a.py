@@ -8,7 +8,7 @@ import glob
 import pyAesCrypt
 import mysql.connector
 import pygame
-from simplecrypt import encrypt,decrypt
+from simplecrypt import encrypt, decrypt
 import os
 import sys
 from tkinter import messagebox
@@ -16,15 +16,25 @@ import os.path
 import atexit
 import ctypes
 import time
+from tkinter.ttk import *
 from cryptography.fernet import Fernet
+from datetime import datetime
+from geopy.geocoders import Nominatim
+import geocoder
+import socket
+import pytz
+from time import gmtime, strftime
 
+geolocator = Nominatim(user_agent="geoapiExercises")
 "------------------------------------main tkinter window------------------------------------"
 
 bufferSize = 64 * 1024
 root = Tk()
 pygame.init()  # main windows were the login screen and register screen goes
-root.title("ONE-PASS")
-root.configure(bg="black")
+root.title("ONE-PASS-MANAGER")
+root.config(bg="black")
+root23 = Style()
+root23.theme_use("alt")
 width_window = 300
 height_window = 300
 screen_width = root.winfo_screenwidth()
@@ -76,7 +86,7 @@ def delete_file(file):
     try:
         os.remove(file)
     except:
-        return 'error'
+        return "error"
 
 
 def text_object(text, font, color):
@@ -154,7 +164,7 @@ def login_password():
         password_decrypt += password1
         for i in values_password:
             for op in i:
-                pass_value = bytes(op,'utf-8')
+                pass_value = bytes(op, "utf-8")
                 decrypted_string = decrypt(password_decrypt, pass_value)
                 pyAesCrypt.decryptFile(
                     file_name_reentry,
@@ -174,9 +184,7 @@ def login_password():
                 my_cursor.execute(
                     "delete from data_input where username=(%s)", (username12)
                 )
-                re_encrypt = encrypt(
-                    password_decrypt, str(new_password_entry.get())
-                )
+                re_encrypt = encrypt(password_decrypt, str(new_password_entry.get()))
                 pyAesCrypt.encryptFile(
                     username12 + ".bin",
                     new_username + ".bin.fenc",
@@ -209,25 +217,30 @@ def login_password():
             change_password(email, email_password, username12)
 
     def forgot_password(OTP, email, username):
-        global running
-        running = True
-        mailid = sys.argv[0]
-        SUBJECT = "OTP verification"
-        otp = (
-            "Hey"
-            + username
-            + " "
-            + "! Your otp for ONE-PASS is  "
-            + " "
-            + OTP
-            + " "
-            + "This OTP will expire in 2 minutes"
-        )
-        msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
-        s = smtplib.SMTP("smtp.gmail.com", 587)
-        s.starttls()
-        s.login("rohithk652@gmail.com", "rohithk2003")
-        s.sendmail("rohithk652@gmail.com", email, msg)
+        try:
+            global running
+            running = True
+            mailid = sys.argv[0]
+            SUBJECT = "OTP verification for ONE-PASS-MANAGER"
+            otp = (
+                "Hey"
+                + ""
+                + username
+                + " "
+                + "! Your otp for ONE-PASS is  "
+                + " "
+                + OTP
+                + " "
+                + "This OTP will expire in 2 minutes"
+            )
+            msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
+            s = smtplib.SMTP("smtp.gmail.com", 587)
+            s.starttls()
+            s.login("rohithk652@gmail.com", "rohithk2003")
+            s.sendmail("rohithk652@gmail.com", email, msg)
+        except:
+            messagebox.showinfo("Error", "Please Connect to the internet \n then retry")
+            sys.exit()
 
     def main(key):
         run = False
@@ -471,6 +484,7 @@ def gameloop(a, username, password):
 def login():
     login_window = Tk()
     width_window = 300
+    sending = False
     height_window = 300
     screen_width = login_window.winfo_screenwidth()
     screen_height = login_window.winfo_screenheight()
@@ -483,14 +497,26 @@ def login():
     pass_entry = Entry(login_window, text="Password:", show="*")
     lbl = Label(login_window, text="Please enter your username and password:")
     forgot = Button(login_window, text="Forgot Password", command=login_password)
+    Style().theme_use("alt")
 
     def login_checking():
+        sending = False
         testing = False
         password = str(pass_entry.get())
         username = str(input_entry.get())
+        my_cursor.execute(
+            "select email_id from data_input where username = (%s)", (username,)
+        )
+        l = my_cursor.fetchall()
+        email_sending = ""
+        for i in l:
+            for a in i:
+                if "@" in a:
+                    email_sending = a
         file_name = str(username)
         main_password = password
         try:
+
             pyAesCrypt.decryptFile(
                 file_name + ".bin.fenc",
                 file_name + "decrypted" + ".bin",
@@ -504,15 +530,66 @@ def login():
             messagebox.showinfo("Success", "Success")
             roo1.destroy()
             testing = True
+            sending = True
         except:
             testing = False
             root = Tk()
             root.withdraw()
             messagebox.showinfo("Error", "Wrong Password or Username")
             root.destroy()
-        if testing:
-            d = pygame.display.set_mode((800, 600))
-            gameloop(d, file_name, main_password)
+        # if testing:
+        #     d = pygame.display.set_mode((800, 600))
+        #     gameloop(d, file_name, main_password)
+        if sending:
+            hostname = socket.gethostname()
+            ip_address = socket.gethostbyname(hostname)
+            g = geocoder.ip("me")
+            ip1 = g.latlng
+            location = geolocator.reverse(ip1, exactly_one=True)
+            address = location.raw["address"]
+            city = address.get("city", "")
+            country = address.get("country", "")
+            time_now = strftime("%H:%M:%S", gmtime())
+            try:
+                mailid = sys.argv[0]
+                date = datetime.today().strftime("%Y-%m-%d")
+                SUBJECT = "ONE-PASS login on " + " " + date
+                otp = (
+                    "Hey"
+                    + " "
+                    + username
+                    + "!"
+                    + "\n"
+                    + "It looks like someone logged into your account from a device"
+                    + " "
+                    + hostname
+                    + " "
+                    + "on "
+                    + date
+                    + " at "
+                    + time_now
+                    + "."
+                    + " The login took place somewhere near "
+                    + city
+                    + ","
+                    + country
+                    + "(IP="
+                    + ip_address
+                    + ")."
+                    + "If this was you,please disregard this email.No further action is needed \nif it wasn't you please change your password"
+                    + "\n"
+                    + "Thanks,\nONE-PASS"
+                )
+                msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
+                s = smtplib.SMTP("smtp.gmail.com", 587)
+                s.starttls()
+                s.login("rohithk652@gmail.com", "rohithk2003")
+                s.sendmail("rohithk652@gmail.com", email_sending, msg)
+            except:
+                messagebox.showinfo(
+                    "Error", "Please Connect to the internet \n then retry"
+                )
+                sys.exit()
 
     but = Button(login_window, text="Login", command=login_checking)
     login.grid(row=2, column=2)
