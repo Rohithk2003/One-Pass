@@ -126,7 +126,7 @@ def login_password():
         messagebox.showinfo("OTP", "2 minutes to verify otp send to email")
         os.remove(file)
 
-    def change_password(email, password1):
+    def change_password(email, password1, username12):
         root = Tk()
         root.title("Change Password")
         new_username = Label(root, text="New Username")
@@ -135,12 +135,14 @@ def login_password():
         new_password_entry = Entry(root)
         new_username.grid(row=1, column=0)
         new_password.grid(row=2, column=0)
+        file_name_reentry = username12 + ".bin.fenc"
         new_username_entry.grid(row=1, column=1)
         new_password_entry.grid(row=2, column=1)
         my_cursor.execute(
             "select password from data_input where email_id = (%s)", (email,)
         )
         values_password = my_cursor.fetchall()
+        password_decrypt = ""
         for i in email:
             if i == "@":
                 break
@@ -152,10 +154,41 @@ def login_password():
                 try:
                     pass_value = "b" + "'" + op
                     decrypted_string = decrypt(pass_value, password_decrypt)
+                    pyAesCrypt.decryptFile(
+                        file_name_reentry,
+                        username12 + ".bin",
+                        decrypted_string,
+                        bufferSize,
+                    )
+                    os.remove(file_name_reentry)
+                    f = open(username12 + ".bin", "r")
+                    list_b = pickle.load(f)
+                    list_b.pop(0)
+                    pol = {}
+                    pol[str(new_username_entry.get())] = str(new_password_entry.get())
+                    list_b.append(pol)
+                    pickle.dump(list_b, f)
+                    f.close()
+                    my_cursor.execute(
+                        "delete from data_input where username=(%s)", (username12)
+                    )
+                    re_encrypt = encrypt(
+                        password_decrypt, str(new_password_entry.get())
+                    )
+                    pyAesCrypt.encryptFile(
+                        username12 + ".bin",
+                        new_username + ".bin.fenc",
+                        str(new_password_entry.get()),
+                        bufferSize,
+                    )
+                    my_cursor.execute(
+                        "insert into data_input values(%s,%s,%s)",
+                        (str(new_username.get()), email, re_encrypt),
+                    )
                 except:
-                    return "error"
+                    messagebox.showinfo("Error", "Wrong Recovery password")
 
-    def Verification(password, otp_entry, email, email_password):
+    def Verification(password, otp_entry, email, email_password, username12):
         ot = str(otp_entry)
         pyAesCrypt.decryptFile(
             "otp.bin.fenc", "otp_decyrpted.bin", password, bufferSize
@@ -173,7 +206,7 @@ def login_password():
             f11.close()
             os.remove("otp_decyrpted.bin")
             os.remove("otp.bin.fenc")
-            change_password(email, email_password)
+            change_password(email, email_password, username12)
 
     def forgot_password(OTP, email, username):
         global running
@@ -202,30 +235,18 @@ def login_password():
         username_verify = str(username_forgot_entry.get())
         recover_email_entry_verify = str(recover_email_entry.get())
         recover_password_entry_verify = str(recover_password_entry.get())
-        if username_verify == "":
-            roo2 = Tk()
-            roo2.withdraw()
-            messagebox.showinfo("Error", "Please provide your username")
-            roo2.destroy()
-        if recover_email_entry_verify == "":
-            roo2 = Tk()
-            roo2.withdraw()
-            messagebox.showinfo("Error", "Please provide your Email")
-            roo2.destroy()
-        if recover_password_entry_verify == "":
-            roo2 = Tk()
-            roo2.withdraw()
-            messagebox.showinfo("Error", "Please provide your Email Password")
-            roo2.destory()
         if (
             username_verify == ""
             and recover_email_entry_verify == ""
             and recover_password_entry_verify == ""
         ):
-            roo2 = Tk()
-            roo2.withdraw()
-            messagebox.showinfo("Error", "Please provide your Email, Password,username")
-            roo2.destroy()
+            roo21 = Tk()
+            roo21.withdraw()
+            messagebox.showinfo(
+                "Error",
+                "please provide required information to \n change your password",
+            )
+            roo21.destroy()
         verify_password = ""
         otp_label = Label(window, text="OTP:")
         otp_entry = Entry(window)
@@ -238,6 +259,7 @@ def login_password():
                 otp_entry.get(),
                 recover_email_entry_verify,
                 recover_password_entry_verify,
+                username_verify,
             ),
         )
         otp_entry_button.grid(row=8, column=1)
@@ -284,6 +306,7 @@ def login_password():
                 str(otp_entry.get()),
                 recover_email_entry_verify,
                 recover_password_entry_verify,
+                username_verify,
             )
 
     forgot_password_button = Button(window, text="verify", command=lambda: main(key))
@@ -623,5 +646,8 @@ root.mainloop()
 list = glob.glob("*decrypted.bin")
 for i in list:
     atexit.register(delete_file, i)
-atexit.register(delete_file, "opt_decrypted.bin")
-atexit.register(delete_file, "otp.bin.fenc")
+try:
+    atexit.register(delete_file, "opt_decrypted.bin")
+    atexit.register(delete_file, "otp.bin.fenc")
+except:
+    pass
