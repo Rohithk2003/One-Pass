@@ -5,8 +5,8 @@ import random
 import smtplib
 from tkinter import *
 import glob
-import mysql.connector
 import pyAesCrypt
+import mysql.connector
 import pygame
 from simplecrypt import encrypt
 import os
@@ -99,7 +99,7 @@ def fb_text(text, a, b, color, display):
 def login_password():
     window = Tk()
     window.title("Forgot Password")
-    text = "Please provide the recovery email and recovery email password that you provided while creating an account"
+    text = "Please provide the recovery email  and recovery email password \n that you provided while creating an account"
     text_label = Label(window, text=text)
     username_forgot = Label(window, text="Username")
     recover_email = Label(window, text="Email")
@@ -126,21 +126,54 @@ def login_password():
         messagebox.showinfo("OTP", "2 minutes to verify otp send to email")
         os.remove(file)
 
-    def Verification(password, otp_entry):
+    def change_password(email, password1):
+        root = Tk()
+        root.title("Change Password")
+        new_username = Label(root, text="New Username")
+        new_password = Label(root, text="New Password")
+        new_username_entry = Entry(root)
+        new_password_entry = Entry(root)
+        new_username.grid(row=1, column=0)
+        new_password.grid(row=2, column=0)
+        new_username_entry.grid(row=1, column=1)
+        new_password_entry.grid(row=2, column=1)
+        my_cursor.execute(
+            "select password from data_input where email_id = (%s)", (email,)
+        )
+        values_password = my_cursor.fetchall()
+        for i in email:
+            if i == "@":
+                break
+            else:
+                password_decrypt += i
+        password_decrypt += password1
+        for i in values_password:
+            for op in i:
+                try:
+                    pass_value = "b" + "'" + op
+                    decrypted_string = decrypt(pass_value, password_decrypt)
+                except:
+                    return "error"
+
+    def Verification(password, otp_entry, email, email_password):
         ot = str(otp_entry)
         pyAesCrypt.decryptFile(
             "otp.bin.fenc", "otp_decyrpted.bin", password, bufferSize
         )
         f11 = open("otp_decyrpted.bin", "rb")
         list = pickle.load(f11)
-        print(list)
         str_value = ""
         for i in list:
             str_value += str(i)
         if str_value == ot:
+            roo1 = Tk()
+            roo1.withdraw()
             messagebox.showinfo("Success", "OTP is verified")
+            roo1.destroy()
+            f11.close()
             os.remove("otp_decyrpted.bin")
             os.remove("otp.bin.fenc")
+            change_password(email, email_password)
 
     def forgot_password(OTP, email, username):
         global running
@@ -150,11 +183,14 @@ def login_password():
         otp = (
             "Hey"
             + username
+            + " "
             + "! Your otp for ONE-PASS is  "
+            + " "
             + OTP
+            + " "
             + "This OTP will expire in 2 minutes"
         )
-        msg = "Subject: {}\n\n{}".format(SUBJECT, OTP)
+        msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
         s = smtplib.SMTP("smtp.gmail.com", 587)
         s.starttls()
         s.login("rohithk652@gmail.com", "rohithk2003")
@@ -163,22 +199,48 @@ def login_password():
     def main(key):
         run = False
         global running
-        otp_window = Tk()
-
-        otp_label = Label(otp_window, text="OTP:")
-        otp_entry = Entry(otp_window)
-        otp_entry.grid(row=6, column=0)
-        otp_entry_button = Button(
-            otp_window,
-            text="verify otp",
-            command=lambda: Verification(key, otp_entry.get()),
-        )
-        otp_entry_button.grid(row=8, column=0)
         username_verify = str(username_forgot_entry.get())
         recover_email_entry_verify = str(recover_email_entry.get())
         recover_password_entry_verify = str(recover_password_entry.get())
-        window.destroy()
+        if username_verify == "":
+            roo2 = Tk()
+            roo2.withdraw()
+            messagebox.showinfo("Error", "Please provide your username")
+            roo2.destroy()
+        if recover_email_entry_verify == "":
+            roo2 = Tk()
+            roo2.withdraw()
+            messagebox.showinfo("Error", "Please provide your Email")
+            roo2.destroy()
+        if recover_password_entry_verify == "":
+            roo2 = Tk()
+            roo2.withdraw()
+            messagebox.showinfo("Error", "Please provide your Email Password")
+            roo2.destory()
+        if (
+            username_verify == ""
+            and recover_email_entry_verify == ""
+            and recover_password_entry_verify == ""
+        ):
+            roo2 = Tk()
+            roo2.withdraw()
+            messagebox.showinfo("Error", "Please provide your Email, Password,username")
+            roo2.destroy()
         verify_password = ""
+        otp_label = Label(window, text="OTP:")
+        otp_entry = Entry(window)
+        otp_entry.grid(row=6, column=1)
+        otp_entry_button = Button(
+            window,
+            text="verify otp",
+            command=lambda: Verification(
+                key,
+                otp_entry.get(),
+                recover_email_entry_verify,
+                recover_password_entry_verify,
+            ),
+        )
+        otp_entry_button.grid(row=8, column=1)
         for i in recover_email_entry_verify:
             if i == "@":
                 break
@@ -197,10 +259,15 @@ def login_password():
                         run = True
                     else:
                         run = False
+                        roo1 = Tk()
+                        roo1.withdraw()
                         messagebox.showerror("Error", "Wrong Recovey email")
+                        roo1.destroy()
         except:
+            roo1 = Tk()
+            roo1.withdraw()
             messagebox.showerror("Error", "No user exist with the provided username")
-
+            roo1.destroy()
         if run:
             digits = "1234567890"
             OTP = ""
@@ -212,18 +279,170 @@ def login_password():
             f.close()
             generate_key1("otp.bin")
             forgot_password(OTP, recover_email_entry_verify, username_verify)
-            Verification(key)
-            starttime = time.time()
-            while running:
-                time.sleep(120.0 - ((time.time() - starttime) % 10.0))
-                if os.path.exists("otp.bin.fenc"):
-                    os.remove("otp.bin.fenc")
-                if os.path.exists("otp_decyrpted.bin"):
-                    os.remove("otp_decyrpted.bin")
-                messagebox.showinfo("Info", "OTP expired re-verify")
+            Verification(
+                key,
+                str(otp_entry.get()),
+                recover_email_entry_verify,
+                recover_password_entry_verify,
+            )
 
     forgot_password_button = Button(window, text="verify", command=lambda: main(key))
     forgot_password_button.grid(row=5, column=1)
+
+
+def button(social_media, username, password):
+    file_name = str(username) + social_media + ".bin.fenc"
+    if os.path.exists(file_name):
+        root = Tk()
+        width_window = 300
+        height_window = 300
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+
+        line = pickle.load(f1)
+        title1 = social_media + "Account"
+        root.title(title1)
+        first = line[0]
+        second = line[1]
+        text12 = social_media + "Username:"
+        text22 = social_media + "Password:"
+        a1_text = Label(root, text=first)
+        a2_text = Label(root, text=second)
+        a1_text.grid(row=0, column=1)
+        a2_text.grid(row=1, column=1)
+        fwq = Label(root, text=text12)
+        f12 = Label(root, text=text22)
+        fwq.grid(row=0, column=0)
+        f12.grid(row=1, column=0)
+
+        def _delete_window():
+            try:
+                root.destroy()
+            except:
+                pass
+
+        def back1():
+            pygame.init()
+            root.destroy()
+            d = pygame.display.set_mode((800, 600))
+            gameloop(d, str(username), password)
+
+        def _destroy(event):
+            f1.close()
+            if os.path.exists(str(username) + "_facebook" + "decrypted" + ".bin"):
+                os.remove(str(username) + "_facebook" + "decrypted" + ".bin")
+            if os.path.exist(str(username) + "decrypted.bin"):
+                os.remove(str(username) + "decrypted.bin")
+            else:
+                pass
+
+        def remote():
+
+            usr = "rohithkrishnan2003@gmail.com"
+            pwd = "Batman@1234"
+
+            driver = webdriver.Chrome(ChromeDriverManager().install())
+            driver.get("https://www.facebook.com/")
+            print("Opened facebook")
+            sleep(1)
+
+            username_box = driver.find_element_by_id("email")
+            username_box.send_keys(usr)
+            print("Email Id entered")
+            sleep(1)
+
+            password_box = driver.find_element_by_id("pass")
+            password_box.send_keys(pwd)
+            print("Password entered")
+
+            login_box = driver.find_element_by_id("u_0_b")
+            login_box.click()
+
+            print("Done")
+            input("Press anything to quit")
+            driver.quit()
+
+        root.protocol("WM_DELETE_WINDOW", _delete_window)
+        root.bind("<Destroy>", _destroy)
+
+        back = Button(root, text="Go back!", command=back1, width=10)
+        back.grid(row=3, column=0, columnspan=2)
+        remote_login = Button(root, text="Facebook", command=remote, width=10)
+        remote_login.grid(row=4, column=0, columnspan=2)
+
+    else:
+        second = Tk()
+        width_window = 300
+        height_window = 300
+        screen_width = second.winfo_screenwidth()
+        screen_height = second.winfo_screenheight()
+        second.title("Facebook Login")
+        username1 = Label(second, text="Facebook_Username:")
+        password1 = Label(second, text="Facebook_Password:")
+        username1_entry = Entry(second)
+        password1_entry = Entry(second, show="*")
+        login_text1 = "Please provide Facebook account and password"
+        login_text = Label(second, text=login_text1)
+        username1.grid(row=2, column=0)
+        password1.grid(row=3, column=0)
+        username1_entry.grid(row=2, column=1)
+        password1_entry.grid(row=3, column=1, columnspan=2)
+        username_list = []
+
+        def save():
+            c = username1_entry.get()
+            fb_username = str(username)
+            fb_password = password1_entry.get()
+            a = fb_username + "_facebook"
+            b = str(fb_password)
+            fb_account_cipher = password
+            username_list.append(str(c))
+            username_list.append(b)
+            f = open(a + ".bin", "wb")
+            pickle.dump(username_list, f)
+            f.close()
+            pyAesCrypt.encryptFile(
+                a + ".bin", a + ".bin.fenc", fb_account_cipher, bufferSize
+            )
+            os.remove(a + ".bin")
+
+        saving = Button(second, text="Save", command=save)
+        saving.grid(row=4, column=1)
+
+
+def gameloop(a, username, password):
+    quitting = True
+    while quitting:
+        a.fill((255, 255, 255))
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+                quit()
+                break
+        mouse = pygame.mouse.get_pressed()
+        mouse_pos = pygame.mouse.get_pos()
+        a.blit(facebook, (20, 20))
+        message_display_small(
+            "Facebook",
+            45 + facebook.get_width() - 100 + 10,
+            25 + facebook.get_height() + 10,
+            black,
+            a,
+        )
+        if (
+            mouse[0] == 1
+            and 20 < mouse_pos[0] < 20 + facebook.get_width()
+            and 20 < mouse_pos[1] < 20 + facebook.get_height()
+        ):
+            quitting = False
+            pygame.quit()
+            button("facebook", username, password)
+            break
+        pygame.display.update()
 
 
 def login():
@@ -256,7 +475,10 @@ def login():
             )
             f = open(file_name + "decrypted" + ".bin", "rb")
             logins = pickle.load(f)
+            roo1 = Tk()
+            roo1.withdraw()
             messagebox.showinfo("Success", "Success")
+            roo1.destroy()
             testing = True
         except:
             testing = False
@@ -264,9 +486,9 @@ def login():
             root.withdraw()
             messagebox.showinfo("Error", "Wrong Password or Username")
             root.destroy()
-        # if testing:
-        #     d = pygame.display.set_mode((800, 600))
-        #     gameloop(d, file_name, main_password)
+        if testing:
+            d = pygame.display.set_mode((800, 600))
+            gameloop(d, file_name, main_password)
 
     but = Button(login_window, text="Login", command=login_checking)
     login.grid(row=2, column=2)
@@ -316,7 +538,10 @@ def register():
                 ),
             )
         except:
+            roo1 = Tk()
+            roo1.withdraw()
             messagebox.showerror("Error", "Username already exists")
+            roo1.destroy()
         file_name = username_register + ".bin"
         f = open(file_name, "wb")
         pickle.dump(values_list, f)
@@ -396,6 +621,7 @@ reg_button.grid(row=9, column=1, columnspan=2)
 root.resizable(False, False)
 root.mainloop()
 list = glob.glob("*decrypted.bin")
-print(list)
 for i in list:
     atexit.register(delete_file, i)
+atexit.register(delete_file, "opt_decrypted.bin")
+atexit.register(delete_file, "otp.bin.fenc")
