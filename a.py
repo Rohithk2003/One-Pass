@@ -63,11 +63,10 @@ my_database = mysql.connector.connect(
 )
 my_cursor = my_database.cursor()
 my_cursor.execute("set autocommit=1")
-my_cursor.execute("create database if not exists  USERS")
+my_cursor.execute("create database if not exists  USERS DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci")
 my_cursor.execute("use USERS")
-my_cursor.execute(
-    "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password varchar(500))"
-)
+my_cursor.execute("create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob)")
+
 "******************************Colors******************************"
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -136,8 +135,8 @@ def login_password():
 
     def generate_key1(file):
         pyAesCrypt.encryptFile(file, "otp.bin.fenc", key, bufferSize)
+        os.unlink(file)
         messagebox.showinfo("OTP", "2 minutes to verify otp send to email")
-        os.remove(file)
 
     def change_password(email, password1, username12):
         root = Tk()
@@ -164,8 +163,8 @@ def login_password():
         password_decrypt += password1
         for i in values_password:
             for op in i:
-                pass_value = bytes(op, "utf-8")
-                decrypted_string = decrypt(password_decrypt, pass_value)
+                print(type(op))
+                decrypted_string = decrypt(password_decrypt, op)
                 pyAesCrypt.decryptFile(
                     file_name_reentry,
                     username12 + ".bin",
@@ -613,44 +612,38 @@ def register():
         password_register = str(password_entry.get())
         email_id_register = str(email_id_entry.get())
         email_password_register = str(email_password_entry.get())
-        word = email_id_register.split()
-        original = ""
-        for p in word:
-            for i in p:
-                if i == "@":
-                    break
-                else:
-                    original += i
-        main1 = original + email_password_register
-        cipher_text = encrypt(main1, password_register)
-        d = str(cipher_text)
-        cipher_text_deleted = d[1::]
-        values_list = []
-        values = {}
-        values[username_register] = password_register
-        values_list.append(values)
-        try:
-            my_cursor.execute(
-                "insert into  data_input values (%s,%s,%s)",
-                (
-                    username_register,
-                    email_id_register,
-                    cipher_text_deleted,
-                ),
+        checking = True
+        if len(password_register) < 5 or len(email_password_register) < 5:
+            win = Tk()
+            win.withdraw()
+            messagebox.showinfo("Error","Please provide a valid password greeter than 5 characters.")
+            win.destroy()
+            checking = False
+        if checking:
+            word = email_id_register.split()
+            original = ""
+            for p in word:
+                for i in p:
+                    if i == "@":
+                        break
+                    else:
+                        original += i
+            main1 = original + email_password_register
+            cipher_text = encrypt(main1, password_register)
+            print(type(cipher_text))
+            my_cursor.execute("insert into  data_input values (%s,%s,%s)",(username_register,email_id_register,cipher_text))
+            # except:
+            #     roo1 = Tk()
+            #     roo1.withdraw()
+            #     messagebox.showerror("Error", "Username already exists")
+            #     roo1.destroy()
+            file_name = username_register + ".bin"
+            f = open(file_name, "wb")
+            f.close()
+            pyAesCrypt.encryptFile(
+                file_name, file_name + ".fenc", password_register, bufferSize
             )
-        except:
-            roo1 = Tk()
-            roo1.withdraw()
-            messagebox.showerror("Error", "Username already exists")
-            roo1.destroy()
-        file_name = username_register + ".bin"
-        f = open(file_name, "wb")
-        pickle.dump(values_list, f)
-        f.close()
-        pyAesCrypt.encryptFile(
-            file_name, file_name + ".fenc", password_register, bufferSize
-        )
-        os.remove(file_name)
+            os.remove(file_name)
 
     def hide_password(entry, row, column, row1, column1):
         entry.config(show="*")
@@ -724,8 +717,3 @@ root.mainloop()
 list = glob.glob("*decrypted.bin")
 for i in list:
     atexit.register(delete_file, i)
-try:
-    atexit.register(delete_file, "opt_decrypted.bin")
-    atexit.register(delete_file, "otp.bin.fenc")
-except:
-    pass

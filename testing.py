@@ -1,9 +1,4 @@
-
-from simplecrypt import encrypt, decrypt
-
-password = 'sekret'
-message = 'this is a secret message'
-ciphertext = encrypt(password, message)
-
-print(ciphertext)
-
+import pickle
+f = open('ss.bin.fenc','rb')
+line = pickle.load(f)
+print(line)
