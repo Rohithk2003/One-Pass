@@ -24,6 +24,8 @@ import geocoder
 import socket
 import pytz
 from time import gmtime, strftime
+from Text.py import *
+from mysql import *
 
 geolocator = Nominatim(user_agent="geoapiExercises")
 "------------------------------------main tkinter window------------------------------------"
@@ -58,15 +60,7 @@ fb_size = facebook.get_rect()
 
 
 "------------------------------------ mysql database ------------------------------------"
-my_database = mysql.connector.connect(
-    host="localhost", user="root", password="rohithk123"
-)
-my_cursor = my_database.cursor()
-my_cursor.execute("set autocommit=1")
-my_cursor.execute("create database if not exists  USERS DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci")
-my_cursor.execute("use USERS")
-my_cursor.execute("create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob)")
-
+mysql = Mysql("localhost", "root", "")
 "******************************Colors******************************"
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -88,25 +82,7 @@ def delete_file(file):
         return "error"
 
 
-def text_object(text, font, color):
-    textsurf = font.render(text, True, color)
-    return textsurf, textsurf.get_rect()
-
-
-def message_display_small(text, a, b, color, display):
-    smalltext = pygame.font.Font("comic.ttf", 30)
-    textsurf, textrect = text_object(text, smalltext, color)
-    textrect.center = (int(a), int(b))
-    display.blit(textsurf, textrect)
-
-
-def fb_text(text, a, b, color, display):
-    smalltext = pygame.font.Font("freesansbold.ttf", 30)
-    textsurf, textrect = text_object(text, smalltext, color)
-    textrect.center = (int(a), int(b))
-    display.blit(textsurf, textrect)
-
-
+textx = Text
 # def button(social_media_name,username,password):
 def login_password():
     window = Tk()
@@ -616,7 +592,9 @@ def register():
         if len(password_register) < 5 or len(email_password_register) < 5:
             win = Tk()
             win.withdraw()
-            messagebox.showinfo("Error","Please provide a valid password greeter than 5 characters.")
+            messagebox.showinfo(
+                "Error", "Please provide a valid password greeter than 5 characters."
+            )
             win.destroy()
             checking = False
         if checking:
@@ -631,7 +609,10 @@ def register():
             main1 = original + email_password_register
             cipher_text = encrypt(main1, password_register)
             print(type(cipher_text))
-            my_cursor.execute("insert into  data_input values (%s,%s,%s)",(username_register,email_id_register,cipher_text))
+            my_cursor.execute(
+                "insert into  data_input values (%s,%s,%s)",
+                (username_register, email_id_register, cipher_text),
+            )
             # except:
             #     roo1 = Tk()
             #     roo1.withdraw()
