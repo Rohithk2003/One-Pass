@@ -4,7 +4,7 @@ import pickle
 import random
 import smtplib
 from tkinter import *
-import glob
+import glob 
 import pyAesCrypt
 import mysql.connector
 import pygame
@@ -24,9 +24,7 @@ import geocoder
 import socket
 import pytz
 from time import gmtime, strftime
-from Text.py import *
-from mysql import *
-
+from Text import *
 geolocator = Nominatim(user_agent="geoapiExercises")
 "------------------------------------main tkinter window------------------------------------"
 
@@ -60,7 +58,15 @@ fb_size = facebook.get_rect()
 
 
 "------------------------------------ mysql database ------------------------------------"
-mysql = Mysql("localhost", "root", "")
+my_database = mysql.connector.connect(
+    host="localhost", user="root", password="rohithk123"
+)
+my_cursor = my_database.cursor()
+my_cursor.execute("set autocommit=1")
+my_cursor.execute("create database if not exists  USERS DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci")
+my_cursor.execute("use USERS")
+my_cursor.execute("create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob)")
+
 "******************************Colors******************************"
 black = (0, 0, 0)
 white = (255, 255, 255)
@@ -82,7 +88,25 @@ def delete_file(file):
         return "error"
 
 
-textx = Text
+def text_object(text, font, color):
+    textsurf = font.render(text, True, color)
+    return textsurf, textsurf.get_rect()
+
+
+def message_display_small(text, a, b, color, display):
+    smalltext = pygame.font.Font("comic.ttf", 30)
+    textsurf, textrect = text_object(text, smalltext, color)
+    textrect.center = (int(a), int(b))
+    display.blit(textsurf, textrect)
+
+
+def fb_text(text, a, b, color, display):
+    smalltext = pygame.font.Font("freesansbold.ttf", 30)
+    textsurf, textrect = text_object(text, smalltext, color)
+    textrect.center = (int(a), int(b))
+    display.blit(textsurf, textrect)
+
+
 # def button(social_media_name,username,password):
 def login_password():
     window = Tk()
@@ -120,7 +144,7 @@ def login_password():
         new_username = Label(root, text="New Username")
         new_password = Label(root, text="New Password")
         new_username_entry = Entry(root)
-        new_password_entry = Entry(root)
+        new_password_entry = Entry(root,show='*')
         new_username.grid(row=1, column=0)
         new_password.grid(row=2, column=0)
         file_name_reentry = username12 + ".bin.fenc"
@@ -137,40 +161,44 @@ def login_password():
             else:
                 password_decrypt += i
         password_decrypt += password1
-        for i in values_password:
-            for op in i:
-                print(type(op))
-                decrypted_string = decrypt(password_decrypt, op)
-                pyAesCrypt.decryptFile(
-                    file_name_reentry,
-                    username12 + ".bin",
-                    decrypted_string,
-                    bufferSize,
-                )
-                os.remove(file_name_reentry)
-                f = open(username12 + ".bin", "r")
-                list_b = pickle.load(f)
-                list_b.pop(0)
-                pol = {}
-                pol[str(new_username_entry.get())] = str(new_password_entry.get())
-                list_b.append(pol)
-                pickle.dump(list_b, f)
-                f.close()
-                my_cursor.execute(
-                    "delete from data_input where username=(%s)", (username12)
-                )
-                re_encrypt = encrypt(password_decrypt, str(new_password_entry.get()))
-                pyAesCrypt.encryptFile(
-                    username12 + ".bin",
-                    new_username + ".bin.fenc",
-                    str(new_password_entry.get()),
-                    bufferSize,
-                )
-                my_cursor.execute(
-                    "insert into data_input values(%s,%s,%s)",
-                    (str(new_username.get()), email, re_encrypt),
-                )
+        try:
+            for i in values_password:
+                for op in i:
+                        print(op)
+                        decrypted_string = decrypt(password_decrypt, op)
+        except:
+            messagebox.showerror("Error", "Wrong recovey password")
+        def change():
 
+                        re_p = decrypted_string.decode('utf-8')
+                        pyAesCrypt.decryptFile(
+                            file_name_reentry,
+                            username12 + ".bin",
+                            re_p,
+                            bufferSize,
+                        )
+                        f = open(username12 + ".bin", "r")
+                        f.close()
+
+                        my_cursor.execute(
+                            "delete from data_input where username=(%s)", (username12,)
+                        )
+                        re_encrypt = encrypt(password_decrypt, str(new_password_entry.get()))
+                        pyAesCrypt.encryptFile(
+                            username12 + ".bin",
+                            str(new_username_entry.get()) + ".bin.fenc",
+                            str(new_password_entry.get()),
+                            bufferSize,
+                        )
+                        my_cursor.execute(
+                            "insert into data_input values(%s,%s,%s)",
+                            (str(new_username_entry.get()), email, re_encrypt),
+                        )
+                        if os.path.exists(str(new_username_entry.get()) + '.bin.fenc'):
+                                            os.remove(username12 +'.bin')
+                                            os.remove(file_name_reentry)
+        change_button = Button(root,text='Change',command=change)
+        change_button.grid(row=3,column=0,columnspan=1)
     def Verification(password, otp_entry, email, email_password, username12):
         ot = str(otp_entry)
         pyAesCrypt.decryptFile(
@@ -203,7 +231,6 @@ def login_password():
                 + username
                 + " "
                 + "! Your otp for ONE-PASS is  "
-                + " "
                 + OTP
                 + " "
                 + "This OTP will expire in 2 minutes"
@@ -561,10 +588,7 @@ def login():
                 s.login("rohithk652@gmail.com", "rohithk2003")
                 s.sendmail("rohithk652@gmail.com", email_sending, msg)
             except:
-                messagebox.showinfo(
-                    "Error", "Please Connect to the internet \n then retry"
-                )
-                sys.exit()
+               pass
 
     but = Button(login_window, text="Login", command=login_checking)
     login.grid(row=2, column=2)
@@ -592,9 +616,7 @@ def register():
         if len(password_register) < 5 or len(email_password_register) < 5:
             win = Tk()
             win.withdraw()
-            messagebox.showinfo(
-                "Error", "Please provide a valid password greeter than 5 characters."
-            )
+            messagebox.showinfo("Error","Please provide a valid password greeter than 5 characters.")
             win.destroy()
             checking = False
         if checking:
@@ -609,10 +631,7 @@ def register():
             main1 = original + email_password_register
             cipher_text = encrypt(main1, password_register)
             print(type(cipher_text))
-            my_cursor.execute(
-                "insert into  data_input values (%s,%s,%s)",
-                (username_register, email_id_register, cipher_text),
-            )
+            my_cursor.execute("insert into  data_input values (%s,%s,%s)",(username_register,email_id_register,cipher_text))
             # except:
             #     roo1 = Tk()
             #     roo1.withdraw()
