@@ -106,25 +106,6 @@ def delete_file(file):
         return "error"
 
 
-def text_object(text, font, color):
-    textsurf = font.render(text, True, color)
-    return textsurf, textsurf.get_rect()
-
-
-def message_display_small(text, a, b, color, display):
-    smalltext = pygame.font.Font("comic.ttf", 30)
-    textsurf, textrect = text_object(text, smalltext, color)
-    textrect.center = (int(a), int(b))
-    display.blit(textsurf, textrect)
-
-
-def fb_text(text, a, b, color, display):
-    smalltext = pygame.font.Font("freesansbold.ttf", 30)
-    textsurf, textrect = text_object(text, smalltext, color)
-    textrect.center = (int(a), int(b))
-    display.blit(textsurf, textrect)
-
-
 # def button(social_media_name,username,password):
 def login_password():
     window = Tk()
@@ -244,16 +225,7 @@ def login_password():
             running = True
             mailid = sys.argv[0]
             SUBJECT = "OTP verification for ONE-PASS-MANAGER"
-            otp = (
-                "Hey"
-                + ""
-                + username
-                + " "
-                + "! Your otp for ONE-PASS is  "
-                + OTP
-                + " "
-                + "This OTP will expire in 2 minutes"
-            )
+            otp = ('Hey ' + username + 'Your one time password is' + OTP)
             msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
             s = smtplib.SMTP("smtp.gmail.com", 587)
             s.starttls()
@@ -348,7 +320,7 @@ def login_password():
 
 
 def button(social_media, username, password):
-    file_name = str(username) + social_media + ".bin.fenc"
+    file_name = str(username) + 'decrypted.bin'
     if os.path.exists(file_name):
         root = Tk()
         width_window = 300
@@ -358,23 +330,17 @@ def button(social_media, username, password):
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
         root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-
+        f1 = open(file_name,'rb')
         line = pickle.load(f1)
         title1 = social_media + "Account"
         root.title(title1)
-        first = line[0]
-        second = line[1]
-        text12 = social_media + "Username:"
-        text22 = social_media + "Password:"
-        a1_text = Label(root, text=first)
-        a2_text = Label(root, text=second)
-        a1_text.grid(row=0, column=1)
-        a2_text.grid(row=1, column=1)
-        fwq = Label(root, text=text12)
-        f12 = Label(root, text=text22)
-        fwq.grid(row=0, column=0)
-        f12.grid(row=1, column=0)
-
+        req = []
+        length = len(line)-1
+        for i in range(1,length):
+            if i[2] == social_media:
+                req = i
+            else:
+                messagebox.showinfo('Error','No ' + social_media + ' Account exist')
         def _delete_window():
             try:
                 root.destroy()
@@ -436,12 +402,16 @@ def button(social_media, username, password):
         height_window = 300
         screen_width = second.winfo_screenwidth()
         screen_height = second.winfo_screenheight()
-        second.title("Facebook Login")
-        username1 = Label(second, text="Facebook_Username:")
-        password1 = Label(second, text="Facebook_Password:")
+        title = social_media + "Login"
+        second.title(title)
+        login_text1 = "Please provide " + social_media + " account and password"
+        text_social = social_media + "Username:"
+        text_pass_social = social_media + 'Password:'
+
+        username1 = Label(second, text=text_social)
+        password1 = Label(second, text=text_pass_social)
         username1_entry = Entry(second)
         password1_entry = Entry(second, show="*")
-        login_text1 = "Please provide Facebook account and password"
         login_text = Label(second, text=login_text1)
         username1.grid(row=2, column=0)
         password1.grid(row=3, column=0)
@@ -450,22 +420,24 @@ def button(social_media, username, password):
         username_list = []
 
         def save():
-            c = username1_entry.get()
-            fb_username = str(username)
-            fb_password = password1_entry.get()
-            a = fb_username + "_facebook"
-            b = str(fb_password)
-            fb_account_cipher = password
-            username_list.append(str(c))
-            username_list.append(b)
-            f = open(a + ".bin", "wb")
-            pickle.dump(username_list, f)
+            username_social_media = str(username1_entry.get())
+            password_social_media = str(password1_entry.get())
+            l = str(username) + 'decrypted.bin'
+            f = open(l,'rb')
+            line = pickle.load(f)
+            list = [username_social_media, password_social_media,social_media]
+            line.append(list)
             f.close()
-            pyAesCrypt.encryptFile(
-                a + ".bin", a + ".bin.fenc", fb_account_cipher, bufferSize
-            )
-            os.remove(a + ".bin")
-
+            os.remove(str(username) + 'decrypted.bin')
+            f = open(str(username) + 'decrypted.bin','wb')
+            pickle.dump(line,f)
+            f.close()
+            root = Tk()
+            root.withdraw()
+            messagebox.showinfo('Success','Your account has been saved')
+            root.destroy()
+            win = pygame.display.set_mode((800,600))
+            gameloop(win,username,password)
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
 
@@ -483,13 +455,10 @@ def gameloop(a, username, password):
         mouse = pygame.mouse.get_pressed()
         mouse_pos = pygame.mouse.get_pos()
         a.blit(facebook, (20, 20))
-        message_display_small(
-            "Facebook",
-            45 + facebook.get_width() - 100 + 10,
-            25 + facebook.get_height() + 10,
-            black,
-            a,
-        )
+        text_facebook = Testing("Facebook",45 + facebook.get_width() - 100 + 10,25 + facebook.get_height() + 10,a,'comic.ttf',30,black)
+        text_facebook.object()
+        text_facebook.blit()
+
         if (
             mouse[0] == 1
             and 20 < mouse_pos[0] < 20 + facebook.get_width()
@@ -546,16 +515,17 @@ def login():
             )
             f = open(file_name + "decrypted" + ".bin", "rb")
             logins = pickle.load(f)
-
+            sending = True
+            testing = True
         except:
             testing = False
             root = Tk()
             root.withdraw()
             messagebox.showinfo("Error", "Wrong Password or Username")
             root.destroy()
-        # if testing:
-        #     d = pygame.display.set_mode((800, 600))
-        #     gameloop(d, file_name, main_password)
+        if testing:
+            d = pygame.display.set_mode((800, 600))
+            gameloop(d, file_name, main_password)
         if sending:
             hostname = socket.gethostname()
             ip_address = socket.gethostbyname(hostname)
@@ -651,7 +621,9 @@ def register():
             #     messagebox.showerror("Error", "Username already exists")
             #     roo1.destroy()
             file_name = username_register + ".bin"
+            list = [[username_register,password_register]]
             f = open(file_name, "wb")
+            pickle.dump(list,f)
             f.close()
             pyAesCrypt.encryptFile(
                 file_name, file_name + ".fenc", password_register, bufferSize
