@@ -4,11 +4,10 @@ import pickle
 import random
 import smtplib
 from tkinter import *
-import glob 
+import glob
 import pyAesCrypt
 import mysql.connector
 import pygame
-from simplecrypt import encrypt, decrypt
 import os
 import sys
 from tkinter import messagebox
@@ -25,6 +24,11 @@ import socket
 import pytz
 from time import gmtime, strftime
 from Text import *
+import base64
+from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 geolocator = Nominatim(user_agent="geoapiExercises")
 "------------------------------------main tkinter window------------------------------------"
 
@@ -65,7 +69,7 @@ my_cursor = my_database.cursor()
 my_cursor.execute("set autocommit=1")
 my_cursor.execute("create database if not exists  USERS DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci")
 my_cursor.execute("use USERS")
-my_cursor.execute("create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob)")
+my_cursor.execute("create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,salt blob)")
 
 "******************************Colors******************************"
 black = (0, 0, 0)
@@ -79,8 +83,22 @@ social_media_user_text = ""
 social_media_active = False
 
 font = pygame.font.Font("freesansbold.ttf", 30)
-
-
+def create_key(password,message):
+    password_key = password.encode()
+    salt = os.urandom(16)
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),length=32,salt=salt,iterations=999999,backend=default_backend())
+    key = base64.urlsafe_b64encode(kdf.derive(password_key))
+    message_encrypt = message.encode()
+    f = Fernet(key)
+    encyrpted = f.encrypt(message_encrypt)
+    return encyrpted,salt
+def retreive_key(password,byte,de):
+    password_key = password.encode()
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),length=32,salt=de,iterations=999999,backend=default_backend())
+    key = base64.urlsafe_b64encode(kdf.derive(password_key))
+    f = Fernet(key)
+    decrypted = f.decrypt(byte)
+    return decrypted
 def delete_file(file):
     try:
         os.remove(file)
@@ -151,7 +169,7 @@ def login_password():
         new_username_entry.grid(row=1, column=1)
         new_password_entry.grid(row=2, column=1)
         my_cursor.execute(
-            "select password from data_input where email_id = (%s)", (email,)
+            "select password,salt from data_input where email_id = (%s)", (email,)
         )
         values_password = my_cursor.fetchall()
         password_decrypt = ""
@@ -161,15 +179,16 @@ def login_password():
             else:
                 password_decrypt += i
         password_decrypt += password1
+        has = 0
+        salt = 0
+        for i in values_password:
+                has = i[0]
+                salt = i[1]
         try:
-            for i in values_password:
-                for op in i:
-                        print(op)
-                        decrypted_string = decrypt(password_decrypt, op)
+            decrypted_string = retreive_key(password_decrypt,has,salt)
         except:
-            messagebox.showerror("Error", "Wrong recovey password")
+            messagebox.showinfo('Error','Wrong Recovery email password')
         def change():
-
                         re_p = decrypted_string.decode('utf-8')
                         pyAesCrypt.decryptFile(
                             file_name_reentry,
@@ -183,7 +202,7 @@ def login_password():
                         my_cursor.execute(
                             "delete from data_input where username=(%s)", (username12,)
                         )
-                        re_encrypt = encrypt(password_decrypt, str(new_password_entry.get()))
+                        re_encrypt,new_salt = create_key(password_decrypt, str(new_password_entry.get()))
                         pyAesCrypt.encryptFile(
                             username12 + ".bin",
                             str(new_username_entry.get()) + ".bin.fenc",
@@ -191,8 +210,8 @@ def login_password():
                             bufferSize,
                         )
                         my_cursor.execute(
-                            "insert into data_input values(%s,%s,%s)",
-                            (str(new_username_entry.get()), email, re_encrypt),
+                            "insert into data_input values(%s,%s,%s,%s)",
+                            (str(new_username_entry.get()), email, re_encrypt,new_salt),
                         )
                         if os.path.exists(str(new_username_entry.get()) + '.bin.fenc'):
                                             os.remove(username12 +'.bin')
@@ -527,12 +546,7 @@ def login():
             )
             f = open(file_name + "decrypted" + ".bin", "rb")
             logins = pickle.load(f)
-            roo1 = Tk()
-            roo1.withdraw()
-            messagebox.showinfo("Success", "Success")
-            roo1.destroy()
-            testing = True
-            sending = True
+
         except:
             testing = False
             root = Tk()
@@ -629,9 +643,8 @@ def register():
                     else:
                         original += i
             main1 = original + email_password_register
-            cipher_text = encrypt(main1, password_register)
-            print(type(cipher_text))
-            my_cursor.execute("insert into  data_input values (%s,%s,%s)",(username_register,email_id_register,cipher_text))
+            cipher_text,salt_for_decryption = create_key(main1,password_register)
+            my_cursor.execute("insert into  data_input values (%s,%s,%s,%s)",(username_register,email_id_register,cipher_text,salt_for_decryption))
             # except:
             #     roo1 = Tk()
             #     roo1.withdraw()
