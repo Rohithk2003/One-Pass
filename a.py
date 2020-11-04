@@ -168,7 +168,7 @@ def login_password():
         for i in values_password:
                 has = i[0]
                 salt = i[1]
-            
+
         try:
             string = retreive_key(password_decrypt,has,salt)
             for i in string:
@@ -336,92 +336,105 @@ def login_password():
 
 def button(social_media, username, password):
     file_name = str(username) + 'decrypted.bin'
-    if os.path.exists(file_name):
-        root = Tk()
-        width_window = 300
-        height_window = 300
-        screen_width = root.winfo_screenwidth()
-        screen_height = root.winfo_screenheight()
-        x = screen_width / 2 - width_window / 2
-        y = screen_height / 2 - height_window / 2
-        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-        f1 = open(file_name,'rb')
-        line = pickle.load(f1)
-        title1 = social_media + "Account"
-        root.title(title1)
-        req = []
-        length = len(line)
-        for i in range(1,length):
-            if i[2] == social_media:
-                req.append(i)
-            else:
-                messagebox.showinfo('Error','No ' + social_media + ' Account exist \nPlease create a facebook account')
-        social_media_active_username = req[0][0]
-        social_media_active_password = req[0][1]
-        text,text1 = 'username','password'
-        social_media_active_label = Label(root,text=social_media_active_username)
-        social_media_active_pass_label = Label(root,text=social_media_active_password)
-        display_text = 'Your' + social_media + 'account is'
-        display_text.grid(row=0, column=0,columnspan=1)
-        text.grid(row=1,column=0)
-        text1.grid(row=2,column=0)
-        social_media_active_label.grid(row=1,column=1)
-        social_media_active_pass_label.grid(row=2,column=1)
-        def _delete_window():
-            try:
+    social_media_exists = 0
+
+    try:
+            f = open(file_name,'rb')
+            line = pickle.load(f)
+            print(line)
+            for i in line:
+                if i[2] == social_media:
+                    social_media_exists = True
+    except:
+            messagebox.showinfo('Error','No '+ social_media + ' account has been created')
+            social_media_exists = False
+    if social_media_exists:
+            root = Tk()
+            width_window = 300
+            height_window = 300
+            screen_width = root.winfo_screenwidth()
+            screen_height = root.winfo_screenheight()
+            x = screen_width / 2 - width_window / 2
+            y = screen_height / 2 - height_window / 2
+            root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+            f1 = open(file_name,'rb')
+            line = pickle.load(f1)
+            title1 = social_media + "Account"
+            root.title(title1)
+            req = []
+            length = len(line)
+            for i in range(1,length):
+                if i[2] == social_media:
+                    req.append(i)
+                    print(req)
+                else:
+                    messagebox.showinfo('Error','No ' + social_media + ' Account exist \nPlease create a facebook account')
+            social_media_active_username = req[0][0]
+            social_media_active_password = req[0][1]
+            text,text1 = 'username','password'
+            social_media_active_label = Label(root,text=social_media_active_username)
+            social_media_active_pass_label = Label(root,text=social_media_active_password)
+            display_text = 'Your' + social_media + 'account is'
+            display_text.grid(row=0, column=0,columnspan=1)
+            text.grid(row=1,column=0)
+            text1.grid(row=2,column=0)
+            social_media_active_label.grid(row=1,column=1)
+            social_media_active_pass_label.grid(row=2,column=1)
+            def _delete_window():
+                try:
+                    root.destroy()
+                except:
+                    pass
+
+            def back1():
+                pygame.init()
                 root.destroy()
-            except:
-                pass
+                d = pygame.display.set_mode((800, 600))
+                gameloop(d, str(username), password)
 
-        def back1():
-            pygame.init()
-            root.destroy()
-            d = pygame.display.set_mode((800, 600))
-            gameloop(d, str(username), password)
-
-        def _destroy(event):
-            f1.close()
-            if os.path.exists(str(username) + "_facebook" + "decrypted" + ".bin"):
-                os.remove(str(username) + "_facebook" + "decrypted" + ".bin")
-            if os.path.exist(str(username) + "decrypted.bin"):
-                os.remove(str(username) + "decrypted.bin")
+            def _destroy(event):
+                f1.close()
+                if os.path.exists(str(username) + "_facebook" + "decrypted" + ".bin"):
+                    os.remove(str(username) + "_facebook" + "decrypted" + ".bin")
+                if os.path.exist(str(username) + "decrypted.bin"):
+                    os.remove(str(username) + "decrypted.bin")
 
 
-        # def remote():
+            # def remote():
 
-        #     usr = "rohithkrishnan2003@gmail.com"
-        #     pwd = "Batman@1234"
+            #     usr = "rohithkrishnan2003@gmail.com"
+            #     pwd = "Batman@1234"
 
-        #     driver = webdriver.Chrome(ChromeDriverManager().install())
-        #     driver.get("https://www.facebook.com/")
-        #     print("Opened facebook")
-        #     sleep(1)
+            #     driver = webdriver.Chrome(ChromeDriverManager().install())
+            #     driver.get("https://www.facebook.com/")
+            #     print("Opened facebook")
+            #     sleep(1)
 
-        #     username_box = driver.find_element_by_id("email")
-        #     username_box.send_keys(usr)
-        #     print("Email Id entered")
-        #     sleep(1)
+            #     username_box = driver.find_element_by_id("email")
+            #     username_box.send_keys(usr)
+            #     print("Email Id entered")
+            #     sleep(1)
 
-        #     password_box = driver.find_element_by_id("pass")
-        #     password_box.send_keys(pwd)
-        #     print("Password entered")
+            #     password_box = driver.find_element_by_id("pass")
+            #     password_box.send_keys(pwd)
+            #     print("Password entered")
 
-        #     login_box = driver.find_element_by_id("u_0_b")
-        #     login_box.click()
+            #     login_box = driver.find_element_by_id("u_0_b")
+            #     login_box.click()
 
-        #     print("Done")
-        #     input("Press anything to quit")
-        #     driver.quit()
+            #     print("Done")
+            #     input("Press anything to quit")
+            #     driver.quit()
 
-        # root.protocol("WM_DELETE_WINDOW", _delete_window)
-        # root.bind("<Destroy>", _destroy)
+            # root.protocol("WM_DELETE_WINDOW", _delete_window)
+            # root.bind("<Destroy>", _destroy)
 
-        back = Button(root, text="Go back!", command=back1, width=10)
-        back.grid(row=3, column=0, columnspan=2)
-        # remote_login = Button(root, text="Facebook", command=remote, width=10)
-        # remote_login.grid(row=4, column=0, columnspan=2)
+            back = Button(root, text="Go back!", command=back1, width=10)
+            back.grid(row=3, column=0, columnspan=2)
+            # remote_login = Button(root, text="Facebook", command=remote, width=10)
+            # remote_login.grid(row=4, column=0, columnspan=2)
 
-    else:
+    elif social_media_exists == False:
         second = Tk()
         width_window = 300
         height_window = 300
@@ -448,21 +461,20 @@ def button(social_media, username, password):
             username_social_media = str(username1_entry.get())
             password_social_media = str(password1_entry.get())
             l = str(username) + 'decrypted.bin'
-            f = open(l,'rb')
-            line = pickle.load(f)
-            list = [username_social_media, password_social_media,social_media]
+            f = open(l,'wb')
+            list = []
+            line = []
+            list.append(username_social_media)
+            list.append(password_social_media)
+            list.append(social_media)
             line.append(list)
-            f.close()
-            os.remove(str(username) + 'decrypted.bin')
-            f = open(str(username) + 'decrypted.bin','wb')
             pickle.dump(line,f)
+            print(line)
             f.close()
             root = Tk()
             root.withdraw()
             messagebox.showinfo('Success','Your account has been saved')
             root.destroy()
-            win = pygame.display.set_mode((800,600))
-            gameloop(win,username,password)
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
 
@@ -512,7 +524,6 @@ def login():
     pass_entry = Entry(login_window, text="Password:", show="*")
     lbl = Label(login_window, text="Please enter your username and password:")
     forgot = Button(login_window, text="Forgot Password", command=login_password)
-    Style().theme_use("alt")
 
     def login_checking():
         sending = False
@@ -548,50 +559,52 @@ def login():
             d = pygame.display.set_mode((800, 600))
             gameloop(d, str(username), main_password)
         if sending:
-            hostname = socket.gethostname()
-            ip_address = socket.gethostbyname(hostname)
-            g = geocoder.ip("me")
-            ip1 = g.latlng
-            location = geolocator.reverse(ip1, exactly_one=True)
-            address = location.raw["address"]
-            city = address.get("city", "")
-            country = address.get("country", "")
-            time_now = strftime("%H:%M:%S", gmtime())
-            date = datetime.today().strftime("%Y-%m-%d")
-            SUBJECT = "ONE-PASS login on " + " " + date
-            otp = (
-                "Hey"
-                + " "
-                + username
-                + "!"
-                + "\n"
-                + "It looks like someone logged into your account from a device"
-                + " "
-                + hostname
-                + " "
-                + "on "
-                + date
-                + " at "
-                + time_now
-                + "."
-                + " The login took place somewhere near "
-                + city
-                + ","
-                + country
-                + "(IP="
-                + ip_address
-                + ")."
-                + "If this was you,please disregard this email.No further action is needed \nif it wasn't you please change your password"
-                + "\n"
-                + "Thanks,\nONE-PASS"
-            )
-            msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
-            s = smtplib.SMTP("smtp.gmail.com", 587)
-            s.starttls()
-            s.login("rohithk652@gmail.com", "rohithk2003")
-            s.sendmail("rohithk652@gmail.com", email_sending, msg)
+            try:
+                hostname = socket.gethostname()
+                ip_address = socket.gethostbyname(hostname)
+                g = geocoder.ip("me")
+                ip1 = g.latlng
+                location = geolocator.reverse(ip1, exactly_one=True)
+                address = location.raw["address"]
+                city = address.get("city", "")
+                country = address.get("country", "")
+                time_now = strftime("%H:%M:%S", gmtime())
+                date = datetime.today().strftime("%Y-%m-%d")
+                SUBJECT = "ONE-PASS login on " + " " + date
+                otp = (
+                    "Hey"
+                    + " "
+                    + username
+                    + "!"
+                    + "\n"
+                    + "It looks like someone logged into your account from a device"
+                    + " "
+                    + hostname
+                    + " "
+                    + "on "
+                    + date
+                    + " at "
+                    + time_now
+                    + "."
+                    + " The login took place somewhere near "
+                    + city
+                    + ","
+                    + country
+                    + "(IP="
+                    + ip_address
+                    + ")."
+                    + "If this was you,please disregard this email.No further action is needed \nif it wasn't you please change your password"
+                    + "\n"
+                    + "Thanks,\nONE-PASS"
+                )
+                msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
+                s = smtplib.SMTP("smtp.gmail.com", 587)
+                s.starttls()
+                s.login("rohithk652@gmail.com", "rohithk2003")
+                s.sendmail("rohithk652@gmail.com", email_sending, msg)
 
-
+            except:
+                pass
     but = Button(login_window, text="Login", command=login_checking)
     login.grid(row=2, column=2)
     lbl.grid(row=0, column=2, columnspan=2)
@@ -608,7 +621,7 @@ def login():
 def register():
     login_window1 = Tk()
     root.destroy()
-    
+
     def register_saving():
         username_register = str(username_entry.get())
         password_register = str(password_entry.get())
@@ -645,11 +658,9 @@ def register():
             if replica:
                 login_window1.destroy()
                 for_hashing = password_register + username_register
-                hash_pass = 
+                hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
                 file_name = username_register + ".bin"
-                list = [[username_register,password_register]]
                 f = open(file_name, "wb")
-                pickle.dump(list,f)
                 f.close()
                 pyAesCrypt.encryptFile(
                     file_name, file_name + ".fenc", hash_pass, bufferSize
@@ -661,6 +672,7 @@ def register():
                 windows.destroy()
                 d = pygame.display.set_mode((800,600))
                 gameloop(d,username_register,password_register)
+                pyAesCrypt.decryptFile(file_name+'.fenc',file_name,password_register,bufferSize)
     def hide_password(entry, row, column, row1, column1):
         entry.config(show="*")
         show_both_11 = Button(
