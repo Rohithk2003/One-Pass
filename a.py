@@ -7,7 +7,6 @@ from tkinter import *
 import glob
 import pyAesCrypt
 import mysql.connector
-import pygame
 import os
 import sys
 from tkinter import messagebox
@@ -23,7 +22,6 @@ import geocoder
 import socket
 import pytz
 from time import gmtime, strftime
-from Text import *
 import hashlib
 import base64
 from passlib.hash import pbkdf2_sha256
@@ -31,12 +29,12 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import pygame
 geolocator = Nominatim(user_agent="geoapiExercises")
 "------------------------------------main tkinter window------------------------------------"
 
 bufferSize = 64 * 1024
 root = Tk()
-pygame.init()  # main windows were the login screen and register screen goes
 root.title("ONE-PASS-MANAGER")
 root.config(bg="black")
 root23 = Style()
@@ -54,6 +52,7 @@ username = 0
 social_media = []
 "------------------------------------loading images------------------------------------"
 num_password_account = 5
+pygame.init()
 facebook = pygame.image.load("facebook.png")
 instagram = pygame.image.load("instagram.png")
 google = pygame.image.load("google.png")
@@ -83,6 +82,22 @@ catch_error = True
 
 social_media_user_text = ""
 social_media_active = False
+class Testing:
+    def __init__(self,text,x_coord,y_coord,window,type_of_font,size,color):
+        self.text = text
+        self.x_coord = x_coord
+        self.y_coord = y_coord
+        self.window = window
+        self.type_of_font = type_of_font
+        self.size = size
+        self.color = color
+
+    def object(self):
+        font_render = pygame.font.Font(self.type_of_font,self.size)
+        text_blit = font_render.render(self.text,True,self.color)
+        self.text_blit = text_blit
+    def blit(self):
+        self.window.blit(self.text_blit,(self.x_coord,self.y_coord))
 
 font = pygame.font.Font("freesansbold.ttf", 30)
 def create_key(password,message):
@@ -337,14 +352,12 @@ def login_password():
 def button(social_media, username, password):
     file_name = str(username) + 'decrypted.bin'
     social_media_exists = 0
-
     try:
-            f = open(file_name,'rb')
-            line = pickle.load(f)
-            print(line)
-            for i in line:
-                if i[2] == social_media:
-                    social_media_exists = True
+        f = open(file_name,'rb')
+        line = pickle.load(f)
+        for i in line:
+            if i[2] == social_media:
+                social_media_exists = True
     except:
             messagebox.showinfo('Error','No '+ social_media + ' account has been created')
             social_media_exists = False
@@ -363,21 +376,23 @@ def button(social_media, username, password):
             root.title(title1)
             req = []
             length = len(line)
-            for i in range(1,length):
-                if i[2] == social_media:
-                    req.append(i)
-                    print(req)
-                else:
-                    messagebox.showinfo('Error','No ' + social_media + ' Account exist \nPlease create a facebook account')
-            social_media_active_username = req[0][0]
-            social_media_active_password = req[0][1]
-            text,text1 = 'username','password'
-            social_media_active_label = Label(root,text=social_media_active_username)
-            social_media_active_pass_label = Label(root,text=social_media_active_password)
+            social_media_username = ''
+            social_media_password = ''
+            for i in line:
+                        if i[2]==social_media:
+                            social_media_username = i[0]
+                            social_media_password = i[1]
+            print(social_media_password)
+            print(social_media_username)
+            social_media_active_label = Label(root,text=social_media_username)
+            social_media_active_pass_label = Label(root,text=social_media_password)
             display_text = 'Your' + social_media + 'account is'
-            display_text.grid(row=0, column=0,columnspan=1)
-            text.grid(row=1,column=0)
-            text1.grid(row=2,column=0)
+            display_text_label = Label(root,text=display_text)
+            display_text_label.grid(row=0, column=0,columnspan=1)
+            text_label = Label(root,text='Username:')
+            text1_label = Label(root,text='Password:')
+            text_label.grid(row=1,column=0)
+            text1_label.grid(row=2,column=0)
             social_media_active_label.grid(row=1,column=1)
             social_media_active_pass_label.grid(row=2,column=1)
             def _delete_window():
@@ -471,6 +486,8 @@ def button(social_media, username, password):
             pickle.dump(line,f)
             print(line)
             f.close()
+            os.remove(str(username)+'.bin.fenc')
+            pyAesCrypt.encryptFile(file_name,str(username)+'.bin.fenc',password,bufferSize)
             root = Tk()
             root.withdraw()
             messagebox.showinfo('Success','Your account has been saved')
@@ -659,6 +676,7 @@ def register():
                 login_window1.destroy()
                 for_hashing = password_register + username_register
                 hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
+                print(hash_pass)
                 file_name = username_register + ".bin"
                 f = open(file_name, "wb")
                 f.close()
