@@ -24,7 +24,9 @@ import socket
 import pytz
 from time import gmtime, strftime
 from Text import *
+import hashlib
 import base64
+from passlib.hash import pbkdf2_sha256
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -162,32 +164,45 @@ def login_password():
         password_decrypt += password1
         has = 0
         salt = 0
+        decrypted_string = ''
         for i in values_password:
                 has = i[0]
                 salt = i[1]
+            
         try:
-            decrypted_string = retreive_key(password_decrypt,has,salt)
+            string = retreive_key(password_decrypt,has,salt)
+            for i in string:
+                if i == '@':
+                    break
+                else:
+                    decrypted_string += i
         except:
             messagebox.showinfo('Error','Wrong Recovery email password')
+        re_hash = pbkdf2_sha256.hash(decrypted_string)
         def change():
-                        re_p = decrypted_string.decode('utf-8')
                         pyAesCrypt.decryptFile(
                             file_name_reentry,
                             username12 + ".bin",
-                            re_p,
+                            re_hash,
                             bufferSize,
                         )
                         f = open(username12 + ".bin", "r")
+                        line = pickle.load(f)
+                        for i in line:
+                            if i[0] == username12:
+                                i[1] = str(new_password_entry.get())
+                        os.remove(username12 + ".bin")
+                        f = open(username12 + ".bin", "r")
+                        pickle.dump(line,f)
                         f.close()
-
-                        my_cursor.execute(
-                            "delete from data_input where username=(%s)", (username12,)
-                        )
-                        re_encrypt,new_salt = create_key(password_decrypt, str(new_password_entry.get()))
+                        my_cursor.execute("delete from data_input where username=(%s)", (username12,))
+                        new_salt = str(new_password_entry.get()) + "@" + password_decrypt
+                        re_hash_new = pbkdf2_sha256.hash(str(new_password_entry.get()))
+                        re_encrypt,new_salt = create_key(password_decrypt, re_hash_new)
                         pyAesCrypt.encryptFile(
                             username12 + ".bin",
                             str(new_username_entry.get()) + ".bin.fenc",
-                            str(new_password_entry.get()),
+                            re_hash_new,
                             bufferSize,
                         )
                         my_cursor.execute(
@@ -201,31 +216,36 @@ def login_password():
         change_button.grid(row=3,column=0,columnspan=1)
     def Verification(password, otp_entry, email, email_password, username12):
         ot = str(otp_entry)
-        pyAesCrypt.decryptFile(
-            "otp.bin.fenc", "otp_decyrpted.bin", password, bufferSize
-        )
-        f11 = open("otp_decyrpted.bin", "rb")
-        list = pickle.load(f11)
-        str_value = ""
-        for i in list:
-            str_value += str(i)
-        if str_value == ot:
-            roo1 = Tk()
-            roo1.withdraw()
-            messagebox.showinfo("Success", "OTP is verified")
-            roo1.destroy()
-            f11.close()
-            os.remove("otp_decyrpted.bin")
-            os.remove("otp.bin.fenc")
-            change_password(email, email_password, username12)
-
+        if ot !='':
+            pyAesCrypt.decryptFile(
+                "otp.bin.fenc", "otp_decyrpted.bin", password, bufferSize
+            )
+            f11 = open("otp_decyrpted.bin", "rb")
+            list = pickle.load(f11)
+            str_value = ""
+            for i in list:
+                str_value += str(i)
+            str_value_hash = hashlib.sha512(ot.encode()).hexdigest()
+            if str_value_hash == str_value:
+                roo1 = Tk()
+                roo1.withdraw()
+                messagebox.showinfo("Success", "OTP is verified")
+                roo1.destroy()
+                f11.close()
+                os.remove("otp_decyrpted.bin")
+                os.remove("otp.bin.fenc")
+                change_password(email, email_password, username12)
+            else:
+                messagebox.showinfo('Error',"Incorrect OTP Please verify it again")
+                otp_entry.delete(0,END)
+        else:
+            messagebox.showinfo('Error','Please provide the OTP  send to your email')
     def forgot_password(OTP, email, username):
         try:
             global running
             running = True
-            mailid = sys.argv[0]
             SUBJECT = "OTP verification for ONE-PASS-MANAGER"
-            otp = ('Hey ' + username + 'Your one time password is' + OTP)
+            otp = ('Hey ' + username + ' Your one time password is ' + OTP)
             msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
             s = smtplib.SMTP("smtp.gmail.com", 587)
             s.starttls()
@@ -301,19 +321,14 @@ def login_password():
             OTP = ""
             for i in range(6):
                 OTP += random.choice(digits)
-            l = list(OTP)
+            OTP_secure =  phashlib.sha512(OTP.encode()).hexdigest()
+            l = list(OTP_secure)
             f = open("otp.bin", "wb")
             pickle.dump(l, f)
             f.close()
             generate_key1("otp.bin")
-            forgot_password(OTP, recover_email_entry_verify, username_verify)
-            Verification(
-                key,
-                str(otp_entry.get()),
-                recover_email_entry_verify,
-                recover_password_entry_verify,
-                username_verify,
-            )
+            forgot_password(OTP_secure, recover_email_entry_verify, username_verify)
+
 
     forgot_password_button = Button(window, text="verify", command=lambda: main(key))
     forgot_password_button.grid(row=5, column=1)
@@ -335,12 +350,23 @@ def button(social_media, username, password):
         title1 = social_media + "Account"
         root.title(title1)
         req = []
-        length = len(line)-1
+        length = len(line)
         for i in range(1,length):
             if i[2] == social_media:
-                req = i
+                req.append(i)
             else:
-                messagebox.showinfo('Error','No ' + social_media + ' Account exist')
+                messagebox.showinfo('Error','No ' + social_media + ' Account exist \nPlease create a facebook account')
+        social_media_active_username = req[0][0]
+        social_media_active_password = req[0][1]
+        text,text1 = 'username','password'
+        social_media_active_label = Label(root,text=social_media_active_username)
+        social_media_active_pass_label = Label(root,text=social_media_active_password)
+        display_text = 'Your' + social_media + 'account is'
+        display_text.grid(row=0, column=0,columnspan=1)
+        text.grid(row=1,column=0)
+        text1.grid(row=2,column=0)
+        social_media_active_label.grid(row=1,column=1)
+        social_media_active_pass_label.grid(row=2,column=1)
         def _delete_window():
             try:
                 root.destroy()
@@ -359,8 +385,7 @@ def button(social_media, username, password):
                 os.remove(str(username) + "_facebook" + "decrypted" + ".bin")
             if os.path.exist(str(username) + "decrypted.bin"):
                 os.remove(str(username) + "decrypted.bin")
-            else:
-                pass
+
 
         # def remote():
 
@@ -466,7 +491,7 @@ def gameloop(a, username, password):
         ):
             quitting = False
             pygame.quit()
-            button("facebook", username, password)
+            button("Facebook", username, password)
             break
         pygame.display.update()
 
@@ -500,32 +525,28 @@ def login():
         l = my_cursor.fetchall()
         email_sending = ""
         for i in l:
-            for a in i:
-                if "@" in a:
-                    email_sending = a
+                    email_sending = i[0]
         file_name = str(username)
-        main_password = password
+        for_hashing_both = password + username
+        main_password = hashlib.sha512(for_hashing_both.encode()).hexdigest()
         try:
-
             pyAesCrypt.decryptFile(
-                file_name + ".bin.fenc",
-                file_name + "decrypted" + ".bin",
-                password,
-                bufferSize,
-            )
-            f = open(file_name + "decrypted" + ".bin", "rb")
-            logins = pickle.load(f)
-            sending = True
+                    file_name + ".bin.fenc",
+                    file_name + "decrypted" + ".bin",
+                    main_password,
+                    bufferSize,
+                )
             testing = True
+            sending = True
         except:
-            testing = False
-            root = Tk()
-            root.withdraw()
-            messagebox.showinfo("Error", "Wrong Password or Username")
-            root.destroy()
+             testing = False
+             root = Tk()
+             root.withdraw()
+             messagebox.showinfo("Error", "Wrong Password or Username")
+             root.destroy()
         if testing:
             d = pygame.display.set_mode((800, 600))
-            gameloop(d, file_name, main_password)
+            gameloop(d, str(username), main_password)
         if sending:
             hostname = socket.gethostname()
             ip_address = socket.gethostbyname(hostname)
@@ -536,43 +557,40 @@ def login():
             city = address.get("city", "")
             country = address.get("country", "")
             time_now = strftime("%H:%M:%S", gmtime())
-            try:
-                mailid = sys.argv[0]
-                date = datetime.today().strftime("%Y-%m-%d")
-                SUBJECT = "ONE-PASS login on " + " " + date
-                otp = (
-                    "Hey"
-                    + " "
-                    + username
-                    + "!"
-                    + "\n"
-                    + "It looks like someone logged into your account from a device"
-                    + " "
-                    + hostname
-                    + " "
-                    + "on "
-                    + date
-                    + " at "
-                    + time_now
-                    + "."
-                    + " The login took place somewhere near "
-                    + city
-                    + ","
-                    + country
-                    + "(IP="
-                    + ip_address
-                    + ")."
-                    + "If this was you,please disregard this email.No further action is needed \nif it wasn't you please change your password"
-                    + "\n"
-                    + "Thanks,\nONE-PASS"
-                )
-                msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
-                s = smtplib.SMTP("smtp.gmail.com", 587)
-                s.starttls()
-                s.login("rohithk652@gmail.com", "rohithk2003")
-                s.sendmail("rohithk652@gmail.com", email_sending, msg)
-            except:
-               pass
+            date = datetime.today().strftime("%Y-%m-%d")
+            SUBJECT = "ONE-PASS login on " + " " + date
+            otp = (
+                "Hey"
+                + " "
+                + username
+                + "!"
+                + "\n"
+                + "It looks like someone logged into your account from a device"
+                + " "
+                + hostname
+                + " "
+                + "on "
+                + date
+                + " at "
+                + time_now
+                + "."
+                + " The login took place somewhere near "
+                + city
+                + ","
+                + country
+                + "(IP="
+                + ip_address
+                + ")."
+                + "If this was you,please disregard this email.No further action is needed \nif it wasn't you please change your password"
+                + "\n"
+                + "Thanks,\nONE-PASS"
+            )
+            msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
+            s = smtplib.SMTP("smtp.gmail.com", 587)
+            s.starttls()
+            s.login("rohithk652@gmail.com", "rohithk2003")
+            s.sendmail("rohithk652@gmail.com", email_sending, msg)
+
 
     but = Button(login_window, text="Login", command=login_checking)
     login.grid(row=2, column=2)
@@ -590,17 +608,18 @@ def login():
 def register():
     login_window1 = Tk()
     root.destroy()
-
+    
     def register_saving():
         username_register = str(username_entry.get())
         password_register = str(password_entry.get())
         email_id_register = str(email_id_entry.get())
         email_password_register = str(email_password_entry.get())
         checking = True
+        replica = True
         if len(password_register) < 5 or len(email_password_register) < 5:
             win = Tk()
             win.withdraw()
-            messagebox.showinfo("Error","Please provide a valid password greeter than 5 characters.")
+            messagebox.showinfo("Error","Please provide a valid password greeter than 7 characters.")
             win.destroy()
             checking = False
         if checking:
@@ -613,23 +632,35 @@ def register():
                     else:
                         original += i
             main1 = original + email_password_register
-            cipher_text,salt_for_decryption = create_key(main1,password_register)
-            my_cursor.execute("insert into  data_input values (%s,%s,%s,%s)",(username_register,email_id_register,cipher_text,salt_for_decryption))
-            # except:
-            #     roo1 = Tk()
-            #     roo1.withdraw()
-            #     messagebox.showerror("Error", "Username already exists")
-            #     roo1.destroy()
-            file_name = username_register + ".bin"
-            list = [[username_register,password_register]]
-            f = open(file_name, "wb")
-            pickle.dump(list,f)
-            f.close()
-            pyAesCrypt.encryptFile(
-                file_name, file_name + ".fenc", password_register, bufferSize
-            )
-            os.remove(file_name)
-
+            static_salt_password = password_register +"@" + main1
+            cipher_text,salt_for_decryption = create_key(main1,static_salt_password)
+            try:
+                my_cursor.execute("insert into  data_input values (%s,%s,%s,%s)",(username_register,email_id_register,cipher_text,salt_for_decryption))
+            except:
+                 roo1 = Tk()
+                 roo1.withdraw()
+                 messagebox.showerror("Error", "Username already exists")
+                 roo1.destroy()
+                 replica = False
+            if replica:
+                login_window1.destroy()
+                for_hashing = password_register + username_register
+                hash_pass = 
+                file_name = username_register + ".bin"
+                list = [[username_register,password_register]]
+                f = open(file_name, "wb")
+                pickle.dump(list,f)
+                f.close()
+                pyAesCrypt.encryptFile(
+                    file_name, file_name + ".fenc", hash_pass, bufferSize
+                )
+                os.remove(file_name)
+                windows = Tk()
+                windows.withdraw()
+                messagebox.showinfo('Success','Your account has been created')
+                windows.destroy()
+                d = pygame.display.set_mode((800,600))
+                gameloop(d,username_register,password_register)
     def hide_password(entry, row, column, row1, column1):
         entry.config(show="*")
         show_both_11 = Button(
