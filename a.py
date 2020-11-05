@@ -30,6 +30,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import pygame
+
 geolocator = Nominatim(user_agent="geoapiExercises")
 "------------------------------------main tkinter window------------------------------------"
 
@@ -68,9 +69,13 @@ my_database = mysql.connector.connect(
 )
 my_cursor = my_database.cursor()
 my_cursor.execute("set autocommit=1")
-my_cursor.execute("create database if not exists  USERS DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci")
+my_cursor.execute(
+    "create database if not exists  USERS DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci"
+)
 my_cursor.execute("use USERS")
-my_cursor.execute("create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,salt blob)")
+my_cursor.execute(
+    "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,salt blob)"
+)
 
 "******************************Colors******************************"
 black = (0, 0, 0)
@@ -82,8 +87,10 @@ catch_error = True
 
 social_media_user_text = ""
 social_media_active = False
+
+
 class Testing:
-    def __init__(self,text,x_coord,y_coord,window,type_of_font,size,color):
+    def __init__(self, text, x_coord, y_coord, window, type_of_font, size, color):
         self.text = text
         self.x_coord = x_coord
         self.y_coord = y_coord
@@ -93,29 +100,119 @@ class Testing:
         self.color = color
 
     def object(self):
-        font_render = pygame.font.Font(self.type_of_font,self.size)
-        text_blit = font_render.render(self.text,True,self.color)
+        font_render = pygame.font.Font(self.type_of_font, self.size)
+        text_blit = font_render.render(self.text, True, self.color)
         self.text_blit = text_blit
+
     def blit(self):
-        self.window.blit(self.text_blit,(self.x_coord,self.y_coord))
+        self.window.blit(self.text_blit, (self.x_coord, self.y_coord))
+
 
 font = pygame.font.Font("freesansbold.ttf", 30)
-def create_key(password,message):
+
+# class Login:
+#     def __init__(self,username,password,email_id,email_password):
+#         self.username = username
+#         self.password = password
+#         self.email_id = email_id
+#         self.email_password = email_password
+#     def login_checking(self):
+        
+        
+class Register:
+    def __init__(self, username, password, email_id, email_password):
+        self.username = str(username)
+        self.password = str(password)
+        self.email_id = str(email_id)
+        self.email_password = str(email_password)
+
+    def check_pass_length(self):
+        if len(self.password) < 5 or len(self.email_password) < 5:
+            return False
+        else:
+            return True
+
+    def saving(self,object):
+        checking = True
+        my_cursor.execute("select username from data_input")
+        values_username = my_cursor.fetchall()
+        for i in values_username:
+               for usernames in i :
+                    if usernames == self.username:
+                        return True
+
+
+
+        email_split = ""
+        word =self.email_id.split()
+        for i in word:
+            for a in i:
+                if i == "@":
+                    break
+                else:
+                    email_split += i
+        main_password = email_split + self.email_password
+        static_salt_password = self.password + "@" + main_password
+        cipher_text, salt_for_decryption = create_key(
+            main_password, static_salt_password
+        )
+        object.execute(
+            "insert into data_input values (%s, %s, %s, %s)",
+            (self.username, self.email_id, cipher_text, salt_for_decryption),
+        )
+        return False
+
+    def creation(self):
+        for_hashing = self.password + self.username
+        hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
+        file_name = self.username + ".bin"
+        f = open(file_name, "wb")
+        f.close()
+        pyAesCrypt.encryptFile(
+            file_name, file_name + ".fenc", hash_pass, bufferSize
+        )
+        os.remove(file_name)
+        windows = Tk()
+        windows.withdraw()
+        messagebox.showinfo("Success", "Your account has been created")
+        windows.destroy()
+        d = pygame.display.set_mode((800, 600))
+        gameloop(d, self.username, self.password)
+        pyAesCrypt.decryptFile(file_name + ".fenc", file_name, hash_pass, bufferSize)
+
+
+def create_key(password, message):
     password_key = password.encode()
     salt = os.urandom(16)
-    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),length=32,salt=salt,iterations=999999,backend=default_backend())
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=999999,
+        backend=default_backend(),
+    )
     key = base64.urlsafe_b64encode(kdf.derive(password_key))
     message_encrypt = message.encode()
     f = Fernet(key)
     encyrpted = f.encrypt(message_encrypt)
-    return encyrpted,salt
-def retreive_key(password,byte,de):
+    return encyrpted, salt
+
+
+def retreive_key(password, byte, de):
     password_key = password.encode()
-    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(),length=32,salt=de,iterations=999999,backend=default_backend())
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=de,
+        iterations=999999,
+        backend=default_backend(),
+    )
     key = base64.urlsafe_b64encode(kdf.derive(password_key))
     f = Fernet(key)
     decrypted = f.decrypt(byte)
     return decrypted
+
+
 def delete_file(file):
     try:
         os.remove(file)
@@ -160,7 +257,7 @@ def login_password():
         new_username = Label(root, text="New Username")
         new_password = Label(root, text="New Password")
         new_username_entry = Entry(root)
-        new_password_entry = Entry(root,show='*')
+        new_password_entry = Entry(root, show="*")
         new_username.grid(row=1, column=0)
         new_password.grid(row=2, column=0)
         file_name_reentry = username12 + ".bin.fenc"
@@ -179,59 +276,64 @@ def login_password():
         password_decrypt += password1
         has = 0
         salt = 0
-        decrypted_string = ''
+        decrypted_string = ""
         for i in values_password:
-                has = i[0]
-                salt = i[1]
+            has = i[0]
+            salt = i[1]
 
         try:
-            string = retreive_key(password_decrypt,has,salt)
+            string = retreive_key(password_decrypt, has, salt)
             for i in string:
-                if i == '@':
+                if i == "@":
                     break
                 else:
                     decrypted_string += i
         except:
-            messagebox.showinfo('Error','Wrong Recovery email password')
+            messagebox.showinfo("Error", "Wrong Recovery email password")
         re_hash = pbkdf2_sha256.hash(decrypted_string)
+
         def change():
-                        pyAesCrypt.decryptFile(
-                            file_name_reentry,
-                            username12 + ".bin",
-                            re_hash,
-                            bufferSize,
-                        )
-                        f = open(username12 + ".bin", "r")
-                        line = pickle.load(f)
-                        for i in line:
-                            if i[0] == username12:
-                                i[1] = str(new_password_entry.get())
-                        os.remove(username12 + ".bin")
-                        f = open(username12 + ".bin", "r")
-                        pickle.dump(line,f)
-                        f.close()
-                        my_cursor.execute("delete from data_input where username=(%s)", (username12,))
-                        new_salt = str(new_password_entry.get()) + "@" + password_decrypt
-                        re_hash_new = pbkdf2_sha256.hash(str(new_password_entry.get()))
-                        re_encrypt,new_salt = create_key(password_decrypt, re_hash_new)
-                        pyAesCrypt.encryptFile(
-                            username12 + ".bin",
-                            str(new_username_entry.get()) + ".bin.fenc",
-                            re_hash_new,
-                            bufferSize,
-                        )
-                        my_cursor.execute(
-                            "insert into data_input values(%s,%s,%s,%s)",
-                            (str(new_username_entry.get()), email, re_encrypt,new_salt),
-                        )
-                        if os.path.exists(str(new_username_entry.get()) + '.bin.fenc'):
-                                            os.remove(username12 +'.bin')
-                                            os.remove(file_name_reentry)
-        change_button = Button(root,text='Change',command=change)
-        change_button.grid(row=3,column=0,columnspan=1)
+            pyAesCrypt.decryptFile(
+                file_name_reentry,
+                username12 + ".bin",
+                re_hash,
+                bufferSize,
+            )
+            f = open(username12 + ".bin", "r")
+            line = pickle.load(f)
+            for i in line:
+                if i[0] == username12:
+                    i[1] = str(new_password_entry.get())
+            os.remove(username12 + ".bin")
+            f = open(username12 + ".bin", "r")
+            pickle.dump(line, f)
+            f.close()
+            my_cursor.execute(
+                "delete from data_input where username=(%s)", (username12,)
+            )
+            new_salt = str(new_password_entry.get()) + "@" + password_decrypt
+            re_hash_new = pbkdf2_sha256.hash(str(new_password_entry.get()))
+            re_encrypt, new_salt = create_key(password_decrypt, re_hash_new)
+            pyAesCrypt.encryptFile(
+                username12 + ".bin",
+                str(new_username_entry.get()) + ".bin.fenc",
+                re_hash_new,
+                bufferSize,
+            )
+            my_cursor.execute(
+                "insert into data_input values(%s,%s,%s,%s)",
+                (str(new_username_entry.get()), email, re_encrypt, new_salt),
+            )
+            if os.path.exists(str(new_username_entry.get()) + ".bin.fenc"):
+                os.remove(username12 + ".bin")
+                os.remove(file_name_reentry)
+
+        change_button = Button(root, text="Change", command=change)
+        change_button.grid(row=3, column=0, columnspan=1)
+
     def Verification(password, otp_entry, email, email_password, username12):
         ot = str(otp_entry)
-        if ot !='':
+        if ot != "":
             pyAesCrypt.decryptFile(
                 "otp.bin.fenc", "otp_decyrpted.bin", password, bufferSize
             )
@@ -251,16 +353,17 @@ def login_password():
                 os.remove("otp.bin.fenc")
                 change_password(email, email_password, username12)
             else:
-                messagebox.showinfo('Error',"Incorrect OTP Please verify it again")
-                otp_entry.delete(0,END)
+                messagebox.showinfo("Error", "Incorrect OTP Please verify it again")
+                otp_entry.delete(0, END)
         else:
-            messagebox.showinfo('Error','Please provide the OTP  send to your email')
+            messagebox.showinfo("Error", "Please provide the OTP  send to your email")
+
     def forgot_password(OTP, email, username):
         try:
             global running
             running = True
             SUBJECT = "OTP verification for ONE-PASS-MANAGER"
-            otp = ('Hey ' + username + ' Your one time password is ' + OTP)
+            otp = "Hey " + username + " Your one time password is " + OTP
             msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
             s = smtplib.SMTP("smtp.gmail.com", 587)
             s.starttls()
@@ -336,118 +439,116 @@ def login_password():
             OTP = ""
             for i in range(6):
                 OTP += random.choice(digits)
-            OTP_secure =  phashlib.sha512(OTP.encode()).hexdigest()
+            OTP_secure = hashlib.sha512(OTP.encode()).hexdigest()
             l = list(OTP_secure)
             f = open("otp.bin", "wb")
             pickle.dump(l, f)
             f.close()
             generate_key1("otp.bin")
-            forgot_password(OTP_secure, recover_email_entry_verify, username_verify)
-
+            forgot_password(OTP, recover_email_entry_verify, username_verify)
 
     forgot_password_button = Button(window, text="verify", command=lambda: main(key))
     forgot_password_button.grid(row=5, column=1)
 
 
 def button(social_media, username, password):
-    file_name = str(username) + 'decrypted.bin'
-    social_media_exists = 0
+    file_name = str(username) + "decrypted.bin"
+    social_media_exists = None
     try:
-        f = open(file_name,'rb')
+        f = open(file_name, "rb")
         line = pickle.load(f)
         for i in line:
             if i[2] == social_media:
                 social_media_exists = True
     except:
-            messagebox.showinfo('Error','No '+ social_media + ' account has been created')
-            social_media_exists = False
+        social_media_exists = False
     if social_media_exists:
-            root = Tk()
-            width_window = 300
-            height_window = 300
-            screen_width = root.winfo_screenwidth()
-            screen_height = root.winfo_screenheight()
-            x = screen_width / 2 - width_window / 2
-            y = screen_height / 2 - height_window / 2
-            root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-            f1 = open(file_name,'rb')
-            line = pickle.load(f1)
-            title1 = social_media + "Account"
-            root.title(title1)
-            req = []
-            length = len(line)
-            social_media_username = ''
-            social_media_password = ''
-            for i in line:
-                        if i[2]==social_media:
-                            social_media_username = i[0]
-                            social_media_password = i[1]
-            print(social_media_password)
-            print(social_media_username)
-            social_media_active_label = Label(root,text=social_media_username)
-            social_media_active_pass_label = Label(root,text=social_media_password)
-            display_text = 'Your' + social_media + 'account is'
-            display_text_label = Label(root,text=display_text)
-            display_text_label.grid(row=0, column=0,columnspan=1)
-            text_label = Label(root,text='Username:')
-            text1_label = Label(root,text='Password:')
-            text_label.grid(row=1,column=0)
-            text1_label.grid(row=2,column=0)
-            social_media_active_label.grid(row=1,column=1)
-            social_media_active_pass_label.grid(row=2,column=1)
-            def _delete_window():
-                try:
-                    root.destroy()
-                except:
-                    pass
+        root = Tk()
+        width_window = 300
+        height_window = 300
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+        f1 = open(file_name, "rb")
+        line = pickle.load(f1)
+        title1 = social_media + "Account"
+        root.title(title1)
+        req = []
+        length = len(line)
+        social_media_username = ""
+        social_media_password = ""
+        for i in line:
+            if i[2] == social_media:
+                social_media_username = i[0]
+                social_media_password = i[1]
+        print(social_media_password)
+        print(social_media_username)
+        social_media_active_label = Label(root, text=social_media_username)
+        social_media_active_pass_label = Label(root, text=social_media_password)
+        display_text = "Your" + social_media + "account is"
+        display_text_label = Label(root, text=display_text)
+        display_text_label.grid(row=0, column=0, columnspan=1)
+        text_label = Label(root, text="Username:")
+        text1_label = Label(root, text="Password:")
+        text_label.grid(row=1, column=0)
+        text1_label.grid(row=2, column=0)
+        social_media_active_label.grid(row=1, column=1)
+        social_media_active_pass_label.grid(row=2, column=1)
 
-            def back1():
-                pygame.init()
+        def _delete_window():
+            try:
                 root.destroy()
-                d = pygame.display.set_mode((800, 600))
-                gameloop(d, str(username), password)
+            except:
+                pass
 
-            def _destroy(event):
-                f1.close()
-                if os.path.exists(str(username) + "_facebook" + "decrypted" + ".bin"):
-                    os.remove(str(username) + "_facebook" + "decrypted" + ".bin")
-                if os.path.exist(str(username) + "decrypted.bin"):
-                    os.remove(str(username) + "decrypted.bin")
+        def back1():
+            pygame.init()
+            root.destroy()
+            d = pygame.display.set_mode((800, 600))
+            gameloop(d, str(username), password)
 
+        def _destroy(event):
+            f1.close()
+            if os.path.exists(str(username) + "_facebook" + "decrypted" + ".bin"):
+                os.remove(str(username) + "_facebook" + "decrypted" + ".bin")
+            if os.path.exist(str(username) + "decrypted.bin"):
+                os.remove(str(username) + "decrypted.bin")
 
-            # def remote():
+        # def remote():
 
-            #     usr = "rohithkrishnan2003@gmail.com"
-            #     pwd = "Batman@1234"
+        #     usr = "rohithkrishnan2003@gmail.com"
+        #     pwd = "Batman@1234"
 
-            #     driver = webdriver.Chrome(ChromeDriverManager().install())
-            #     driver.get("https://www.facebook.com/")
-            #     print("Opened facebook")
-            #     sleep(1)
+        #     driver = webdriver.Chrome(ChromeDriverManager().install())
+        #     driver.get("https://www.facebook.com/")
+        #     print("Opened facebook")
+        #     sleep(1)
 
-            #     username_box = driver.find_element_by_id("email")
-            #     username_box.send_keys(usr)
-            #     print("Email Id entered")
-            #     sleep(1)
+        #     username_box = driver.find_element_by_id("email")
+        #     username_box.send_keys(usr)
+        #     print("Email Id entered")
+        #     sleep(1)
 
-            #     password_box = driver.find_element_by_id("pass")
-            #     password_box.send_keys(pwd)
-            #     print("Password entered")
+        #     password_box = driver.find_element_by_id("pass")
+        #     password_box.send_keys(pwd)
+        #     print("Password entered")
 
-            #     login_box = driver.find_element_by_id("u_0_b")
-            #     login_box.click()
+        #     login_box = driver.find_element_by_id("u_0_b")
+        #     login_box.click()
 
-            #     print("Done")
-            #     input("Press anything to quit")
-            #     driver.quit()
+        #     print("Done")
+        #     input("Press anything to quit")
+        #     driver.quit()
 
-            # root.protocol("WM_DELETE_WINDOW", _delete_window)
-            # root.bind("<Destroy>", _destroy)
+        # root.protocol("WM_DELETE_WINDOW", _delete_window)
+        # root.bind("<Destroy>", _destroy)
 
-            back = Button(root, text="Go back!", command=back1, width=10)
-            back.grid(row=3, column=0, columnspan=2)
-            # remote_login = Button(root, text="Facebook", command=remote, width=10)
-            # remote_login.grid(row=4, column=0, columnspan=2)
+        back = Button(root, text="Go back!", command=back1, width=10)
+        back.grid(row=3, column=0, columnspan=2)
+        # remote_login = Button(root, text="Facebook", command=remote, width=10)
+        # remote_login.grid(row=4, column=0, columnspan=2)
 
     elif social_media_exists == False:
         second = Tk()
@@ -459,7 +560,7 @@ def button(social_media, username, password):
         second.title(title)
         login_text1 = "Please provide " + social_media + " account and password"
         text_social = social_media + "Username:"
-        text_pass_social = social_media + 'Password:'
+        text_pass_social = social_media + "Password:"
 
         username1 = Label(second, text=text_social)
         password1 = Label(second, text=text_pass_social)
@@ -475,23 +576,26 @@ def button(social_media, username, password):
         def save():
             username_social_media = str(username1_entry.get())
             password_social_media = str(password1_entry.get())
-            l = str(username) + 'decrypted.bin'
-            f = open(l,'wb')
+            l = str(username) + "decrypted.bin"
+            f = open(l, "wb")
             list = []
             line = []
             list.append(username_social_media)
             list.append(password_social_media)
             list.append(social_media)
             line.append(list)
-            pickle.dump(line,f)
+            pickle.dump(line, f)
             print(line)
             f.close()
-            os.remove(str(username)+'.bin.fenc')
-            pyAesCrypt.encryptFile(file_name,str(username)+'.bin.fenc',password,bufferSize)
+            os.remove(str(username) + ".bin.fenc")
+            pyAesCrypt.encryptFile(
+                file_name, str(username) + ".bin.fenc", password, bufferSize
+            )
             root = Tk()
             root.withdraw()
-            messagebox.showinfo('Success','Your account has been saved')
+            messagebox.showinfo("Success", "Your account has been saved")
             root.destroy()
+
         saving = Button(second, text="Save", command=save)
         saving.grid(row=4, column=1)
 
@@ -509,7 +613,15 @@ def gameloop(a, username, password):
         mouse = pygame.mouse.get_pressed()
         mouse_pos = pygame.mouse.get_pos()
         a.blit(facebook, (20, 20))
-        text_facebook = Testing("Facebook",45 + facebook.get_width() - 100 + 10,25 + facebook.get_height() + 10,a,'comic.ttf',30,black)
+        text_facebook = Testing(
+            "Facebook",
+            45 + facebook.get_width() - 100 + 10,
+            25 + facebook.get_height() + 10,
+            a,
+            "comic.ttf",
+            30,
+            black,
+        )
         text_facebook.object()
         text_facebook.blit()
 
@@ -553,25 +665,25 @@ def login():
         l = my_cursor.fetchall()
         email_sending = ""
         for i in l:
-                    email_sending = i[0]
+            email_sending = i[0]
         file_name = str(username)
         for_hashing_both = password + username
         main_password = hashlib.sha512(for_hashing_both.encode()).hexdigest()
         try:
             pyAesCrypt.decryptFile(
-                    file_name + ".bin.fenc",
-                    file_name + "decrypted" + ".bin",
-                    main_password,
-                    bufferSize,
-                )
+                file_name + ".bin.fenc",
+                file_name + "decrypted" + ".bin",
+                main_password,
+                bufferSize,
+            )
             testing = True
             sending = True
         except:
-             testing = False
-             root = Tk()
-             root.withdraw()
-             messagebox.showinfo("Error", "Wrong Password or Username")
-             root.destroy()
+            testing = False
+            root = Tk()
+            root.withdraw()
+            messagebox.showinfo("Error", "Wrong Password or Username")
+            root.destroy()
         if testing:
             d = pygame.display.set_mode((800, 600))
             gameloop(d, str(username), main_password)
@@ -622,6 +734,7 @@ def login():
 
             except:
                 pass
+
     but = Button(login_window, text="Login", command=login_checking)
     login.grid(row=2, column=2)
     lbl.grid(row=0, column=2, columnspan=2)
@@ -639,58 +752,8 @@ def register():
     login_window1 = Tk()
     root.destroy()
 
-    def register_saving():
-        username_register = str(username_entry.get())
-        password_register = str(password_entry.get())
-        email_id_register = str(email_id_entry.get())
-        email_password_register = str(email_password_entry.get())
-        checking = True
-        replica = True
-        if len(password_register) < 5 or len(email_password_register) < 5:
-            win = Tk()
-            win.withdraw()
-            messagebox.showinfo("Error","Please provide a valid password greeter than 7 characters.")
-            win.destroy()
-            checking = False
-        if checking:
-            word = email_id_register.split()
-            original = ""
-            for p in word:
-                for i in p:
-                    if i == "@":
-                        break
-                    else:
-                        original += i
-            main1 = original + email_password_register
-            static_salt_password = password_register +"@" + main1
-            cipher_text,salt_for_decryption = create_key(main1,static_salt_password)
-            try:
-                my_cursor.execute("insert into  data_input values (%s,%s,%s,%s)",(username_register,email_id_register,cipher_text,salt_for_decryption))
-            except:
-                 roo1 = Tk()
-                 roo1.withdraw()
-                 messagebox.showerror("Error", "Username already exists")
-                 roo1.destroy()
-                 replica = False
-            if replica:
-                login_window1.destroy()
-                for_hashing = password_register + username_register
-                hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
-                print(hash_pass)
-                file_name = username_register + ".bin"
-                f = open(file_name, "wb")
-                f.close()
-                pyAesCrypt.encryptFile(
-                    file_name, file_name + ".fenc", hash_pass, bufferSize
-                )
-                os.remove(file_name)
-                windows = Tk()
-                windows.withdraw()
-                messagebox.showinfo('Success','Your account has been created')
-                windows.destroy()
-                d = pygame.display.set_mode((800,600))
-                gameloop(d,username_register,password_register)
-                pyAesCrypt.decryptFile(file_name+'.fenc',file_name,password_register,bufferSize)
+    
+
     def hide_password(entry, row, column, row1, column1):
         entry.config(show="*")
         show_both_11 = Button(
@@ -708,7 +771,7 @@ def register():
             command=lambda: hide_password(entry, row, column, row1, column1),
         )
         show_both_11.grid(row=row1, column=column1)
-
+    
     username = Label(login_window1, text="Username")
     password = Label(login_window1, text="password")
     email_id = Label(login_window1, text="Recovery Email :")
@@ -720,7 +783,6 @@ def register():
     width = login_window1.winfo_screenwidth()
 
     # register button
-    register_button = Button(login_window1, text="Register", command=register_saving)
 
     # putting the buttons and entries
     username.grid(row=2, column=0)
@@ -743,7 +805,35 @@ def register():
     )
     show_both_1.grid(row=3, column=2)
     show_both_2.grid(row=5, column=2)
-
+    def register_saving():
+        username_register = str(username_entry.get())
+        password_register = str(password_entry.get())
+        email_id_register = str(email_id_entry.get())
+        email_password_register = str(email_password_entry.get())
+        register_user = Register(
+            username_register,
+            password_register,
+            email_id_register,
+            email_password_register,
+        )
+        checking = register_user.check_pass_length()
+        if checking ==  True:
+            registering = register_user.saving(my_cursor)
+            print(registering)
+            if  registering:
+                root = Tk()
+                root.withdraw()
+                messagebox.showinfo("Error", "Username and email already exists")
+                root.destroy()
+            if not registering :
+                
+                register_user.creation()
+                
+        else:
+            messagebox.showinfo(
+                "Error", "Please provide password greater than 6 characters"
+            )
+    register_button = Button(login_window1, text="Register", command=register_saving)
     register_button.grid(row=6, column=0)
 
 
