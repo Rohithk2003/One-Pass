@@ -12,15 +12,13 @@ import sys
 from tkinter import messagebox
 import os.path
 import atexit
-import ctypes
-import time
+
 from tkinter.ttk import *
 from cryptography.fernet import Fernet
 from datetime import datetime
 from geopy.geocoders import Nominatim
 import geocoder
 import socket
-import pytz
 from time import gmtime, strftime
 import hashlib
 import base64
@@ -30,6 +28,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import pygame
+
 
 geolocator = Nominatim(user_agent="geoapiExercises")
 "------------------------------------main tkinter window------------------------------------"
@@ -50,7 +49,6 @@ root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 
 password = 0
 username = 0
-social_media = []
 "------------------------------------loading images------------------------------------"
 num_password_account = 5
 pygame.init()
@@ -110,15 +108,17 @@ class Testing:
 
 font = pygame.font.Font("freesansbold.ttf", 30)
 
-# class Login:
-#     def __init__(self,username,password,email_id,email_password):
-#         self.username = username
-#         self.password = password
-#         self.email_id = email_id
-#         self.email_password = email_password
-#     def login_checking(self):
-        
-        
+class Login:
+     def __init__(self,username,password,email_id,email_password):
+         self.username = username
+         self.password = password
+         self.email_id = email_id
+         self.email_password = email_password
+     def login_checking(self):
+         main_password = self.email_password + self.email_id
+         
+
+
 class Register:
     def __init__(self, username, password, email_id, email_password):
         self.username = str(username)
@@ -700,23 +700,7 @@ def login():
                 time_now = strftime("%H:%M:%S", gmtime())
                 date = datetime.today().strftime("%Y-%m-%d")
                 SUBJECT = "ONE-PASS login on " + " " + date
-                otp = (
-                    "Hey"
-                    + " "
-                    + username
-                    + "!"
-                    + "\n"
-                    + "It looks like someone logged into your account from a device"
-                    + " "
-                    + hostname
-                    + " "
-                    + "on "
-                    + date
-                    + " at "
-                    + time_now
-                    + "."
-                    + " The login took place somewhere near "
-                    + city
+                otp = ("Hey"+ " "+ username+ "!" + "\n" + "It looks like someone logged into your account from a device"+ " " + hostname + " " + "on "+ date+ " at " + time_now + "."+ " The login took place somewhere near "+ city
                     + ","
                     + country
                     + "(IP="
@@ -751,9 +735,6 @@ def login():
 def register():
     login_window1 = Tk()
     root.destroy()
-
-    
-
     def hide_password(entry, row, column, row1, column1):
         entry.config(show="*")
         show_both_11 = Button(
@@ -771,7 +752,7 @@ def register():
             command=lambda: hide_password(entry, row, column, row1, column1),
         )
         show_both_11.grid(row=row1, column=column1)
-    
+
     username = Label(login_window1, text="Username")
     password = Label(login_window1, text="password")
     email_id = Label(login_window1, text="Recovery Email :")
@@ -826,9 +807,9 @@ def register():
                 messagebox.showinfo("Error", "Username and email already exists")
                 root.destroy()
             if not registering :
-                
+
                 register_user.creation()
-                
+
         else:
             messagebox.showinfo(
                 "Error", "Please provide password greater than 6 characters"
