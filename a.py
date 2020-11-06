@@ -109,14 +109,56 @@ class Testing:
 font = pygame.font.Font("freesansbold.ttf", 30)
 
 class Login:
-     def __init__(self,username,password,email_id,email_password):
-         self.username = username
-         self.password = password
-         self.email_id = email_id
-         self.email_password = email_password
+     def __init__(self,username,password):
+         self.username = str(username)
+         self.password = str(password)
      def login_checking(self):
-         main_password = self.email_password + self.email_id
-         
+             file_name = str(self.username)
+             for_hashing_both = self.password + self.username
+             main_password =  hashlib.sha512(for_hashing_both.encode()).hexdigest()
+             pyAesCrypt.decryptFile(file_name+'.bin.fenc',file_name +'decrypted.bin',main_password,bufferSize)
+             return True,main_password
+     def windows(self,main_password):
+        d = pygame.display.set_mode((800,600))
+        gameloop(d,self.username,self.hashed)
+     def verification(self,cursor):
+        cursor.execute(
+            "select email_id from data_input where username = (%s)", (username,)
+        )
+        l = my_cursor.fetchall()
+        email_sending = ""
+        for i in l:
+            email_sending = i[0]
+        try:
+            hostname = socket.gethostname()
+            ip_address = socket.gethostbyname(hostname)
+            g = geocoder.ip("me")
+            ip1 = g.latlng
+            location = geolocator.reverse(ip1, exactly_one=True)
+            address = location.raw["address"]
+            city = address.get("city", "")
+            country = address.get("country", "")
+            time_now = strftime("%H:%M:%S", gmtime())
+            date = datetime.today().strftime("%Y-%m-%d")
+            SUBJECT = "ONE-PASS login on " + " " + date
+            otp = ("Hey"+ " "+ username+ "!" + "\n" + "It looks like someone logged into your account from a device"+ " " + hostname + " " + "on "+ date+ " at " + time_now + "."+ " The login took place somewhere near "+ city
+                + ","
+                + country
+                + "(IP="
+                + ip_address
+                + ")."
+                + "If this was you,please disregard this email.No further action is needed \nif it wasn't you please change your password"
+                + "\n"
+                + "Thanks,\nONE-PASS"
+            )
+            msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
+            s = smtplib.SMTP("smtp.gmail.com", 587)
+            s.starttls()
+            s.login("rohithk652@gmail.com", "rohithk2003")
+            s.sendmail("rohithk652@gmail.com", email_sending, msg)
+
+        except:
+            pass
 
 
 class Register:
@@ -165,6 +207,7 @@ class Register:
     def creation(self):
         for_hashing = self.password + self.username
         hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
+        print(hash_pass)
         file_name = self.username + ".bin"
         f = open(file_name, "wb")
         f.close()
@@ -655,69 +698,19 @@ def login():
     forgot = Button(login_window, text="Forgot Password", command=login_password)
 
     def login_checking():
-        sending = False
-        testing = False
         password = str(pass_entry.get())
         username = str(input_entry.get())
-        my_cursor.execute(
-            "select email_id from data_input where username = (%s)", (username,)
-        )
-        l = my_cursor.fetchall()
-        email_sending = ""
-        for i in l:
-            email_sending = i[0]
-        file_name = str(username)
-        for_hashing_both = password + username
-        main_password = hashlib.sha512(for_hashing_both.encode()).hexdigest()
-        try:
-            pyAesCrypt.decryptFile(
-                file_name + ".bin.fenc",
-                file_name + "decrypted" + ".bin",
-                main_password,
-                bufferSize,
-            )
-            testing = True
-            sending = True
-        except:
-            testing = False
+        login = Login(username,password)
+        check,main_password = login.login_checking()
+        print(check)
+        if check:
             root = Tk()
             root.withdraw()
-            messagebox.showinfo("Error", "Wrong Password or Username")
+            messagebox.showinfo('Succes','You have now logged in ')
             root.destroy()
-        if testing:
-            d = pygame.display.set_mode((800, 600))
-            gameloop(d, str(username), main_password)
-        if sending:
-            try:
-                hostname = socket.gethostname()
-                ip_address = socket.gethostbyname(hostname)
-                g = geocoder.ip("me")
-                ip1 = g.latlng
-                location = geolocator.reverse(ip1, exactly_one=True)
-                address = location.raw["address"]
-                city = address.get("city", "")
-                country = address.get("country", "")
-                time_now = strftime("%H:%M:%S", gmtime())
-                date = datetime.today().strftime("%Y-%m-%d")
-                SUBJECT = "ONE-PASS login on " + " " + date
-                otp = ("Hey"+ " "+ username+ "!" + "\n" + "It looks like someone logged into your account from a device"+ " " + hostname + " " + "on "+ date+ " at " + time_now + "."+ " The login took place somewhere near "+ city
-                    + ","
-                    + country
-                    + "(IP="
-                    + ip_address
-                    + ")."
-                    + "If this was you,please disregard this email.No further action is needed \nif it wasn't you please change your password"
-                    + "\n"
-                    + "Thanks,\nONE-PASS"
-                )
-                msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
-                s = smtplib.SMTP("smtp.gmail.com", 587)
-                s.starttls()
-                s.login("rohithk652@gmail.com", "rohithk2003")
-                s.sendmail("rohithk652@gmail.com", email_sending, msg)
+            login.windows(main_password)
+            login.verification(my_cursor)
 
-            except:
-                pass
 
     but = Button(login_window, text="Login", command=login_checking)
     login.grid(row=2, column=2)
