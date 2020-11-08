@@ -12,8 +12,9 @@ import sys
 from tkinter import messagebox
 import os.path
 import atexit
-
 from tkinter.ttk import *
+
+from tkinter import *
 from cryptography.fernet import Fernet
 from datetime import datetime
 from geopy.geocoders import Nominatim
@@ -27,9 +28,8 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import pygame
-
-
+from PIL import ImageTk,Image
+from tkinter import filedialog
 geolocator = Nominatim(user_agent="geoapiExercises")
 "------------------------------------main tkinter window------------------------------------"
 
@@ -47,18 +47,7 @@ x = screen_width / 2 - width_window / 2
 y = screen_height / 2 - height_window / 2
 root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 
-password = 0
-username = 0
-"------------------------------------loading images------------------------------------"
-num_password_account = 5
-pygame.init()
-facebook = pygame.image.load("facebook.png")
-instagram = pygame.image.load("instagram.png")
-google = pygame.image.load("google.png")
-github = pygame.image.load("github.png")
 
-# getting the size of the facebook image
-fb_size = facebook.get_rect()
 
 
 "------------------------------------ mysql database ------------------------------------"
@@ -72,7 +61,7 @@ my_cursor.execute(
 )
 my_cursor.execute("use USERS")
 my_cursor.execute(
-    "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,salt blob)"
+    "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,salt blob,no_of_accounts int(120))"
 )
 
 "******************************Colors******************************"
@@ -86,27 +75,7 @@ catch_error = True
 social_media_user_text = ""
 social_media_active = False
 
-
-class Testing:
-    def __init__(self, text, x_coord, y_coord, window, type_of_font, size, color):
-        self.text = text
-        self.x_coord = x_coord
-        self.y_coord = y_coord
-        self.window = window
-        self.type_of_font = type_of_font
-        self.size = size
-        self.color = color
-
-    def object(self):
-        font_render = pygame.font.Font(self.type_of_font, self.size)
-        text_blit = font_render.render(self.text, True, self.color)
-        self.text_blit = text_blit
-
-    def blit(self):
-        self.window.blit(self.text_blit, (self.x_coord, self.y_coord))
-
-
-font = pygame.font.Font("freesansbold.ttf", 30)
+image_add = ImageTk.PhotoImage(Image.open('add-button.png'))
 
 class Login:
      def __init__(self,username,password):
@@ -118,12 +87,12 @@ class Login:
              main_password =  hashlib.sha512(for_hashing_both.encode()).hexdigest()
              pyAesCrypt.decryptFile(file_name+'.bin.fenc',file_name +'decrypted.bin',main_password,bufferSize)
              return True,main_password
-     def windows(self,main_password):
-        d = pygame.display.set_mode((800,600))
-        gameloop(d,self.username,self.hashed)
+     def windows(self,main_password,window):
+        window.destroy()
+        gameloop(self.username,main_password)
      def verification(self,cursor):
         cursor.execute(
-            "select email_id from data_input where username = (%s)", (username,)
+            "select email_id from data_input where username = (%s)", ( self.username,)
         )
         l = my_cursor.fetchall()
         email_sending = ""
@@ -141,7 +110,7 @@ class Login:
             time_now = strftime("%H:%M:%S", gmtime())
             date = datetime.today().strftime("%Y-%m-%d")
             SUBJECT = "ONE-PASS login on " + " " + date
-            otp = ("Hey"+ " "+ username+ "!" + "\n" + "It looks like someone logged into your account from a device"+ " " + hostname + " " + "on "+ date+ " at " + time_now + "."+ " The login took place somewhere near "+ city
+            otp = ("Hey"+ " "+ self.username+ "!" + "\n" + "It looks like someone logged into your account from a device"+ " " + hostname + " " + "on "+ date+ " at " + time_now + "."+ " The login took place somewhere near "+ city
                 + ","
                 + country
                 + "(IP="
@@ -199,7 +168,7 @@ class Register:
             main_password, static_salt_password
         )
         object.execute(
-            "insert into data_input values (%s, %s, %s, %s)",
+            "insert into data_input values (%s, %s, %s, %s, 0)",
             (self.username, self.email_id, cipher_text, salt_for_decryption),
         )
         return False
@@ -219,8 +188,7 @@ class Register:
         windows.withdraw()
         messagebox.showinfo("Success", "Your account has been created")
         windows.destroy()
-        d = pygame.display.set_mode((800, 600))
-        gameloop(d, self.username, self.password)
+        gameloop(self.username, self.password)
         pyAesCrypt.decryptFile(file_name + ".fenc", file_name, hash_pass, bufferSize)
 
 
@@ -363,9 +331,14 @@ def login_password():
                 re_hash_new,
                 bufferSize,
             )
+            my_cursor.execute("select no_of_accounts from data_input where username = (%s)",(str(new_username_entry.get())))
+            no = my_cursor.fetchall()
+            value = 0
+            for i in no:
+                value = i[0]
             my_cursor.execute(
-                "insert into data_input values(%s,%s,%s,%s)",
-                (str(new_username_entry.get()), email, re_encrypt, new_salt),
+                "insert into data_input values(%s,%s,%s,%s,%s)",
+                (str(new_username_entry.get()), email, re_encrypt, new_salt,value),
             )
             if os.path.exists(str(new_username_entry.get()) + ".bin.fenc"):
                 os.remove(username12 + ".bin")
@@ -547,10 +520,8 @@ def button(social_media, username, password):
                 pass
 
         def back1():
-            pygame.init()
             root.destroy()
-            d = pygame.display.set_mode((800, 600))
-            gameloop(d, str(username), password)
+            gameloop( str(username), password)
 
         def _destroy(event):
             f1.close()
@@ -643,41 +614,63 @@ def button(social_media, username, password):
         saving.grid(row=4, column=1)
 
 
-def gameloop(a, username, password):
-    quitting = True
-    while quitting:
-        a.fill((255, 255, 255))
-        for e in pygame.event.get():
-            if e.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-                quit()
-                break
-        mouse = pygame.mouse.get_pressed()
-        mouse_pos = pygame.mouse.get_pos()
-        a.blit(facebook, (20, 20))
-        text_facebook = Testing(
-            "Facebook",
-            45 + facebook.get_width() - 100 + 10,
-            25 + facebook.get_height() + 10,
-            a,
-            "comic.ttf",
-            30,
-            black,
-        )
-        text_facebook.object()
-        text_facebook.blit()
+def gameloop(username, password):
+    root = Tk()
+    root.geometry(('800x600'))
+    image_add = ImageTk.PhotoImage(Image.open('add-button.png'))
+    def change():
+        pass
 
-        if (
-            mouse[0] == 1
-            and 20 < mouse_pos[0] < 20 + facebook.get_width()
-            and 20 < mouse_pos[1] < 20 + facebook.get_height()
-        ):
-            quitting = False
-            pygame.quit()
-            button("Facebook", username, password)
-            break
-        pygame.display.update()
+    def addaccount():
+
+        root.destroy()
+        root1 = Tk()
+        name_of_social = Label(root1,text='Name of the social media').grid(row=0,column=1)
+        name_of_social_entry = Entry(root1).grid(row=0,column=2)
+        username_window = Label(root1,text='Usename:').grid(row=1,column=1)
+        password_window = Label(root1,text='Password:').grid(row=2,column=1)
+        username_window_entry = Entry(root1).grid(row=1,column=2)
+        password_entry = Entry(root1).grid(row=2,column=2)
+        new_id = ImageTk.PhotoImage(Image.open('add-button.png'))
+        def browsefunc():
+                global new_id
+                path = filedialog.askopenfilename()
+                im = Image.open(path)
+                tkimage = ImageTk.PhotoImage(im)
+                add_icon_button.config(image=tkimage)
+                add_icon_button.image = tkimage
+
+
+        add_icon_button = Button(root1,image= new_id,borderwidth='0',command=browsefunc)
+        add_icon_button.grid(row=0,column=0,rowspan=3)
+        def save():
+            list = [str(username_window_entry.get()),str(password_entry.get()),str(name_of_social_entry.get())]
+            f = open(username+'decrypted.bin','wb')
+            pickle.dump()
+        save_button = Button(root1,text='Save',command=save)
+        # new_image = ImageTk.PhotoImage(Image.open('facebook.png'))
+        # add_icon_button.config(image=new_image)
+        root.mainloop()
+    file = open(str(username) +'decrypted.bin','rb')
+    line = file.read()
+    word = line.split()
+    def account_existing():
+        pass
+    if len(word) == 0:
+        add_button = Button(root,image = image_add,borderwidth='0',command=addaccount)
+        add_button.grid(row=0,column=1,padx=10,pady=100)
+    else:
+        value_to_be = len(word)
+        if value_to_be > 4:
+                    add_button = Button(root,image = image_add,border='0',command= account_existing())
+                    add_button.grid(row=0,column=1,padx=10+100*value_to_be,pady=20+50)
+        elif value_to_be > 8:
+                    add_button = Button(root,image = image_add,border='0',command=  account_existing())
+                    add_button.grid(row=0,column=1,padx=10+100*value_to_be,pady=20+100)
+    padx=10
+    pady=100
+
+    root.mainloop()
 
 
 def login():
@@ -708,7 +701,7 @@ def login():
             root.withdraw()
             messagebox.showinfo('Succes','You have now logged in ')
             root.destroy()
-            login.windows(main_password)
+            login.windows(main_password,login_window)
             login.verification(my_cursor)
 
 
