@@ -13,7 +13,10 @@ from tkinter import messagebox
 import os.path
 import atexit
 from tkinter.ttk import *
-
+from tkinter.filedialog import *
+from tkinter import Frame, Menu
+from tkinter import colorchooser
+from tkinter import simpledialog
 from tkinter import *
 from cryptography.fernet import Fernet
 from datetime import datetime
@@ -30,6 +33,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from PIL import ImageTk,Image
 from tkinter import filedialog
+
 geolocator = Nominatim(user_agent="geoapiExercises")
 "------------------------------------main tkinter window------------------------------------"
 
@@ -75,7 +79,6 @@ catch_error = True
 social_media_user_text = ""
 social_media_active = False
 
-image_add = ImageTk.PhotoImage(Image.open('add-button.png'))
 
 class Login:
      def __init__(self,username,password):
@@ -89,7 +92,7 @@ class Login:
              return True,main_password
      def windows(self,main_password,window):
         window.destroy()
-        gameloop(self.username,main_password)
+        window_after(self.username, self.password)
      def verification(self,cursor):
         cursor.execute(
             "select email_id from data_input where username = (%s)", ( self.username,)
@@ -188,7 +191,7 @@ class Register:
         windows.withdraw()
         messagebox.showinfo("Success", "Your account has been created")
         windows.destroy()
-        gameloop(self.username, self.password)
+        window_after(self.username, self.password)
         pyAesCrypt.decryptFile(file_name + ".fenc", file_name, hash_pass, bufferSize)
 
 
@@ -467,6 +470,289 @@ def login_password():
     forgot_password_button.grid(row=5, column=1)
 
 
+def window_after(username,password):
+    # sidebar
+    root = Tk()
+    status_name = False
+    sidebar = Frame(root, width=500, bg='#0d0d0d', height=500, relief='sunken', borderwidth=2)
+    sidebar.pack(expand=False, fill='both', side='left')
+    def testing():
+        root.title('Passwords')
+        emptyMenu = Menu(root)
+        mainarea.config(bg='white')
+        root.config(menu=emptyMenu)
+        list = mainarea.pack_slaves()
+        for l in list:
+                    l.destroy()
+        image_add = ImageTk.PhotoImage(Image.open('add-button.png'))
+        a = Label(mainarea,image=image_add,borderwidth='0')
+        a.photo = image_add  
+        a.grid(row=6, column=2)
+
+        # gameloop(username,password,mainarea)
+    def ap():
+        global status_name
+        if __name__ == '__main__':
+            emptyMenu = Menu(root)
+            root.config(menu=emptyMenu)
+
+            list = mainarea.grid_slaves()
+            for l in list:
+                    l.destroy()
+            file = 0
+            def newFile():
+                global file
+                root.title("Untitled - Notepad")
+                file = None
+                TextArea.delete(1.0, END)
+
+
+            def openFile():
+                global file
+                file = askopenfilename(defaultextension=".txt",
+                                    filetypes=[("All Files", "*.*"),
+                                                ("Text Documents", "*.txt")])
+                # check to if there is a file_name
+                global status_name
+                status_name = file
+                if file == "":
+                    file = None
+                else:
+                    root.title(os.path.basename(file) + " - Notepad")
+                    TextArea.delete(1.0, END)
+                    f = open(file, "r")
+                    TextArea.insert(1.0, f.read())
+                    f.close()
+
+
+            def save_as_File(file):
+                if file == None:
+                    result = messagebox.askyesno('Confirm','Do you want to encrypt your file?')
+                    if not result:
+                        file = asksaveasfilename(initialfile = 'Untitled.txt', defaultextension=".txt",
+                                        filetypes=[("All Files", "*.*"),
+                                                    ("Text Documents", "*.txt")])
+                        gmm = str(file)
+                        password = 'testing'
+                        status_name = file
+                        if file =="":
+                            file = None
+
+                        else:
+                            #Save as a new file
+                            f = open(file, "w")
+                            f.write(TextArea.get(1.0, END))
+                            f.close()
+                            root.title(os.path.basename(file) + " - Notepad")
+                            file = file
+                    else:
+                        application_window = Tk()
+
+                        a = simpledialog.askstring("Input", "What is  the password?",
+                                    parent=application_window)
+                        application_window.destroy()
+                        file = asksaveasfilename(initialfile = 'Untitled.txt', defaultextension=".txt",
+                                            filetypes=[("Text Documents", "*.txt")])
+                        gmm = str(file)
+                        password = 'testing'
+                        status_name = file
+                        if file =="":
+                            file = None
+
+                        else:
+                                #Save as a new file
+                                f = open(file, "w")
+                                f.write(TextArea.get(1.0, END))
+                                f.close()
+                                root.title(os.path.basename(file) + " - Notepad")
+                                file = file
+                        file_name = str(file)
+                        f_encrypt = file_name + '.aes'
+                        try:
+                                pyAesCrypt.encryptFile(file_name, f_encrypt,password,64*1024)
+                                os.remove(file)
+                        except:
+                                pass
+            def save_file():
+                    global status_name
+                    if status_name:
+                        f = open(status_name, "w")
+                        f.write(TextArea.get(1.0, END))
+                        f.close()
+                    else:
+                        result = messagebox.askyesno('Confirm','Do you want to encrypt your file?')
+                        if result == False:
+                            file = asksaveasfilename(initialfile = 'Untitled.txt', defaultextension=".txt",
+                                        filetypes=[("All Files", "*.*"),
+                                                        ("Text Documents", "*.txt")])
+                            gmm = str(file)
+                            status_name = file
+                            if file =="":
+                                file = None
+
+
+                            else:
+                                #Save as a new file
+                                f = open(file, "w")
+                                status_name = True
+                                f.write(TextArea.get(1.0, END))
+                                f.close()
+                                root.title(os.path.basename(file) + " - Notepad")
+                        else:
+                            file = asksaveasfilename(initialfile = 'Untitled.txt', defaultextension=".txt",
+                                            filetypes=[('All Files', "*.*"),("Text Documents", "*.txt")])
+                            gmm = str(file)
+                            password = 'testing'
+                            status_name = file
+                            if file =="":
+                                file = None
+
+                            else:
+                                #Save as a new file
+                                f = open(file, "w")
+                                f.write(TextArea.get(1.0, END))
+                                f.close()
+                                root.title(os.path.basename(file) + " - Notepad")
+                                file = file
+                            file_name = str(file)
+                            f_encrypt = file_name + '.aes'
+                            try:
+                                pyAesCrypt.encryptFile(file_name, f_encrypt,password,64*1024)
+                                os.remove(file)
+                            except:
+                                pass
+            def quitApp():
+                root.destroy()
+
+            def cut():
+                TextArea.event_generate(("<Control-Key-x>"))
+
+            def copy():
+                TextArea.event_generate(("<Control-Key-c>"))
+
+            def paste():
+                TextArea.event_generate(("<Control-Key-v>"))
+
+            def about():
+                messagebox.showinfo("Notepad", "Notepad by Rohithk")
+
+            #Basic tkinter setup
+            root.geometry('700x600')
+            root.title("Untitled - Notepad")
+            root.config(bg = '#0d0d0d')
+            #Add TextArea
+
+            font_main = ('freesansbold',12)
+            TextArea = Text(mainarea, font=font_main,fg='white',bg='#0d0d0d',insertofftime=600,insertontime=600,insertbackground='black')
+            file = None
+            TextArea.pack(expand=True, fill=BOTH)
+            # Lets create a menubar
+            MenuBar = Menu(root)
+            status_name = False
+            #File Menu Starts
+            FileMenu = Menu(MenuBar, tearoff=0)
+            # To open new file
+            FileMenu.add_command(label="New", command=newFile)
+
+            FileMenu.add_command(label="Open", command = openFile)
+
+            # To save the current file
+            FileMenu.add_command(label = "Save", command = lambda: save_file())
+
+            FileMenu.add_command(label = "Save As", command = lambda: save_as_File(file))
+            FileMenu.add_separator()
+            FileMenu.add_command(label = "Exit", command = quitApp)
+            MenuBar.add_cascade(label = "File", menu=FileMenu)
+            # File Menu ends
+            def select_font(font):
+                                size = TextArea['font']
+                                word = ''
+                                num = ''
+                                for i in size:
+                                    if i in '1234567890':
+                                        num += i
+                                word = int(num)
+                                new_font_size = (font,word)
+                                TextArea.config(font = new_font_size)
+            def change_size(size):
+                                original_font = font_main[0]
+                                new_font = (original_font,size)
+                                TextArea.config(font=new_font)
+
+            def change_color():
+                my_color = colorchooser.askcolor()[1]
+                TextArea.config(fg = my_color)
+            def bg_color():
+                my_color = colorchooser.askcolor()[1]
+                TextArea.config(bg = my_color)
+            # Edit Menu Starts
+            EditMenu = Menu(MenuBar, tearoff=0)
+            #To give a feature of cut, copy and paste
+            submenu =   Menu(EditMenu, tearoff=0)
+            submenu_size = Menu(EditMenu, tearoff=0)
+            submenu.add_command(label='MS Sans Serif',command=lambda :select_font('MS Sans Serif'))
+            submenu.add_command(label='Arial',command=lambda :select_font("Arial"))
+            submenu.add_command(label="Bahnschrift",command=lambda :select_font("Bahnschrift"))
+            submenu.add_command(label="Cambria",command=lambda :select_font("Cambria"))
+            submenu.add_command(label="Consolas",command=lambda :select_font("Consolas"))
+            submenu.add_command(label="Courier",command=lambda :select_font("Courier"))
+            submenu.add_command(label="Century",command=lambda :select_font("Century"))
+            submenu.add_command(label="Calibri",command=lambda :select_font("Calibri"))
+            submenu.add_command(label="Yu Gothic",command=lambda :select_font("Yu Gothic"))
+            submenu.add_command(label="Times New Roman",command=lambda :select_font(a))
+            submenu.add_command(label="Sylfaen",command=lambda :select_font(a))
+            submenu.add_command(label="Nirmala UI",command=lambda :select_font("Nirmala UI"))
+            submenu.add_command(label="Ebrima",command=lambda :select_font("Ebrima"))
+            submenu.add_command(label="Comic Sans MS",command=lambda :select_font("Comic Sans MS"))
+            submenu.add_command(label="Microsoft PhagsPa",command=lambda :select_font("Microsoft PhagsPa"))
+            submenu.add_command(label="Lucida  Console",command=lambda :select_font("Lucida Console"))
+            submenu.add_command(label="Franklin Gothic Medium",command=lambda :select_font("Franklin Gothic Medium"))
+            submenu.add_command(label="Cascadia Code",command=lambda :select_font("Cascadia Code"))
+
+            list_size_range = [x for x in range(10,31)]
+            a = len(list_size_range)
+            for i in range(a):
+                submenu_size.add_command(label = list_size_range[i],command=lambda:change_size(list_size_range[i]))
+            EditMenu.add_command(label='Text Color',command=change_color)
+            EditMenu.add_command(label = "Cut", command=cut)
+            EditMenu.add_command(label = "Background Color", command=bg_color)
+            EditMenu.add_command(label = "Copy", command=copy)
+            EditMenu.add_command(label = "Paste", command=paste)
+            EditMenu.add_cascade(label = "Font",menu=submenu)
+            EditMenu.add_cascade(label = "Size",menu=submenu_size)
+            MenuBar.add_cascade(label="Edit", menu = EditMenu)
+            def callback(event):
+                        save_file()
+            def second_callback(event):
+                    file = None
+                    save_as_File(file)
+                    #To Open already existing file
+            root.bind('<Control-Key-s>',callback)
+            root.bind('<Control-Shift-S>',second_callback)
+
+            # Help Menu Starts
+            HelpMenu = Menu(MenuBar, tearoff=0)
+            HelpMenu.add_command(label = "About Notepad", command=about)
+            MenuBar.add_cascade(label="Help", menu=HelpMenu)
+
+            # Help Menu Ends
+
+            root.config(menu=MenuBar)
+
+            #Adding Scrollbar using rules from Tkinter lecture no 22
+            Scroll = Scrollbar(TextArea,orient="vertical")
+            Scroll.pack(side='right',fill = Y)
+
+
+    # main content area
+    mainarea = Frame(root, bg='#0d0d0d', width=500, height=500)
+    mainarea.pack(expand=True, fill='both', side='right')
+    button  = Button(sidebar,text='Passwords',command=testing ,width=20)
+    b = Button(sidebar,text='Notes',command=ap,width=20)
+    button.grid(row=0,column=1)
+    b.grid(row=1,column=1,columnspan=1)
+    root.mainloop()
+
 def button(social_media, username, password):
     file_name = str(username) + "decrypted.bin"
     social_media_exists = None
@@ -614,16 +900,13 @@ def button(social_media, username, password):
         saving.grid(row=4, column=1)
 
 
-def gameloop(username, password):
-    root = Tk()
-    root.geometry(('800x600'))
+def gameloop(username, password,window):
     image_add = ImageTk.PhotoImage(Image.open('add-button.png'))
     def change():
         pass
 
     def addaccount():
-
-        root.destroy()
+        window.destroy()
         root1 = Tk()
         name_of_social = Label(root1,text='Name of the social media').grid(row=0,column=1)
         name_of_social_entry = Entry(root1).grid(row=0,column=2)
@@ -633,7 +916,6 @@ def gameloop(username, password):
         password_entry = Entry(root1).grid(row=2,column=2)
         new_id = ImageTk.PhotoImage(Image.open('add-button.png'))
         def browsefunc():
-                global new_id
                 path = filedialog.askopenfilename()
                 im = Image.open(path)
                 tkimage = ImageTk.PhotoImage(im)
@@ -657,20 +939,19 @@ def gameloop(username, password):
     def account_existing():
         pass
     if len(word) == 0:
-        add_button = Button(root,image = image_add,borderwidth='0',command=addaccount)
-        add_button.grid(row=0,column=1,padx=10,pady=100)
+        add_button = Button(window,image = image_add,borderwidth='0',command=addaccount)
+        add_label = Label(window,text='Add account').grid(row=1, column=1)
+        add_button.grid(row=0,column=1)
     else:
         value_to_be = len(word)
         if value_to_be > 4:
-                    add_button = Button(root,image = image_add,border='0',command= account_existing())
+                    add_button = Button(window,image = image_add,border='0',command= account_existing())
                     add_button.grid(row=0,column=1,padx=10+100*value_to_be,pady=20+50)
         elif value_to_be > 8:
-                    add_button = Button(root,image = image_add,border='0',command=  account_existing())
+                    add_button = Button(window,image = image_add,border='0',command=  account_existing())
                     add_button.grid(row=0,column=1,padx=10+100*value_to_be,pady=20+100)
     padx=10
     pady=100
-
-    root.mainloop()
 
 
 def login():
