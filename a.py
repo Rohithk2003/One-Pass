@@ -502,12 +502,15 @@ def window_after(username, password):
     # sidebar
     root = Tk()
     status_name = False
+    isClicked = False
     sidebar = Frame(
         root, width=500, bg="#0d0d0d", height=500, relief="sunken", borderwidth=2
     )
     sidebar.pack(expand=False, fill="both", side="left")
 
     def testing():
+        b["state"] = NORMAL
+        button["state"] = DISABLED
         root.title("Passwords")
         emptyMenu = Menu(root)
         mainarea.config(bg="white")
@@ -520,13 +523,10 @@ def window_after(username, password):
         gameloop(username, password, mainarea)
 
     def ap():
-        global status_name
-        try:
-            list = mainarea.pack_slaves()
-            for i in list:
-                i.forget()
-        except:
-            pass
+        isClicked = True
+        b["state"] = DISABLED
+        button["state"] = NORMAL
+
         if __name__ == "__main__" :
             emptyMenu = Menu(root)
             root.config(menu=emptyMenu)
@@ -711,10 +711,11 @@ def window_after(username, password):
             TextArea = Text(
                     mainarea,
                     font=font_main,
-                    fg="white",
+                    fg="black",
                     insertofftime=600,
                     insertontime=600,
                     insertbackground="black",
+                    
                 )
             TextArea.pack(expand=True, fill=BOTH)
             file = None
@@ -745,12 +746,19 @@ def window_after(username, password):
                     if i in "1234567890":
                         num += i
                 word = int(num)
+                print(word)
                 new_font_size = (font, word)
                 TextArea.config(font=new_font_size)
 
             def change_size(size):
-                original_font = font_main[0]
-                new_font = (original_font, size)
+                original_font = TextArea["font"]
+                main = ''
+                for i in original_font:
+                    if i == ' ' or i.isalpha():
+                        main+=i
+                te = main.rstrip()
+                print(te)
+                new_font = (te, size)
                 TextArea.config(font=new_font)
 
             def change_color():
@@ -853,6 +861,12 @@ def window_after(username, password):
     mainarea.pack(expand=True, fill="both", side="right")
     button = Button(sidebar, text="Passwords", command=testing, width=20)
     b = Button(sidebar, text="Notes", command=ap, width=20)
+    ifpressed =  False
+    if isClicked == False:
+        b["state"] = NORMAL
+    if ifpressed == False:
+        button["state"] = NORMAL
+  
     button.grid(row=0, column=1)
     b.grid(row=1, column=1, columnspan=1)
     root.mainloop()
