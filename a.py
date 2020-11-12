@@ -762,15 +762,26 @@ def window_after(username, password):
             def bg_color():
                 my_color = colorchooser.askcolor()[1]
                 TextArea.config(bg=my_color)
-            # def highlight_text():
-            #     try:
-            #             self.text.tag_add("start", "sel.first", "sel.last")
-            #     except tk.TclError:
-        	# 		    pass
-            # Edit Menu Starts
+            def highlight_text():
+                TextArea.tag_configure("start", background="yellow", foreground="black")
+                try:
+                        TextArea.tag_add("start", "sel.first", "sel.last")
+                except TclError:
+                        pass
+            def popup_menu(e):
+                    my_menu.tk_popup(e.x_root, e.y_root)
             EditMenu = Menu(MenuBar, tearoff=0)
+            my_menu = Menu(mainarea, tearoff=0)
+            my_menu.add_command(label='Highlight',command=highlight_text)
+            my_menu.add_command(label='Copy',command=copy)
+            my_menu.add_command(label='Cut',command=cut)
+            my_menu.add_command(label='Paste',command=paste)
+            mainarea.focus_set()
+            a = root.focus_get()
+            if a.winfo_class() == 'Frame':
+                root.bind('<Button-3>',popup_menu)
             # To give a feature of cut, copy and paste
-            highlight_text_button = Button(MenuBar,Text='highlight',command=highlight_fn)
+            highlight_text_button = Button(MenuBar,text='highlight',command=highlight_text)
             highlight_text_button.grid(row=0,column=5,sticky=W)
             submenu = Menu(EditMenu, tearoff=0)
             submenu_size = Menu(EditMenu, tearoff=0)
@@ -788,7 +799,7 @@ def window_after(username, password):
             submenu.add_command(label="Courier", command=lambda: select_font("Courier"))
             submenu.add_command(label="Century", command=lambda: select_font("Century"))
             submenu.add_command(label="Calibri", command=lambda: select_font("Calibri"))
-            submenu.add_command(
+            submenu.add_csommand(
                 label="Yu Gothic", command=lambda: select_font("Yu Gothic")
             )
             submenu.add_command(label="Times New Roman", command=lambda: select_font("Times New Roman"))
