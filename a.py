@@ -1266,7 +1266,7 @@ root.mainloop()
 
 def delete_file():
     list = glob.glob("*decrypted.bin")
-
+    print(list)
     if len(list) != 0:
         for i in list:
             os.remove(i)
