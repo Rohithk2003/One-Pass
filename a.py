@@ -1,39 +1,33 @@
 "------------------------------------importing modules------------------------------------"
-import math
+import atexit
+import base64
+import geocoder
+import glob
+import hashlib
+import mysql.connector
+import os.path
 import pickle
+import pyAesCrypt
 import random
 import smtplib
-from tkinter import *
-import glob
-import pyAesCrypt
-import mysql.connector
-import os
-import sys
-from tkinter import messagebox
-import os.path
-import atexit
-from tkinter.ttk import *
-from tkinter.filedialog import *
-from tkinter import Frame, Menu
-from tkinter import colorchooser
-from tkinter import simpledialog
-from tkinter import *
-from cryptography.fernet import Fernet
-from datetime import datetime
-from geopy.geocoders import Nominatim
-import geocoder
 import socket
-from time import gmtime, strftime
-import hashlib
-import base64
-from passlib.hash import pbkdf2_sha256
+from PIL import ImageTk, Image
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from PIL import ImageTk, Image
+from datetime import datetime
+from tkinter import *
+from tkinter.ttk import *
+from tkinter import Frame,Menu,Label,Button
+from geopy.geocoders import Nominatim
+from passlib.hash import pbkdf2_sha256
+from time import gmtime, strftime
+from tkinter import colorchooser
 from tkinter import filedialog
-
+from tkinter import messagebox
+from tkinter import simpledialog
+from tkinter.filedialog import *
 "------------------------------------main tkinter window------------------------------------"
 
 bufferSize = 64 * 1024
@@ -52,7 +46,6 @@ root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 
 geolocator = Nominatim(user_agent="geoapiExercises")
 
-
 "------------------------------------ mysql database ------------------------------------"
 my_database = mysql.connector.connect(
     host="localhost",
@@ -67,7 +60,8 @@ my_cursor.execute(
 )
 my_cursor.execute("use USERS")
 my_cursor.execute(
-    "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,salt blob,no_of_accounts int(120))"
+    "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,"
+    "salt blob,no_of_accounts int(120)) "
 )
 
 "******************************Colors******************************"
@@ -110,62 +104,62 @@ class Login:
 
         return True, main_password
 
-    def windows(self, main_password, window,cursor):
+    def windows(self, main_password, window, cursor):
         window.destroy()
         cursor.execute(
             "select email_id from data_input where username = (%s)", (self.username,)
         )
         l = my_cursor.fetchall()
         email_sending = ""
-        try:
-            for i in l:
-                email_sending = i[0]
-            hostname = socket.gethostname()
-            ip_address = socket.gethostbyname(hostname)
-            g = geocoder.ip("me")
-            ip1 = g.latlng
-            location = geolocator.reverse(ip1, exactly_one=True)
-            address = location.raw["address"]
-            city = address.get("city", "")
-            country = address.get("country", "")
-            time_now = strftime("%H:%M:%S", gmtime())
-            date = datetime.today().strftime("%Y-%m-%d")
-            SUBJECT = "ONE-PASS login on " + " " + date
-            otp = (
-                "Hey"
-                + " "
-                + self.username
-                + "!"
-                + "\n"
-                + "It looks like someone logged into your account from a device"
-                + " "
-                + hostname
-                + " "
-                + "on "
-                + date
-                + " at "
-                + time_now
-                + "."
-                + " The login took place somewhere near "
-                + city
-                + ","
-                + country
-                + "(IP="
-                + ip_address
-                + ")."
-                + "If this was you,please disregard this email.No further action is needed \nif it wasn't you please change your password"
-                + "\n"
-                + "Thanks,\nONE-PASS"
-            )
-            msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
-            s = smtplib.SMTP("smtp.gmail.com", 587)
-            s.starttls()
-            s.login("rohithk652@gmail.com", "rohithk2003")
-            s.sendmail("rohithk652@gmail.com", email_sending, msg)
-        except Exception:
-            pass
+        # try:
+        #     for i in l:
+        #         email_sending = i[0]
+        #     hostname = socket.gethostname()
+        #     ip_address = socket.gethostbyname(hostname)
+        #     g = geocoder.ip("me")
+        #     ip1 = g.latlng
+        #     location = geolocator.reverse(ip1, exactly_one=True)
+        #     address = location.raw["address"]
+        #     city = address.get("city", "")
+        #     country = address.get("country", "")
+        #     time_now = strftime("%H:%M:%S", gmtime())
+        #     date = datetime.today().strftime("%Y-%m-%d")
+        #     SUBJECT = "ONE-PASS login on " + " " + date
+        #     otp = (
+        #             "Hey"
+        #             + " "
+        #             + self.username
+        #             + "!"
+        #             + "\n"
+        #             + "It looks like someone logged into your account from a device"
+        #             + " "
+        #             + hostname
+        #             + " "
+        #             + "on "
+        #             + date
+        #             + " at "
+        #             + time_now
+        #             + "."
+        #             + " The login took place somewhere near "
+        #             + city
+        #             + ","
+        #             + country
+        #             + "(IP="
+        #             + ip_address
+        #             + ")."
+        #             + "If this was you,please disregard this email.No further action is needed \nif it wasn't you "
+        #               "please change your password "
+        #             + "\n"
+        #             + "Thanks,\nONE-PASS"
+        #     )
+        #     msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
+        #     s = smtplib.SMTP("smtp.gmail.com", 587)
+        #     s.starttls()
+        #     s.login("rohithk652@gmail.com", "rohithk2003")
+        #     s.sendmail("rohithk652@gmail.com", email_sending, msg)
+        # except:
+        #     pass
         window_after(self.username, self.password)
-
 
 
 class Register:
@@ -182,7 +176,6 @@ class Register:
             return True
 
     def saving(self, object):
-        checking = True
         my_cursor.execute("select username from data_input")
         values_username = my_cursor.fetchall()
         for i in values_username:
@@ -239,8 +232,8 @@ def create_key(password, message):
     key = base64.urlsafe_b64encode(kdf.derive(password_key))
     message_encrypt = message.encode()
     f = Fernet(key)
-    encyrpted = f.encrypt(message_encrypt)
-    return encyrpted, salt
+    encrypted = f.encrypt(message_encrypt)
+    return encrypted, salt
 
 
 def retreive_key(password, byte, de):
@@ -258,12 +251,12 @@ def retreive_key(password, byte, de):
     return decrypted
 
 
-
 # def button(social_media_name,username,password):
 def login_password():
     window = Tk()
     window.title("Forgot Password")
-    text = "Please provide the recovery email  and recovery email password \n that you provided while creating an account"
+    text = "Please provide the recovery email  and recovery email password \n that you provided while creating an " \
+           "account "
     text_label = Label(window, text=text)
     username_forgot = Label(window, text="Username")
     recover_email = Label(window, text="Email")
@@ -427,9 +420,9 @@ def login_password():
         recover_email_entry_verify = str(recover_email_entry.get())
         recover_password_entry_verify = str(recover_password_entry.get())
         if (
-            username_verify == ""
-            and recover_email_entry_verify == ""
-            and recover_password_entry_verify == ""
+                username_verify == ""
+                and recover_email_entry_verify == ""
+                and recover_password_entry_verify == ""
         ):
             roo21 = Tk()
             roo21.withdraw()
@@ -521,13 +514,14 @@ def window_after(username, password):
 
     def ap():
         global status_name
+        global password
         try:
             list = mainarea.pack_slaves()
             for i in list:
                 i.forget()
         except:
             pass
-        if __name__ == "__main__" :
+        if __name__ == "__main__":
             emptyMenu = Menu(root)
             root.config(menu=emptyMenu)
 
@@ -537,13 +531,13 @@ def window_after(username, password):
             file = 0
 
             def newFile():
-                global file
+                global password
                 root.title("Untitled - Notepad")
                 file = None
                 TextArea.delete(1.0, END)
 
             def openFile():
-                global file
+                global password
                 file = askopenfilename(
                     defaultextension=".txt",
                     filetypes=[("All Files", "*.*"), ("Text Documents", "*.txt")],
@@ -561,6 +555,7 @@ def window_after(username, password):
                         f.close()
 
             def save_as_File(file):
+                global password
                 if file == None:
                     result = messagebox.askyesno(
                         "Confirm", "Do you want to encrypt your file?"
@@ -616,7 +611,7 @@ def window_after(username, password):
                         f_encrypt = file_name + ".aes"
                         try:
                             pyAesCrypt.encryptFile(
-                                file_name, f_encrypt, password, 64 * 1024
+                                file_name, f_encrypt, a, 64 * 1024
                             )
                             os.remove(file)
                         except:
@@ -709,16 +704,18 @@ def window_after(username, password):
             font_main = ("freesansbold", 12)
 
             TextArea = Text(
-                    mainarea,
-                    font=font_main,
-                    fg="white",
-                    insertofftime=600,
-                    insertontime=600,
-                    insertbackground="black",
-                )
+                mainarea,
+                font=font_main,
+                fg="black",
+                insertofftime=600,
+                insertontime=600,
+                insertbackground="black",
+                undo=True,
+            )
             TextArea.pack(expand=True, fill=BOTH)
             file = None
-
+            va = IntVar()
+            va.set(12)
             # Lets create a menubar
             MenuBar = Menu(root)
             status_name = False
@@ -728,30 +725,35 @@ def window_after(username, password):
             FileMenu.add_command(label="New", command=newFile)
 
             FileMenu.add_command(label="Open", command=openFile)
-
             # To save the current file
             FileMenu.add_command(label="Save", command=lambda: save_file())
-
             FileMenu.add_command(label="Save As", command=lambda: save_as_File(file))
             FileMenu.add_separator()
             FileMenu.add_command(label="Exit", command=quitApp)
             MenuBar.add_cascade(label="File", menu=FileMenu)
+
             # File Menu ends
             def select_font(font):
                 size = TextArea["font"]
-                word = ""
-                num = ""
+                num =''
                 for i in size:
-                    if i in "1234567890":
+                    if i in '1234567890':
                         num += i
-                word = int(num)
-                new_font_size = (font, word)
+                real_size = int(num)
+                new_font_size = (font, real_size)
                 TextArea.config(font=new_font_size)
 
             def change_size(size):
-                original_font = font_main[0]
-                new_font = (original_font, size)
-                TextArea.config(font=new_font)
+                va.set(size)
+                original_font = TextArea["font"]
+                find_font = ''
+                var = ''
+                for i in original_font:
+                    if i == ' ' or i.isalpha() :
+                        var += i
+                find_font = var.rstrip()
+                new_font = (find_font,size)
+                TextArea.configure(font=new_font)
 
             def change_color():
                 my_color = colorchooser.askcolor()[1]
@@ -760,10 +762,16 @@ def window_after(username, password):
             def bg_color():
                 my_color = colorchooser.askcolor()[1]
                 TextArea.config(bg=my_color)
-
+            # def highlight_text():
+            #     try:
+            #             self.text.tag_add("start", "sel.first", "sel.last")
+            #     except tk.TclError:
+        	# 		    pass
             # Edit Menu Starts
             EditMenu = Menu(MenuBar, tearoff=0)
             # To give a feature of cut, copy and paste
+            highlight_text_button = Button(MenuBar,Text='highlight',command=highlight_fn)
+            highlight_text_button.grid(row=0,column=5,sticky=W)
             submenu = Menu(EditMenu, tearoff=0)
             submenu_size = Menu(EditMenu, tearoff=0)
             submenu.add_command(
@@ -783,8 +791,8 @@ def window_after(username, password):
             submenu.add_command(
                 label="Yu Gothic", command=lambda: select_font("Yu Gothic")
             )
-            submenu.add_command(label="Times New Roman", command=lambda: select_font(a))
-            submenu.add_command(label="Sylfaen", command=lambda: select_font(a))
+            submenu.add_command(label="Times New Roman", command=lambda: select_font("Times New Roman"))
+            submenu.add_command(label="Sylfaen", command=lambda: select_font("Sylfaen"))
             submenu.add_command(
                 label="Nirmala UI", command=lambda: select_font("Nirmala UI")
             )
@@ -807,18 +815,35 @@ def window_after(username, password):
                 label="Cascadia Code", command=lambda: select_font("Cascadia Code")
             )
 
-            list_size_range = [x for x in range(10, 31)]
-            a = len(list_size_range)
-            for i in range(a):
-                submenu_size.add_command(
-                    label=list_size_range[i],
-                    command=lambda: change_size(list_size_range[i]),
-                )
+            submenu_size.add_command(label='10',command=lambda: change_size(10),)
+            submenu_size.add_command(label='11',command=lambda: change_size(11),)
+            submenu_size.add_command(label='12',command=lambda: change_size(12),)
+            submenu_size.add_command(label='13',command=lambda: change_size(13),)
+            submenu_size.add_command(label='14',command=lambda: change_size(14),)
+            submenu_size.add_command(label='15',command=lambda: change_size(15),)
+            submenu_size.add_command(label='16',command=lambda: change_size(16),)
+            submenu_size.add_command(label='17',command=lambda: change_size(17),)
+            submenu_size.add_command(label='18',command=lambda: change_size(18),)
+            submenu_size.add_command(label='19',command=lambda: change_size(19),)
+            submenu_size.add_command(label='20',command=lambda: change_size(20),)
+            submenu_size.add_command(label='21',command=lambda: change_size(21),)
+            submenu_size.add_command(label='22',command=lambda: change_size(22),)
+            submenu_size.add_command(label='23',command=lambda: change_size(23),)
+            submenu_size.add_command(label='24',command=lambda: change_size(24),)
+            submenu_size.add_command(label='25',command=lambda: change_size(25),)
+            submenu_size.add_command(label='26',command=lambda: change_size(26),)
+            submenu_size.add_command(label='27',command=lambda: change_size(27),)
+            submenu_size.add_command(label='28',command=lambda: change_size(28),)
+            submenu_size.add_command(label='29',command=lambda: change_size(29),)
+            submenu_size.add_command(label='30',command=lambda: change_size(30),)
+
             EditMenu.add_command(label="Text Color", command=change_color)
-            EditMenu.add_command(label="Cut", command=cut)
             EditMenu.add_command(label="Background Color", command=bg_color)
+            EditMenu.add_command(label="Cut", command=cut)
             EditMenu.add_command(label="Copy", command=copy)
             EditMenu.add_command(label="Paste", command=paste)
+            EditMenu.add_command(label="Undo", command=TextArea.edit_undo,accelerator='(Ctrl+z)')
+            EditMenu.add_command(label="Redo",  command=TextArea.edit_redo,accelerator='(Ctrl+y)')
             EditMenu.add_cascade(label="Font", menu=submenu)
             EditMenu.add_cascade(label="Size", menu=submenu_size)
             MenuBar.add_cascade(label="Edit", menu=EditMenu)
@@ -901,13 +926,9 @@ def button(social_media, username, password):
             social_media_active_label.grid(row=1, column=1)
             social_media_active_pass_label.grid(row=2, column=1)
 
-
-
         def back1():
             root.destroy()
             gameloop(str(username), password)
-
-
 
         # def remote():
 
@@ -996,6 +1017,7 @@ def button(social_media, username, password):
 def gameloop(username, password, window):
     image_add = ImageTk.PhotoImage(Image.open("add-button.png"))
     window.grid_propagate(0)
+
     def change():
         pass
 
@@ -1010,7 +1032,6 @@ def gameloop(username, password, window):
         username_window_entry = Entry(root1).grid(row=1, column=2)
         password_entry = Entry(root1).grid(row=2, column=2)
 
-
         def browsefunc(window):
             window.destroy()
             try:
@@ -1021,14 +1042,16 @@ def gameloop(username, password, window):
                 add_icon_button.photo = tkimage
             except:
                 pass
+
         def splash_screen_image_selection():
-                splash_root = Tk()
-                splash_root.geometry('100x100-700+450')
-                splash_root.overrideredirect(1)
-                splash_label = Label(splash_root,text='Please Provide an icon of 64X64')
-                splash_label.pack()
-                splash_root.after(2000,lambda:browsefunc(splash_root))
-                splash_root.mainloop()
+            splash_root = Tk()
+            splash_root.geometry('100x100-700+450')
+            splash_root.overrideredirect(1)
+            splash_label = Label(splash_root, text='Please Provide an icon of 64X64')
+            splash_label.pack()
+            splash_root.after(2000, lambda: browsefunc(splash_root))
+            splash_root.mainloop()
+
         new_id = ImageTk.PhotoImage(Image.open("add-button.png"))
         add_icon_button = Button(
             root1, image=new_id, borderwidth="0", command=splash_screen_image_selection)
@@ -1053,6 +1076,7 @@ def gameloop(username, password, window):
     with open(str(username) + "decrypted.bin", "rb") as file:
         line = file.read()
         word = line.split()
+
     def account_existing():
         pass
 
@@ -1106,7 +1130,7 @@ def login():
             root.withdraw()
             messagebox.showinfo("Succes", "You have now logged in ")
             root.destroy()
-            login.windows(main_password, login_window,my_cursor)
+            login.windows(main_password, login_window, my_cursor)
         else:
             pass
 
@@ -1194,7 +1218,7 @@ def register():
             email_password_register,
         )
         checking = register_user.check_pass_length()
-        if checking == True:
+        if checking:
             registering = register_user.saving(my_cursor)
             print(registering)
             if registering:
@@ -1203,7 +1227,6 @@ def register():
                 messagebox.showinfo("Error", "Username and email already exists")
                 root.destroy()
             if not registering:
-
                 register_user.creation()
 
         else:
@@ -1228,10 +1251,14 @@ register_text.grid(row=8, column=1, columnspan=2)
 reg_button.grid(row=9, column=1, columnspan=2)
 root.resizable(False, False)
 root.mainloop()
+
+
 def delete_file():
     list = glob.glob("*decrypted.bin")
 
     if len(list) != 0:
         for i in list:
-                os.remove(i)
+            os.remove(i)
+
+
 atexit.register(delete_file)
