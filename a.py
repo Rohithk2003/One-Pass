@@ -1090,9 +1090,8 @@ def gameloop(username, password, window):
             except:
                         exist = False
                         line = []
-
-                    line.append(list)
-                    f.close()
+                        line.append(list)
+                        f.close()
             if not exist:
                 list = [
                     str(username_window_entry.get()),
@@ -1150,7 +1149,7 @@ def gameloop(username, password, window):
             )
             add_button.grid(row=0, column=1, padx=10 + 100 * add, pady=20 + 100)
         elif add < 4:
-            add_button.grid(row=0,column=add,padx,10,pady=20+100*add)
+            add_button.grid(row=0,padx = 10,pady=20+100*add,column=add)
             add_button.grid(row=0)
     padx = 10
     pady = 100
@@ -1311,4 +1310,3 @@ list_file = glob.glob("*decrypted.bin")
 for i in list_file:
         converting_str = str(i)
         os.remove(converting_str)
-atexit.register(delete_file)
