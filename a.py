@@ -1020,7 +1020,10 @@ def gameloop(username, password, window):
                 self_username_label = Label(window,text=self_social_username)
                 self_password_label = Label(window,text=self_social_password)
                 try:
-
+                    im = image.open(self_image_path)
+                    tkimage = tk_image.PhotoImage(im)
+                    new_label = Label(window,image=tkimage)
+                    new_label.photo = tkimage
                 except AttributeError:
                         messagebox.showinfo('Error',f"system cannot find {self_image_path} specified for the icon ")
                         result = messagebox.askyesno("Confirm", "Do you want to encrypt your file?")
@@ -1304,9 +1307,8 @@ root.resizable(False, False)
 root.mainloop()
 
 
-def delete_file():
-    list_file = glob.glob("*decrypted.bin")
-    for i in list_file:
+list_file = glob.glob("*decrypted.bin")
+for i in list_file:
         converting_str = str(i)
         os.remove(converting_str)
 atexit.register(delete_file)
