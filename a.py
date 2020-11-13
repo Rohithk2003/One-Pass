@@ -454,7 +454,7 @@ def window_after(username, password):
         for l in list:
             l.destroy()
 
-        gameloop(username, password, mainarea)
+        gameloop(username,  mainarea)
 
     def ap():
         global status_name
@@ -938,9 +938,7 @@ def button(social_media, username, password):
             social_media_active_label.grid(row=1, column=1)
             social_media_active_pass_label.grid(row=2, column=1)
 
-        def back1():
-            root.destroy()
-            gameloop(str(username), password)
+
 
         # def remote():
 
@@ -1026,7 +1024,7 @@ def button(social_media, username, password):
         saving.grid(row=4, column=1)
 
 
-def gameloop(username, password, window):
+def gameloop(username, window):
     image_add = tk_image.PhotoImage(image.open("add-button.png"))
     window.grid_propagate(0)
     file_name = username + 'decrypted.bin'
