@@ -1,35 +1,31 @@
 "------------------------------------importing modules------------------------------------"
-import atexit
 import base64
-import geocoder
 import glob
 import hashlib
-import mysql.connector
+import os
 import os.path
 import pickle
-import pyAesCrypt
 import random
 import smtplib
-import socket
-import os
-from PIL import ImageTk as tk_image
-from PIL import Image as image
-from cryptography.fernet import Fernet
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from datetime import datetime
 from tkinter import *
-from tkinter.ttk import *
 from tkinter import Frame, Menu, Label, Button
-from geopy.geocoders import Nominatim
-from passlib.hash import pbkdf2_sha256
-from time import gmtime, strftime
 from tkinter import colorchooser
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from tkinter import simpledialog
-from op import delete_file
+from tkinter.ttk import *
+
+import mysql.connector
+import pyAesCrypt
+from PIL import Image as image
+from PIL import ImageTk as tk_image
+from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from geopy.geocoders import Nominatim
+from passlib.hash import pbkdf2_sha256
+
 "------------------------------------main tkinter window------------------------------------"
 
 bufferSize = 64 * 1024
@@ -76,6 +72,7 @@ catch_error = True
 
 social_media_user_text = ""
 social_media_active = False
+
 
 class Login:
     def __init__(self, username, password):
@@ -447,6 +444,7 @@ def window_after(username, password):
     )
     sidebar.pack(expand=False, fill="both", side="left")
     file = None
+
     def testing():
         root.title("Passwords")
         emptyMenu = Menu(root)
@@ -455,7 +453,6 @@ def window_after(username, password):
         list = mainarea.pack_slaves()
         for l in list:
             l.destroy()
-        image_add = tk_image.PhotoImage(image.open("add-button.png"))
 
         gameloop(username, password, mainarea)
 
@@ -493,21 +490,20 @@ def window_after(username, password):
                 if file != None:
                     if file.endswith('.bin.fenc'):
                         password = str(simpledialog.askstring(title="Test",
-                              prompt="Please provide the password"))
+                                                              prompt="Please provide the password"))
                         new_file = os.path.splitext(file)[0]
                         b = os.path.basename(new_file)
                         new_d = os.path.basename(b)
                         filename = new_d + 'decrypted.txt'
                         try:
-                            pyAesCrypt.decryptFile(file,filename,password,bufferSize)
+                            pyAesCrypt.decryptFile(file, filename, password, bufferSize)
                             root.title(os.path.basename(file) + " - Notepad")
                             TextArea.delete(1.0, END)
                             with open(filename, "r") as f:
                                 TextArea.insert(1.0, f.read())
                                 f.close()
                         except:
-                            messagebox.showerror('Error','Wrong password')
-
+                            messagebox.showerror('Error', 'Wrong password')
 
                 # check to if there is a file_name
                 global status_name
@@ -520,35 +516,37 @@ def window_after(username, password):
                     with open(file, "r") as f:
                         TextArea.insert(1.0, f.read())
                         f.close()
+
             def rename_file():
-                    global file
-                    application_window = Tk()
-                    application_window.withdraw()
-                    a = simpledialog.askstring(
-                        "Input", "What is new file name?", parent=application_window
-                    )
-                    application_window.destroy()
-                    if file != None:
-                        new_file,file_extension = os.path.splitext(file)
-                        b = os.path.basename(new_file)
-                        new_d = os.path.basename(b)
-                        new_file_name = os.path.basename(b)
-                        f = open(file,'r')
-                        dir = os.path.dirname(file)
-                        values = f.read()
+                global file
+                application_window = Tk()
+                application_window.withdraw()
+                a = simpledialog.askstring(
+                    "Input", "What is new file name?", parent=application_window
+                )
+                application_window.destroy()
+                if file != None:
+                    new_file, file_extension = os.path.splitext(file)
+                    b = os.path.basename(new_file)
+                    new_d = os.path.basename(b)
+                    new_file_name = os.path.basename(b)
+                    f = open(file, 'r')
+                    dir = os.path.dirname(file)
+                    values = f.read()
+                    f.close()
+                    os.remove(file)
+                    file = (dir) + '/' + a + file_extension
+                    with open(file, "w") as f:
+                        f.write(values)
                         f.close()
-                        os.remove(file)
-                        file = (dir) + '/'+a+file_extension
-                        with open(file, "w") as f:
-                            f.write(values)
-                            f.close()
-                        TextArea.delete(1.0, END)
-                        with open(file,'r') as f:
-                            TextArea.insert(1.0, f.read())
-                            f.close()
-                        root.title(a+file_extension + " - Notepad")
-                    else:
-                        save_as_File()
+                    TextArea.delete(1.0, END)
+                    with open(file, 'r') as f:
+                        TextArea.insert(1.0, f.read())
+                        f.close()
+                    root.title(a + file_extension + " - Notepad")
+                else:
+                    save_as_File()
+
             def save_as_File():
                 global password
                 global file
@@ -655,7 +653,7 @@ def window_after(username, password):
                         )
                         gmm = str(file)
                         password = str(simpledialog.askstring(title="Test",
-                                  prompt="Please provide the password"))
+                                                              prompt="Please provide the password"))
                         status_name = file
                         if file == "":
                             file = None
@@ -1031,68 +1029,48 @@ def button(social_media, username, password):
 def gameloop(username, password, window):
     image_add = tk_image.PhotoImage(image.open("add-button.png"))
     window.grid_propagate(0)
-    try:
-        my_cursor.execute('select no_of_accounts from data_input where username = (%s)',(username,))
-        no_of_account_for = my_cursor.fetchall()
-        add = 0
-        for i in no_of_account_for:
-            add = int(i[0])
-        name_file = username + "decrypted.bin"
-        with open(name_file, "rb") as f:
-            try:
-                line = pickle.load(f)
-                for i in line:
-                            self_social_username = i[0]
-                            self_social_password = i[1]
-                            self_image_path = i[3]
-                username_text = Label(window,text='Username:')
-                password_text = Label(window,text='Password:')
-                self_username_label = Label(window,text=self_social_username)
-                self_password_label = Label(window,text=self_social_password)
-                try:
-                    im = image.open(self_image_path)
-                    tkimage = tk_image.PhotoImage(im)
-                    new_label = Label(window,image=tkimage)
-                    new_label.photo = tkimage
-                except AttributeError:
-                        messagebox.showinfo('Error',f"system cannot find {self_image_path} specified for the icon ")
-                        result = messagebox.askyesno("Confirm", "Do you want to encrypt your file?")
+    file_name = username + 'decrypted.bin'
+    my_cursor.execute('select no_of_accounts from data_input where username = (%s)', (username,))
+    no_accounts = my_cursor.fetchall()
+    add = 0
+    for num in no_accounts:
+        add = int(num[0])
 
-            except:
-                pass
-
-
-    except:
-                line = []
-
-    def change():
-        pass
+    def verify(social_username, social_media):
+        with open(file_name, 'r') as f:
+            test_values = pickle.load(f)
+            for user in test_values:
+                if user[0] == str(social_username) or user[2] == str(social_media):
+                    return True
+            return False
 
     def addaccount():
+
         root1 = Toplevel()
         name_of_social = Label(root1, text="Name of the social media")
         name_of_social.grid(row=0, column=1)
         name_of_social_entry = Entry(root1)
         name_of_social_entry.grid(row=0, column=2)
-        username_window = Label(root1, text="Usename:").grid(row=1, column=1)
-        password_window = Label(root1, text="Password:").grid(row=2, column=1)
+        username_window = Label(root1, text="Usename:")
+        username_window.grid(row=1, column=1)
+        password_window = Label(root1, text="Password:")
+        password_window.grid(row=2, column=1)
         username_window_entry = Entry(root1)
         username_window_entry.grid(row=1, column=2)
         password_entry = Entry(root1)
         password_entry.grid(row=2, column=2)
         image_path = ''
+
         def browsefunc():
             global image_path
             try:
-                path = fd.askopenfilename()
-                im = image.open(path)
+                image_path = fd.askopenfilename()
+                im = image.open(image_path)
                 tkimage = tk_image.PhotoImage(im)
                 add_icon_button.config(image=tkimage)
                 add_icon_button.photo = tkimage
-                image_path = path
             except:
                 pass
-
 
         new_id = tk_image.PhotoImage(image.open("add-button.png"))
         add_icon_button = Button(
@@ -1100,108 +1078,128 @@ def gameloop(username, password, window):
         add_icon_button.photo = new_id
         add_icon_button.grid(row=0, column=0, rowspan=3)
         exist = True
-        def save():
-            global path
-            global exist
-            try:
-                name_file = username + "decrypted.bin"
-                with open(name_file, "rb") as f:
-                    try:
-                        line = pickle.load(f)
-                        for i in line:
-                            if i[0] == str(username_window_entry.get()) or i[2] == str(name_of_social_entry.get()):
-                                exist = True
-                                messagebox.showerror('Error','The account with the username already exists')
-                            else:
-                                exist = False
-                    except:
-                        exist = False
 
-            except:
-                        exist = False
-                        line = []
-                        line.append(list)
+        def save():
+            global image_path
+            global exist
+            list_account = [
+                str(username_window_entry.get()),
+                str(password_entry.get()),
+                str(name_of_social_entry.get()),
+                image_path
+            ]
+            verifying = verify(username_window_entry.get(), name_of_social_entry.get())
+            if verifying:
+                try:
+                    name_file = username + "decrypted.bin"
+                    with open(name_file, "rb") as f:
+                        try:
+                            line = pickle.load(f)
+                            for i in line:
+                                if i[0] == str(username_window_entry.get()) or i[2] == str(name_of_social_entry.get()):
+                                    exist = True
+                                    messagebox.showerror('Error', 'The account with the username already exists')
+                                else:
+                                    exist = False
+                        except:
+                            exist = False
+
+                except:
+                    exist = False
+                    line = [list_account]
+                    f.close()
+                if not exist:
+
+                    print(list)
+                    name_file = username + "decrypted.bin"
+                    with open(name_file, "rb") as f:
+                        try:
+                            line = pickle.load(f)
+                        except:
+                            line = []
+                        line.append(list_account)
                         f.close()
-            if not exist:
-                list = [
-                    str(username_window_entry.get()),
-                    str(password_entry.get()),
-                    str(name_of_social_entry.get()),
-                    image_path
-                ]
-                print(list)
-                name_file = username + "decrypted.bin"
-                with open(name_file, "rb") as f:
-                    try:
-                        line = pickle.load(f)
-                    except:
-                        line = []
-                    line.append(list)
-                    f.close()
-                with open(name_file, 'wb') as f1:
-                    print(line)
-                    pickle.dump(line, f1)
-                    f.close()
-                messagebox.showinfo('Success','Your account has been saved')
-                my_cursor.execute('select no_of_accounts from data_input where username = (%s)',(username,))
-                val = my_cursor.fetchall()
-                no = 0
-                for i in val:
-                    no = i[0]
-                    real_accounts = int(no)
-                to_append = real_accounts + 1
-                my_cursor.execute('update data_input set no_of_accounts =(%s) where username = (%s)',(to_append,username))
+                    with open(name_file, 'wb') as f1:
+                        print(line)
+                        pickle.dump(line, f1)
+                        f.close()
+                    messagebox.showinfo('Success', 'Your account has been saved')
+                    my_cursor.execute('select no_of_accounts from data_input where username = (%s)', (username,))
+                    val = my_cursor.fetchall()
+                    no = 0
+                    to_append = 0
+                    for i in val:
+                        no = i[0]
+                        real_accounts = int(no)
+                        to_append = real_accounts + 1
+                    my_cursor.execute('update data_input set no_of_accounts =(%s) where username = (%s)',
+                                      (to_append, username))
+            elif not verifying:
+                messagebox.showerror('Error', 'Account with the username already exist')
+
         save_button = Button(root1, text="Save", command=save)
-        save_button.grid(row=4,column=1)
+        save_button.grid(row=4, column=1)
         # new_image = tk_image.PhotoImage(image.open('facebook.png'))
         # add_icon_button.config(image=new_image)
         root1.mainloop()
 
-    def account_existing():
-        pass
 
-    if len(word) == 0:
+    if add == 0:
         add_button = Button(
             window, image=image_add, borderwidth="0", command=addaccount
         )
-        add_label = Label(window, text="Add account").grid(row=1, column=1)
+        add_label = Label(window, text="Add account")
+        add_label.grid(row=1, column=1)
         add_button.photo = image_add
         add_button.grid(row=0, column=1)
     else:
-        if add > 4:
+        if 4 < add < 8:
             add_button = Button(
-                window, image=image_add, border="0", command=account_existing()
+                window, image=image_add, border="0", command=addaccount
             )
-            add_button.grid(row=0, column=1, padx=10 + 100 * add, pady=20 + 50)
+            add_button.photo = image_add
+            add_button.grid(row=0, column=add, padx=10 + 100 * add, pady=20 + 100)
+            add_label = Label(window, text="Add account")
+            add_label.grid(row=1, column=add)
+
         elif add > 8:
             add_button = Button(
-                window, image=image_add, border="0", command=account_existing()
+                window, image=image_add, border="0", command=addaccount
             )
-            add_button.grid(row=0, column=1, padx=10 + 100 * add, pady=20 + 100)
+            add_button.photo = image_add
+            add_button.grid(row=0, column=add, padx=10 + 100 * add, pady=20 + 200)
+            add_label = Label(window, text="Add account")
+            add_label.grid(row=1, column=add)
+
         elif add < 4:
-            add_button.grid(row=0,padx = 10,pady=20+100*add,column=add)
-            add_button.grid(row=0)
-    padx = 10
-    pady = 100
+            add_button = Button(
+                window, image=image_add, border="0", command=addaccount
+            )
+            add_button.photo = image_add
+
+            add_button.grid(row=0, padx=10 + 100 * add, pady=20, column=add)
+            add_label = Label(window, text="Add account")
+            add_label.grid(row=1, column=add)
 
 
 def login():
     login_window = Tk()
-##    width_window = 200
-##    sending = False
-##    height_window = 300
-##    screen_width = login_window.winfo_screenwidth()
-##    screen_height = login_window.winfo_screenheight()
-##    x = screen_width / 2 - width_window / 2
-##    y = screen_height / 2 - height_window / 2
-##    login_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+    ##    width_window = 200
+    ##    sending = False
+    ##    height_window = 300
+    ##    screen_width = login_window.winfo_screenwidth()
+    ##    screen_height = login_window.winfo_screenheight()
+    ##    x = screen_width / 2 - width_window / 2
+    ##    y = screen_height / 2 - height_window / 2
+    ##    login_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
     input_entry = Entry(login_window, text="Username:")
     login = Label(login_window, text="Username:")
     pass1 = Label(login_window, text="Password:")
     pass_entry = Entry(login_window, text="Password:", show="*")
     lbl = Label(login_window, text="Please enter your username and password:")
     forgot = Button(login_window, text="Forgot Password", command=login_password)
-    register_button = Button(login_window,text='Register',command =lambda: register(login_window))
+    register_button = Button(login_window, text='Register', command=lambda: register(login_window))
+
     def login_checking_1():
         password = str(pass_entry.get())
         username = str(input_entry.get())
@@ -1226,12 +1224,11 @@ def login():
     but.grid(row=7, column=3)
     root.destroy()
     login_window.resizable(False, False)
-    register_button.grid(row=7,column=10)
+    register_button.grid(row=7, column=10)
     forgot.grid(row=7, column=2)
 
 
-def register(window):
-    window.destroy()
+def register():
     login_window1 = Tk()
     try:
         root.destroy()
@@ -1335,7 +1332,6 @@ register_text.grid(row=8, column=1, columnspan=2)
 reg_button.grid(row=9, column=1, columnspan=2)
 root.resizable(False, False)
 root.mainloop()
-
 
 list_file = glob.glob("*decrypted.bin")
 for i in list_file:
