@@ -7,13 +7,13 @@ import os.path
 import pickle
 import random
 import smtplib
-from tkinter import *
 from tkinter import Frame, Menu, Label, Button
 from tkinter import colorchooser
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from tkinter import simpledialog
 from tkinter.ttk import *
+from tkinter import *
 
 import mysql.connector
 import pyAesCrypt
@@ -72,6 +72,8 @@ catch_error = True
 
 social_media_user_text = ""
 social_media_active = False
+image_path = ''
+exist = False
 
 
 class Login:
@@ -103,7 +105,7 @@ class Login:
         return True, main_password
 
     def windows(self, main_password, window, cursor):
-        window_after(self.username, self.password)
+        window_after(self.username, main_password)
 
 
 class Register:
@@ -151,16 +153,18 @@ class Register:
         hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
         print(hash_pass)
         file_name = self.username + ".bin"
-        with  open(file_name, "wb") as f:
+        with open(file_name, "wb") as f:
             f.close()
-        pyAesCrypt.encryptFile(file_name, file_name + ".fenc", hash_pass, bufferSize)
+        pyAesCrypt.encryptFile(file_name, file_name +
+                               ".fenc", hash_pass, bufferSize)
         os.remove(file_name)
         windows = Tk()
         windows.withdraw()
         messagebox.showinfo("Success", "Your account has been created")
         windows.destroy()
         window_after(self.username, self.password)
-        pyAesCrypt.decryptFile(file_name + ".fenc", file_name, hash_pass, bufferSize)
+        pyAesCrypt.decryptFile(file_name + ".fenc",
+                               file_name, hash_pass, bufferSize)
 
 
 def create_key(password, message):
@@ -240,7 +244,8 @@ def login_password():
         new_username_entry.grid(row=1, column=1)
         new_password_entry.grid(row=2, column=1)
         my_cursor.execute(
-            "select password,salt from data_input where email_id = (%s)", (email,)
+            "select password,salt from data_input where email_id = (%s)", (
+                email,)
         )
         values_password = my_cursor.fetchall()
         password_decrypt = ""
@@ -337,10 +342,12 @@ def login_password():
                     os.remove("otp.bin.fenc")
                     change_password(email, email_password, username12)
                 else:
-                    messagebox.showinfo("Error", "Incorrect OTP Please verify it again")
+                    messagebox.showinfo(
+                        "Error", "Incorrect OTP Please verify it again")
                     otp_entry.delete(0, END)
         else:
-            messagebox.showinfo("Error", "Please provide the OTP  send to your email")
+            messagebox.showinfo(
+                "Error", "Please provide the OTP  send to your email")
 
     def forgot_password(OTP, email, username):
         try:
@@ -354,7 +361,8 @@ def login_password():
             s.login("rohithk652@gmail.com", "rohithk2003")
             s.sendmail("rohithk652@gmail.com", email, msg)
         except:
-            messagebox.showinfo("Error", "Please Connect to the internet \n then retry")
+            messagebox.showinfo(
+                "Error", "Please Connect to the internet \n then retry")
             sys.exit()
 
     def main(key):
@@ -416,7 +424,8 @@ def login_password():
         except:
             roo1 = Tk()
             roo1.withdraw()
-            messagebox.showerror("Error", "No user exist with the provided username")
+            messagebox.showerror(
+                "Error", "No user exist with the provided username")
             roo1.destroy()
         if run:
             digits = "1234567890"
@@ -431,11 +440,12 @@ def login_password():
             generate_key1("otp.bin")
             forgot_password(OTP, recover_email_entry_verify, username_verify)
 
-    forgot_password_button = Button(window, text="verify", command=lambda: main(key))
+    forgot_password_button = Button(
+        window, text="verify", command=lambda: main(key))
     forgot_password_button.grid(row=5, column=1)
 
 
-def window_after(username, password):
+def window_after(username, hash_password):
     # sidebar
     root = Tk()
     status_name = False
@@ -454,7 +464,7 @@ def window_after(username, password):
         for l in list:
             l.destroy()
 
-        gameloop(username,  mainarea)
+        gameloop(username, hash_password, mainarea)
 
     def ap():
         global status_name
@@ -485,7 +495,8 @@ def window_after(username, password):
                 global file
                 file = fd.askopenfilename(
                     defaultextension=".txt",
-                    filetypes=[("All Files", "*.*"), ("Text Documents", "*.txt")],
+                    filetypes=[("All Files", "*.*"),
+                               ("Text Documents", "*.txt")],
                 )
                 if file != None:
                     if file.endswith('.bin.fenc'):
@@ -496,7 +507,8 @@ def window_after(username, password):
                         new_d = os.path.basename(b)
                         filename = new_d + 'decrypted.txt'
                         try:
-                            pyAesCrypt.decryptFile(file, filename, password, bufferSize)
+                            pyAesCrypt.decryptFile(
+                                file, filename, password, bufferSize)
                             root.title(os.path.basename(file) + " - Notepad")
                             TextArea.delete(1.0, END)
                             with open(filename, "r") as f:
@@ -614,7 +626,7 @@ def window_after(username, password):
             def save_file():
                 global status_name
                 if status_name:
-                    with  open(status_name, "w") as f:
+                    with open(status_name, "w") as f:
                         f.write(TextArea.get(1.0, END))
                         f.close()
                 else:
@@ -722,7 +734,8 @@ def window_after(username, password):
             FileMenu.add_command(label="Open", command=openFile)
             # To save the current file
             FileMenu.add_command(label="Save", command=lambda: save_file())
-            FileMenu.add_command(label="Save As", command=lambda: save_as_File())
+            FileMenu.add_command(
+                label="Save As", command=lambda: save_as_File())
             FileMenu.add_command(label="Rename", command=lambda: rename_file())
             FileMenu.add_separator()
             FileMenu.add_command(label="Exit", command=quitApp)
@@ -760,7 +773,8 @@ def window_after(username, password):
                 TextArea.config(bg=my_color)
 
             def highlight_text():
-                TextArea.tag_configure("start", background="yellow", foreground="black")
+                TextArea.tag_configure(
+                    "start", background="yellow", foreground="black")
                 try:
                     TextArea.tag_add("start", "sel.first", "sel.last")
                 except TclError:
@@ -780,33 +794,42 @@ def window_after(username, password):
             if a.winfo_class() == 'Frame':
                 root.bind('<Button-3>', popup_menu)
             # To give a feature of cut, copy and paste
-            highlight_text_button = Button(MenuBar, text='highlight', command=highlight_text)
+            highlight_text_button = Button(
+                MenuBar, text='highlight', command=highlight_text)
             highlight_text_button.grid(row=0, column=5, sticky=W)
             submenu = Menu(EditMenu, tearoff=0)
             submenu_size = Menu(EditMenu, tearoff=0)
             submenu.add_command(
                 label="MS Sans Serif", command=lambda: select_font("MS Sans Serif")
             )
-            submenu.add_command(label="Arial", command=lambda: select_font("Arial"))
+            submenu.add_command(
+                label="Arial", command=lambda: select_font("Arial"))
             submenu.add_command(
                 label="Bahnschrift", command=lambda: select_font("Bahnschrift")
             )
-            submenu.add_command(label="Cambria", command=lambda: select_font("Cambria"))
+            submenu.add_command(
+                label="Cambria", command=lambda: select_font("Cambria"))
             submenu.add_command(
                 label="Consolas", command=lambda: select_font("Consolas")
             )
-            submenu.add_command(label="Courier", command=lambda: select_font("Courier"))
-            submenu.add_command(label="Century", command=lambda: select_font("Century"))
-            submenu.add_command(label="Calibri", command=lambda: select_font("Calibri"))
+            submenu.add_command(
+                label="Courier", command=lambda: select_font("Courier"))
+            submenu.add_command(
+                label="Century", command=lambda: select_font("Century"))
+            submenu.add_command(
+                label="Calibri", command=lambda: select_font("Calibri"))
             submenu.add_command(
                 label="Yu Gothic", command=lambda: select_font("Yu Gothic")
             )
-            submenu.add_command(label="Times New Roman", command=lambda: select_font("Times New Roman"))
-            submenu.add_command(label="Sylfaen", command=lambda: select_font("Sylfaen"))
+            submenu.add_command(label="Times New Roman",
+                                command=lambda: select_font("Times New Roman"))
+            submenu.add_command(
+                label="Sylfaen", command=lambda: select_font("Sylfaen"))
             submenu.add_command(
                 label="Nirmala UI", command=lambda: select_font("Nirmala UI")
             )
-            submenu.add_command(label="Ebrima", command=lambda: select_font("Ebrima"))
+            submenu.add_command(
+                label="Ebrima", command=lambda: select_font("Ebrima"))
             submenu.add_command(
                 label="Comic Sans MS", command=lambda: select_font("Comic Sans MS")
             )
@@ -825,35 +848,58 @@ def window_after(username, password):
                 label="Cascadia Code", command=lambda: select_font("Cascadia Code")
             )
 
-            submenu_size.add_command(label='10', command=lambda: change_size(10), )
-            submenu_size.add_command(label='11', command=lambda: change_size(11), )
-            submenu_size.add_command(label='12', command=lambda: change_size(12), )
-            submenu_size.add_command(label='13', command=lambda: change_size(13), )
-            submenu_size.add_command(label='14', command=lambda: change_size(14), )
-            submenu_size.add_command(label='15', command=lambda: change_size(15), )
-            submenu_size.add_command(label='16', command=lambda: change_size(16), )
-            submenu_size.add_command(label='17', command=lambda: change_size(17), )
-            submenu_size.add_command(label='18', command=lambda: change_size(18), )
-            submenu_size.add_command(label='19', command=lambda: change_size(19), )
-            submenu_size.add_command(label='20', command=lambda: change_size(20), )
-            submenu_size.add_command(label='21', command=lambda: change_size(21), )
-            submenu_size.add_command(label='22', command=lambda: change_size(22), )
-            submenu_size.add_command(label='23', command=lambda: change_size(23), )
-            submenu_size.add_command(label='24', command=lambda: change_size(24), )
-            submenu_size.add_command(label='25', command=lambda: change_size(25), )
-            submenu_size.add_command(label='26', command=lambda: change_size(26), )
-            submenu_size.add_command(label='27', command=lambda: change_size(27), )
-            submenu_size.add_command(label='28', command=lambda: change_size(28), )
-            submenu_size.add_command(label='29', command=lambda: change_size(29), )
-            submenu_size.add_command(label='30', command=lambda: change_size(30), )
+            submenu_size.add_command(
+                label='10', command=lambda: change_size(10), )
+            submenu_size.add_command(
+                label='11', command=lambda: change_size(11), )
+            submenu_size.add_command(
+                label='12', command=lambda: change_size(12), )
+            submenu_size.add_command(
+                label='13', command=lambda: change_size(13), )
+            submenu_size.add_command(
+                label='14', command=lambda: change_size(14), )
+            submenu_size.add_command(
+                label='15', command=lambda: change_size(15), )
+            submenu_size.add_command(
+                label='16', command=lambda: change_size(16), )
+            submenu_size.add_command(
+                label='17', command=lambda: change_size(17), )
+            submenu_size.add_command(
+                label='18', command=lambda: change_size(18), )
+            submenu_size.add_command(
+                label='19', command=lambda: change_size(19), )
+            submenu_size.add_command(
+                label='20', command=lambda: change_size(20), )
+            submenu_size.add_command(
+                label='21', command=lambda: change_size(21), )
+            submenu_size.add_command(
+                label='22', command=lambda: change_size(22), )
+            submenu_size.add_command(
+                label='23', command=lambda: change_size(23), )
+            submenu_size.add_command(
+                label='24', command=lambda: change_size(24), )
+            submenu_size.add_command(
+                label='25', command=lambda: change_size(25), )
+            submenu_size.add_command(
+                label='26', command=lambda: change_size(26), )
+            submenu_size.add_command(
+                label='27', command=lambda: change_size(27), )
+            submenu_size.add_command(
+                label='28', command=lambda: change_size(28), )
+            submenu_size.add_command(
+                label='29', command=lambda: change_size(29), )
+            submenu_size.add_command(
+                label='30', command=lambda: change_size(30), )
 
             EditMenu.add_command(label="Text Color", command=change_color)
             EditMenu.add_command(label="Background Color", command=bg_color)
             EditMenu.add_command(label="Cut", command=cut)
             EditMenu.add_command(label="Copy", command=copy)
             EditMenu.add_command(label="Paste", command=paste)
-            EditMenu.add_command(label="Undo", command=TextArea.edit_undo, accelerator='(Ctrl+z)')
-            EditMenu.add_command(label="Redo", command=TextArea.edit_redo, accelerator='(Ctrl+y)')
+            EditMenu.add_command(
+                label="Undo", command=TextArea.edit_undo, accelerator='(Ctrl+z)')
+            EditMenu.add_command(
+                label="Redo", command=TextArea.edit_redo, accelerator='(Ctrl+y)')
             EditMenu.add_cascade(label="Font", menu=submenu)
             EditMenu.add_cascade(label="Size", menu=submenu_size)
             MenuBar.add_cascade(label="Edit", menu=EditMenu)
@@ -895,151 +941,56 @@ def window_after(username, password):
     root.mainloop()
 
 
-def button(social_media, username, password):
-    file_name = str(username) + "decrypted.bin"
-    social_media_exists = None
-    try:
-        with   open(file_name, "rb") as f:
-            line = pickle.load(f)
-            for i in line:
-                if i[2] == social_media:
-                    social_media_exists = True
-    except:
-        social_media_exists = False
-    if social_media_exists:
-        root = Tk()
-        width_window = 300
-        height_window = 300
-        screen_width = root.winfo_screenwidth()
-        screen_height = root.winfo_screenheight()
-        x = screen_width / 2 - width_window / 2
-        y = screen_height / 2 - height_window / 2
-        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-        with   open(file_name, "rb") as f1:
-            line = pickle.load(f1)
-            title1 = social_media + "Account"
-            root.title(title1)
-            length = len(line)
-            social_media_username = ""
-            social_media_password = ""
-            for i in line:
-                if i[2] == social_media:
-                    social_media_username = i[0]
-                    social_media_password = i[1]
-            social_media_active_label = Label(root, text=social_media_username)
-            social_media_active_pass_label = Label(root, text=social_media_password)
-            display_text = "Your" + social_media + "account is"
-            display_text_label = Label(root, text=display_text)
-            display_text_label.grid(row=0, column=0, columnspan=1)
-            text_label = Label(root, text="Username:")
-            text1_label = Label(root, text="Password:")
-            text_label.grid(row=1, column=0)
-            text1_label.grid(row=2, column=0)
-            social_media_active_label.grid(row=1, column=1)
-            social_media_active_pass_label.grid(row=2, column=1)
-
-
-
-        # def remote():
-
-        #     usr = "rohithkrishnan2003@gmail.com"
-        #     pwd = "Batman@1234"
-
-        #     driver = webdriver.Chrome(ChromeDriverManager().install())
-        #     driver.get("https://www.facebook.com/")
-        #     print("Opened facebook")
-        #     sleep(1)
-
-        #     username_box = driver.find_element_by_id("email")
-        #     username_box.send_keys(usr)
-        #     print("Email Id entered")
-        #     sleep(1)
-
-        #     password_box = driver.find_element_by_id("pass")
-        #     password_box.send_keys(pwd)
-        #     print("Password entered")
-
-        #     login_box = driver.find_element_by_id("u_0_b")
-        #     login_box.click()
-
-        #     print("Done")
-        #     input("Press anything to quit")
-        #     driver.quit()
-
-        # root.protocol("WM_DELETE_WINDOW", _delete_window)
-        # root.bind("<Destroy>", _destroy)
-
-        back = Button(root, text="Go back!", command=back1, width=10)
-        back.grid(row=3, column=0, columnspan=2)
-        # remote_login = Button(root, text="Facebook", command=remote, width=10)
-        # remote_login.grid(row=4, column=0, columnspan=2)
-
-    elif social_media_exists == False:
-        second = Tk()
-        width_window = 300
-        height_window = 300
-        screen_width = second.winfo_screenwidth()
-        screen_height = second.winfo_screenheight()
-        title = social_media + "Login"
-        second.title(title)
-        login_text1 = "Please provide " + social_media + " account and password"
-        text_social = social_media + "Username:"
-        text_pass_social = social_media + "Password:"
-
-        username1 = Label(second, text=text_social)
-        password1 = Label(second, text=text_pass_social)
-        username1_entry = Entry(second)
-        password1_entry = Entry(second, show="*")
-        login_text = Label(second, text=login_text1)
-        username1.grid(row=2, column=0)
-        password1.grid(row=3, column=0)
-        username1_entry.grid(row=2, column=1)
-        password1_entry.grid(row=3, column=1, columnspan=2)
-        username_list = []
-
-        def save():
-            username_social_media = str(username1_entry.get())
-            password_social_media = str(password1_entry.get())
-            l = str(username) + "decrypted.bin"
-            with open(l, "wb") as f:
-                list = []
-                line = []
-                list.append(username_social_media)
-                list.append(password_social_media)
-                list.append(social_media)
-                line.append(list)
-                pickle.dump(line, f)
-                print(line)
-                f.close()
-            os.remove(str(username) + ".bin.fenc")
-            pyAesCrypt.encryptFile(
-                file_name, str(username) + ".bin.fenc", password, bufferSize
-            )
-            root = Tk()
-            root.withdraw()
-            messagebox.showinfo("Success", "Your account has been saved")
-            root.destroy()
-
-        saving = Button(second, text="Save", command=save)
-        saving.grid(row=4, column=1)
-
-
-def gameloop(username, window):
+def gameloop(username, hashed_password, window):
     image_add = tk_image.PhotoImage(image.open("add-button.png"))
+    global image_path
     window.grid_propagate(0)
     file_name = username + 'decrypted.bin'
-    my_cursor.execute('select no_of_accounts from data_input where username = (%s)', (username,))
+    my_cursor.execute(
+        'select no_of_accounts from data_input where username = (%s)', (username,))
     no_accounts = my_cursor.fetchall()
     add = 0
+    exist = False
     for num in no_accounts:
         add = int(num[0])
+    try:
+        with open(username + 'decrypted.bin', 'rb') as f:
+            print('file reading error')
+            account_fetch = pickle.load(f)
+            for i in account_fetch:
+                social_account_username = i[0]
+                social_account_media = i[2]
+                social_account_password = i[1]
+                image_account_path = i[3]
+            if image_account_path != "''":
+                try:
+                    im = image.open(image_account_path)
+                    tkimage = tk_image.PhotoImage(im)
+                except:
+                    print('error occured')
+                    messagebox.showerror(
+                        'Error', f"No icon exist in {image_account_path}")
+                    result = messagebox.askyesno(
+                        "Confirm", "Do you want to provide new icon?"
+                    )
+                    if result:
+                        image_path = fd.askopenfilename()
+                        im = image.open(image_path)
+                        tkimage = tk_image.PhotoImage(im)
+
+    except:
+        print('error occured 1')
+        #file is empty
+        add = 0
 
     def verify(social_username, social_media):
-        with open(file_name, 'r') as f:
-            test_values = pickle.load(f)
-            for user in test_values:
-                if user[0] == str(social_username) or user[2] == str(social_media):
-                    return True
+        try:
+            with open(file_name, 'r') as f:
+                test_values = pickle.load(f)
+                for user in test_values:
+                    if user[0] == str(social_username) or user[2] == str(social_media):
+                        return True
+        except:
             return False
 
     def addaccount():
@@ -1075,72 +1026,61 @@ def gameloop(username, window):
             root1, image=new_id, borderwidth="0", command=browsefunc)
         add_icon_button.photo = new_id
         add_icon_button.grid(row=0, column=0, rowspan=3)
-        exist = True
 
         def save():
             global image_path
+            print(image_path)
             global exist
-            list_account = [
-                str(username_window_entry.get()),
-                str(password_entry.get()),
-                str(name_of_social_entry.get()),
-                image_path
-            ]
-            verifying = verify(username_window_entry.get(), name_of_social_entry.get())
+            list_account = [str(username_window_entry.get()), str(
+                password_entry.get()), str(name_of_social_entry.get()), image_path]
+
+            print(list_account)
+            verifying = verify(username_window_entry.get(),
+                               name_of_social_entry.get())
             if verifying:
                 try:
-                    name_file = username + "decrypted.bin"
-                    with open(name_file, "rb") as f:
-                        try:
-                            line = pickle.load(f)
-                            for i in line:
-                                if i[0] == str(username_window_entry.get()) or i[2] == str(name_of_social_entry.get()):
-                                    exist = True
-                                    messagebox.showerror('Error', 'The account with the username already exists')
-                                else:
-                                    exist = False
-                        except:
-                            exist = False
+                    print('h')
 
                 except:
                     exist = False
                     line = [list_account]
+            elif not exist:
+                print(list)
+                name_file = username + "decrypted.bin"
+                with open(name_file, "rb") as f:
+                    try:
+                        line = pickle.load(f)
+                    except:
+                        line = []
+                    line.append(list_account)
                     f.close()
-                if not exist:
-
-                    print(list)
-                    name_file = username + "decrypted.bin"
-                    with open(name_file, "rb") as f:
-                        try:
-                            line = pickle.load(f)
-                        except:
-                            line = []
-                        line.append(list_account)
-                        f.close()
-                    with open(name_file, 'wb') as f1:
-                        print(line)
-                        pickle.dump(line, f1)
-                        f.close()
-                    messagebox.showinfo('Success', 'Your account has been saved')
-                    my_cursor.execute('select no_of_accounts from data_input where username = (%s)', (username,))
-                    val = my_cursor.fetchall()
-                    no = 0
-                    to_append = 0
-                    for i in val:
-                        no = i[0]
-                        real_accounts = int(no)
-                        to_append = real_accounts + 1
-                    my_cursor.execute('update data_input set no_of_accounts =(%s) where username = (%s)',
-                                      (to_append, username))
+                with open(name_file, 'wb') as f1:
+                    print(line)
+                    pickle.dump(line, f1)
+                    f.close()
+                os.remove(username + '.bin.fenc')
+                pyAesCrypt.encryptFile(
+                    name_file, username + '.bin.fenc', hashed_password, bufferSize)
+                messagebox.showinfo('Success', 'Your account has been saved')
+                my_cursor.execute(
+                    'select no_of_accounts from data_input where username = (%s)', (username,))
+                val = my_cursor.fetchall()
+                no = 0
+                to_append = 0
+                for i in val:
+                    no = i[0]
+                    real_accounts = int(no)
+                    to_append = real_accounts + 1
+                my_cursor.execute('update data_input set no_of_accounts =(%s) where username = (%s)',
+                                  (to_append, username))
             elif not verifying:
-                messagebox.showerror('Error', 'Account with the username already exist')
+                messagebox.showerror(
+                    'Error', 'Account with the username already exist')
 
         save_button = Button(root1, text="Save", command=save)
         save_button.grid(row=4, column=1)
-        # new_image = tk_image.PhotoImage(image.open('facebook.png'))
-        # add_icon_button.config(image=new_image)
-        root1.mainloop()
 
+        root1.mainloop()
 
     if add == 0:
         add_button = Button(
@@ -1150,34 +1090,34 @@ def gameloop(username, window):
         add_label.grid(row=1, column=1)
         add_button.photo = image_add
         add_button.grid(row=0, column=1)
-    else:
-        if 4 < add < 8:
-            add_button = Button(
-                window, image=image_add, border="0", command=addaccount
-            )
-            add_button.photo = image_add
-            add_button.grid(row=0, column=add, padx=10 + 100 * add, pady=20 + 100)
-            add_label = Label(window, text="Add account")
-            add_label.grid(row=1, column=add)
 
-        elif add > 8:
-            add_button = Button(
-                window, image=image_add, border="0", command=addaccount
-            )
-            add_button.photo = image_add
-            add_button.grid(row=0, column=add, padx=10 + 100 * add, pady=20 + 200)
-            add_label = Label(window, text="Add account")
-            add_label.grid(row=1, column=add)
+    elif 4 < add < 8:
+        add_button = Button(
+            window, image=image_add, border="0", command=addaccount
+        )
+        add_button.photo = image_add
+        add_button.grid(row=0, column=add, padx=10 + 100 * add, pady=20 + 100)
+        add_label = Label(window, text="Add account")
+        add_label.grid(row=1, column=add)
 
-        elif add < 4:
-            add_button = Button(
-                window, image=image_add, border="0", command=addaccount
-            )
-            add_button.photo = image_add
+    elif add > 8:
+        add_button = Button(
+            window, image=image_add, border="0", command=addaccount
+        )
+        add_button.photo = image_add
+        add_button.grid(row=0, column=add, padx=10 + 100 * add, pady=20 + 200)
+        add_label = Label(window, text="Add account")
+        add_label.grid(row=1, column=add)
 
-            add_button.grid(row=0, padx=10 + 100 * add, pady=20, column=add)
-            add_label = Label(window, text="Add account")
-            add_label.grid(row=1, column=add)
+    elif add < 4:
+        add_button = Button(
+            window, image=image_add, border="0", command=addaccount
+        )
+        add_button.photo = image_add
+
+        add_button.grid(row=0, padx=10 + 100 * add, pady=20, column=add)
+        add_label = Label(window, text="Add account")
+        add_label.grid(row=1, column=add)
 
 
 def login():
@@ -1195,8 +1135,10 @@ def login():
     pass1 = Label(login_window, text="Password:")
     pass_entry = Entry(login_window, text="Password:", show="*")
     lbl = Label(login_window, text="Please enter your username and password:")
-    forgot = Button(login_window, text="Forgot Password", command=login_password)
-    register_button = Button(login_window, text='Register', command=lambda: register(login_window))
+    forgot = Button(login_window, text="Forgot Password",
+                    command=login_password)
+    register_button = Button(
+        login_window, text='Register', command=lambda: register(login_window))
 
     def login_checking_1():
         password = str(pass_entry.get())
@@ -1303,7 +1245,8 @@ def register():
             if registering:
                 root = Tk()
                 root.withdraw()
-                messagebox.showinfo("Error", "Username and email already exists")
+                messagebox.showinfo(
+                    "Error", "Username and email already exists")
                 root.destroy()
             if not registering:
                 register_user.creation()
@@ -1313,13 +1256,15 @@ def register():
                 "Error", "Please provide password greater than 6 characters"
             )
 
-    register_button = Button(login_window1, text="Register", command=register_saving)
+    register_button = Button(
+        login_window1, text="Register", command=register_saving)
     register_button.grid(row=6, column=0)
 
 
 main = Label(root, text="Welcome to ONE-PASS manager")
 login_text = Label(root, text="Do you already have an account")
-register_text = Label(root, text='If you don"t have an account please register')
+register_text = Label(
+    root, text='If you don"t have an account please register')
 reg_button = Button(root, text="Register", command=register)
 login_button = Button(root, text="login", command=login)  # added login button
 
