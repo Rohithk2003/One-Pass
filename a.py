@@ -29,8 +29,7 @@ from tkinter import colorchooser
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from tkinter import simpledialog
-import tkinter.filedialog
-
+from op import delete_file
 "------------------------------------main tkinter window------------------------------------"
 
 bufferSize = 64 * 1024
@@ -447,7 +446,7 @@ def window_after(username, password):
         root, width=500, bg="#0d0d0d", height=500, relief="sunken", borderwidth=2
     )
     sidebar.pack(expand=False, fill="both", side="left")
-
+    file = None
     def testing():
         root.title("Passwords")
         emptyMenu = Menu(root)
@@ -486,6 +485,7 @@ def window_after(username, password):
 
             def openFile():
                 global password
+                global file
                 file = fd.askopenfilename(
                     defaultextension=".txt",
                     filetypes=[("All Files", "*.*"), ("Text Documents", "*.txt")],
@@ -520,9 +520,38 @@ def window_after(username, password):
                     with open(file, "r") as f:
                         TextArea.insert(1.0, f.read())
                         f.close()
-
-            def save_as_File(file):
+            def rename_file():
+                    global file
+                    application_window = Tk()
+                    application_window.withdraw()
+                    a = simpledialog.askstring(
+                        "Input", "What is new file name?", parent=application_window
+                    )
+                    application_window.destroy()
+                    if file != None:
+                        new_file,file_extension = os.path.splitext(file)
+                        b = os.path.basename(new_file)
+                        new_d = os.path.basename(b)
+                        new_file_name = os.path.basename(b)
+                        f = open(file,'r')
+                        dir = os.path.dirname(file)
+                        values = f.read()
+                        f.close()
+                        os.remove(file)
+                        file = (dir) + '/'+a+file_extension
+                        with open(file, "w") as f:
+                            f.write(values)
+                            f.close()
+                        TextArea.delete(1.0, END)
+                        with open(file,'r') as f:
+                            TextArea.insert(1.0, f.read())
+                            f.close()
+                        root.title(a+file_extension + " - Notepad")
+                    else:
+                        save_as_File()
+            def save_as_File():
                 global password
+                global file
                 if file == None:
                     result = messagebox.askyesno(
                         "Confirm", "Do you want to encrypt your file?"
@@ -695,7 +724,8 @@ def window_after(username, password):
             FileMenu.add_command(label="Open", command=openFile)
             # To save the current file
             FileMenu.add_command(label="Save", command=lambda: save_file())
-            FileMenu.add_command(label="Save As", command=lambda: save_as_File(file))
+            FileMenu.add_command(label="Save As", command=lambda: save_as_File())
+            FileMenu.add_command(label="Rename", command=lambda: rename_file())
             FileMenu.add_separator()
             FileMenu.add_command(label="Exit", command=quitApp)
             MenuBar.add_cascade(label="File", menu=FileMenu)
@@ -1182,6 +1212,7 @@ def login():
             root.withdraw()
             messagebox.showinfo("Succes", "You have now logged in ")
             root.destroy()
+            login_window.destroy()
             login.windows(main_password, login_window, my_cursor)
         else:
             pass
@@ -1308,5 +1339,8 @@ root.mainloop()
 
 list_file = glob.glob("*decrypted.bin")
 for i in list_file:
-        converting_str = str(i)
+    converting_str = str(i)
+    try:
         os.remove(converting_str)
+    except:
+        pass
