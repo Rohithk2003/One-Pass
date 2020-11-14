@@ -7,7 +7,6 @@ import os.path
 import pickle
 import random
 import smtplib
-from tkinter import Frame, Menu, Label, Button
 from tkinter import colorchooser
 from tkinter import filedialog as fd
 from tkinter import messagebox
@@ -980,7 +979,7 @@ def gameloop(username, hashed_password, window):
 
     except:
         print('error occured 1')
-        #file is empty
+        # file is empty
         add = 0
 
     def verify(social_username, social_media):
