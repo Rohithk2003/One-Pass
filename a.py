@@ -123,10 +123,7 @@ class Register:
         self.email_password = str(email_password)
 
     def check_pass_length(self):
-        if len(self.password) < 5 or len(self.email_password) < 5:
-            return False
-        else:
-            return True
+        return len(self.password) >= 5 and len(self.email_password) >= 5
 
     def saving(self, object):
         my_cursor.execute("select username from data_input")
