@@ -100,7 +100,15 @@ class Login:
             )
             root.destroy()
             return False, main_password
-
+        except ValueError:
+            root = Tk()
+            root.withdraw()
+            messagebox.showerror(
+                "Error",
+                f"Wrong password for {self.username}",
+            )
+            root.destroy()
+            return False, main_password
         return True, main_password
 
     def windows(self, main_password, window, cursor):
@@ -444,6 +452,19 @@ def login_password():
     forgot_password_button.grid(row=5, column=1)
 
 
+def testing(root, mainarea, username, hash_password):
+    print('function has been called')
+    root.title("Passwords")
+    emptyMenu = Menu(root)
+    mainarea.config(bg="white")
+    root.config(menu=emptyMenu)
+    list = mainarea.pack_slaves()
+    for l in list:
+        l.destroy()
+    print('gameloop is getting executed')
+    gameloop(username, hash_password, mainarea)
+
+
 def window_after(username, hash_password):
     # sidebar
     root = Tk()
@@ -453,17 +474,6 @@ def window_after(username, hash_password):
     )
     sidebar.pack(expand=False, fill="both", side="left")
     file = None
-
-    def testing():
-        root.title("Passwords")
-        emptyMenu = Menu(root)
-        mainarea.config(bg="white")
-        root.config(menu=emptyMenu)
-        list = mainarea.pack_slaves()
-        for l in list:
-            l.destroy()
-
-        gameloop(username, hash_password, mainarea)
 
     def ap():
         global status_name
@@ -933,7 +943,8 @@ def window_after(username, hash_password):
     # main content area
     mainarea = Frame(root, bg="#0d0d0d", width=500, height=500)
     mainarea.pack(expand=True, fill="both", side="right")
-    button = Button(sidebar, text="Passwords", command=testing, width=20)
+    button = Button(sidebar, text="Passwords", width=20, command=lambda: testing(
+        root, mainarea, username, hash_password))
     b = Button(sidebar, text="Notes", command=ap, width=20)
     button.grid(row=0, column=1)
     b.grid(row=1, column=1, columnspan=1)
@@ -950,8 +961,10 @@ def gameloop(username, hashed_password, window):
     no_accounts = my_cursor.fetchall()
     add = 0
     exist = False
+
     for num in no_accounts:
         add = int(num[0])
+
     try:
         with open(username + 'decrypted.bin', 'rb') as f:
             print('file reading error')
@@ -961,22 +974,31 @@ def gameloop(username, hashed_password, window):
                 social_account_media = i[2]
                 social_account_password = i[1]
                 image_account_path = i[3]
-            if image_account_path != "''":
-                try:
-                    im = image.open(image_account_path)
-                    tkimage = tk_image.PhotoImage(im)
-                except:
-                    print('error occured')
-                    messagebox.showerror(
-                        'Error', f"No icon exist in {image_account_path}")
-                    result = messagebox.askyesno(
-                        "Confirm", "Do you want to provide new icon?"
-                    )
-                    if result:
-                        image_path = fd.askopenfilename()
-                        im = image.open(image_path)
+                print('no error after reagin')
+                print(social_account_username)
+                print(social_account_media)
+                print(social_account_password)
+                print(image_account_path)
+                if image_account_path != "''":
+                    username_widget = Label(window, text='Username:')
+                    password_widget = Label(window, text='Password:')
+                    username_label_widget = Label(
+                        window, text=social_account_username)
+                    password_label_widget = Label(
+                        window, text=social_account_password)
+                    username_widget.grid(row=2, column=0)
+                    password_widget.grid(row=3, column=0)
+                    username_label_widget.grid(row=2, column=1)
+                    password_label_widget.grid(row=2, column=1)
+                    try:
+                        im = image.open(image_account_path)
                         tkimage = tk_image.PhotoImage(im)
-
+                    except:
+                        pass
+                        # image_path = fd.askopenfilename()
+                        # im = image.open(image_path)
+                        # tkimage = tk_image.PhotoImage(im)
+                        # image_label = Label(window, image=tkimage)
     except:
         print('error occured 1')
         # file is empty
