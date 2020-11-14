@@ -788,10 +788,32 @@ def window_after(username, hash_password):
                     TextArea.tag_add("start", "sel.first", "sel.last")
                 except TclError:
                     pass
-
+            def primary(*event):
+                find_window = Toplevel(mainarea)
+                find_window.geometry('100x50')
+                find_window.focus()
+                find_window.grab_set()
+                find_window.title('Find')
+                find_entry = Entry(find_window)
+                find_button = Button(find_window,text='Find',command = lambda: find(find_entry.get(),find_window))
+                find_entry.pack()
+                find_button.pack(side='right')
+            def find(value,window):
+                text_find = str(value)
+                index = '1.0'
+                TextArea.tag_remove('found', '1.0', END)
+                if value:
+                    while 1:
+                        index = TextArea.search(text_find,index,nocase=1,stopindex=END)
+                        if not index:break
+                        lastidx = '% s+% dc' % (index, len(text_find))
+                        TextArea.tag_add('found', index, lastidx)
+                        index = lastidx
+                    TextArea.tag_config('found', foreground ='red')
+                window.focus_set()
             def popup_menu(e):
                 my_menu.tk_popup(e.x_root, e.y_root)
-
+            root.bind('<Control-Key-f>',primary)
             EditMenu = Menu(MenuBar, tearoff=0)
             my_menu = Menu(mainarea, tearoff=0)
             my_menu.add_command(label='Highlight', command=highlight_text)
@@ -905,6 +927,7 @@ def window_after(username, hash_password):
             EditMenu.add_command(label="Cut", command=cut)
             EditMenu.add_command(label="Copy", command=copy)
             EditMenu.add_command(label="Paste", command=paste)
+            EditMenu.add_command(label="Find", command=primary,accelerator = '(Ctrl+f)')
             EditMenu.add_command(
                 label="Undo", command=TextArea.edit_undo, accelerator='(Ctrl+z)')
             EditMenu.add_command(
