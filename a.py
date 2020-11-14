@@ -455,6 +455,8 @@ def testing(root, mainarea, username, hash_password):
     emptyMenu = Menu(root)
     mainarea.config(bg="white")
     root.config(menu=emptyMenu)
+    secondary_frame = Frame(root)
+    secondary_frame.grid()
     list = mainarea.pack_slaves()
     for l in list:
         l.destroy()
@@ -493,7 +495,6 @@ def window_after(username, hash_password):
             def newFile():
                 global password
                 root.title("Untitled - Notepad")
-                file = None
                 TextArea.delete(1.0, END)
 
             def openFile():
@@ -581,9 +582,6 @@ def window_after(username, hash_password):
                                 ("Text Documents", "*.txt"),
                             ],
                         )
-                        gmm = str(file)
-                        password = "testing"
-                        status_name = file
                         if file == "":
                             file = None
 
@@ -596,9 +594,8 @@ def window_after(username, hash_password):
                             file = file
                     else:
                         application_window = Tk()
-
                         a = simpledialog.askstring(
-                            "Input", "What is  the password?", parent=application_window
+                            "Input", "What is  the password for the file?", parent=application_window
                         )
                         application_window.destroy()
                         file = fd.asksaveasfilename(
@@ -706,7 +703,7 @@ def window_after(username, hash_password):
                 TextArea.event_generate(("<Control-Key-v>"))
 
             def about():
-                messagebox.showinfo("Notepad", "Notepad by Rohithk")
+                messagebox.showinfo("Notepad", "Notepad by Rohithk-2020")
 
             # Basic tkinter setup
             root.geometry("700x600")
@@ -726,7 +723,6 @@ def window_after(username, hash_password):
                 undo=True,
             )
             TextArea.pack(expand=True, fill=BOTH)
-            file = None
             va = IntVar()
             va.set(12)
             # Lets create a menubar
@@ -785,6 +781,7 @@ def window_after(username, hash_password):
                     TextArea.tag_add("start", "sel.first", "sel.last")
                 except TclError:
                     pass
+
             def secondary(*event):
                 replace_window = Toplevel(mainarea)
                 replace_window.focus_set()
@@ -792,10 +789,13 @@ def window_after(username, hash_password):
                 replace_window.title('Replace')
                 replace_entry = Entry(replace_window)
                 find_entry_new = Entry(replace_window)
-                find_entry_new.grid(row=0,column=0)
-                replace_button = Button(replace_window,text='Replace',command = lambda: replacenfind(find_entry_new.get(),replace_window,str(replace_entry.get())))
-                replace_button.grid(row=1,column=1)
-                replace_entry.grid(row=1,column=0)
+                find_entry_new.grid(row=0, column=0)
+                replace_button = Button(replace_window, text='Replace',
+                                        command=lambda: replacenfind(find_entry_new.get(), replace_window,
+                                                                     str(replace_entry.get())))
+                replace_button.grid(row=1, column=1)
+                replace_entry.grid(row=1, column=0)
+
             def primary(*event):
                 find_window = Toplevel(mainarea)
                 find_window.geometry('100x50')
@@ -803,42 +803,46 @@ def window_after(username, hash_password):
                 find_window.grab_set()
                 find_window.title('Find')
                 find_entry = Entry(find_window)
-                find_button = Button(find_window,text='Find',command = lambda: find(find_entry.get(),find_window))
+                find_button = Button(find_window, text='Find', command=lambda: find(find_entry.get(), find_window))
                 find_entry.pack()
                 find_button.pack(side='right')
-            def replacenfind(value,window,replace_value):
-                text_find = str(value)
-                index = '1.0'
-                TextArea.tag_remove('found', '1.0', END)
-                if value:
-                        while 1:
-                            index = TextArea.search(text_find,index,nocase=1,stopindex=END)
-                            if not index:break
-                            lastidx = '% s+% dc' % (index, len(text_find))
-                            TextArea.delete(index,lastidx)
-                            TextArea.insert(index,replace_value)
-                            lastidx = '% s+% dc' % (index, len(replace_value))
-                            TextArea.tag_add('found', index, lastidx)
-                            index = lastidx
-                        TextArea.tag_config('found', foreground ='blue')
-                window.focus_set()
-            def find(value,window):
+
+            def replacenfind(value, window, replace_value):
                 text_find = str(value)
                 index = '1.0'
                 TextArea.tag_remove('found', '1.0', END)
                 if value:
                     while 1:
-                        index = TextArea.search(text_find,index,nocase=1,stopindex=END)
-                        if not index:break
+                        index = TextArea.search(text_find, index, nocase=1, stopindex=END)
+                        if not index: break
+                        lastidx = '% s+% dc' % (index, len(text_find))
+                        TextArea.delete(index, lastidx)
+                        TextArea.insert(index, replace_value)
+                        lastidx = '% s+% dc' % (index, len(replace_value))
+                        TextArea.tag_add('found', index, lastidx)
+                        index = lastidx
+                    TextArea.tag_config('found', foreground='blue')
+                window.focus_set()
+
+            def find(value, window):
+                text_find = str(value)
+                index = '1.0'
+                TextArea.tag_remove('found', '1.0', END)
+                if value:
+                    while 1:
+                        index = TextArea.search(text_find, index, nocase=1, stopindex=END)
+                        if not index: break
                         lastidx = '% s+% dc' % (index, len(text_find))
                         TextArea.tag_add('found', index, lastidx)
                         index = lastidx
-                    TextArea.tag_config('found', foreground ='red')
+                    TextArea.tag_config('found', foreground='red')
                 window.focus_set()
+
             def popup_menu(e):
                 my_menu.tk_popup(e.x_root, e.y_root)
-            root.bind('<Control-Key-f>',primary)
-            root.bind('<Control-Key-h>',secondary)
+
+            root.bind('<Control-Key-f>', primary)
+            root.bind('<Control-Key-h>', secondary)
 
             EditMenu = Menu(MenuBar, tearoff=0)
             my_menu = Menu(mainarea, tearoff=0)
@@ -953,8 +957,8 @@ def window_after(username, hash_password):
             EditMenu.add_command(label="Cut", command=cut)
             EditMenu.add_command(label="Copy", command=copy)
             EditMenu.add_command(label="Paste", command=paste)
-            EditMenu.add_command(label="Find", command=primary,accelerator = '(Ctrl+f)')
-            EditMenu.add_command(label="Replace", command=secondary,accelerator = '(Ctrl+h)')
+            EditMenu.add_command(label="Find", command=primary, accelerator='(Ctrl+f)')
+            EditMenu.add_command(label="Replace", command=secondary, accelerator='(Ctrl+h)')
             EditMenu.add_command(
                 label="Undo", command=TextArea.edit_undo, accelerator='(Ctrl+z)')
             EditMenu.add_command(
@@ -1136,11 +1140,9 @@ def gameloop(username, hashed_password, window):
                 my_cursor.execute(
                     'select no_of_accounts from data_input where username = (%s)', (username,))
                 val = my_cursor.fetchall()
-                no = 0
                 to_append = 0
                 for i in val:
-                    no = i[0]
-                    real_accounts = int(no)
+                    real_accounts = int(i[0])
                     to_append = real_accounts + 1
                 my_cursor.execute('update data_input set no_of_accounts =(%s) where username = (%s)',
                                   (to_append, username))
