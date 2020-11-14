@@ -788,16 +788,43 @@ def window_after(username, hash_password):
                     TextArea.tag_add("start", "sel.first", "sel.last")
                 except TclError:
                     pass
+            def secondary(*event):
+                replace_window = Toplevel(mainarea)
+                replace_window.focus_set()
+                replace_window.grab_set()
+                replace_window.title('Replace')
+                replace_entry = Entry(replace_window)
+                find_entry_new = Entry(replace_window)
+                find_entry_new.grid(row=0,column=0)
+                replace_button = Button(replace_window,text='Replace',command = lambda: replacenfind(find_entry_new.get(),replace_window,str(replace_entry.get())))
+                replace_button.grid(row=1,column=1)
+                replace_entry.grid(row=1,column=0)
             def primary(*event):
                 find_window = Toplevel(mainarea)
                 find_window.geometry('100x50')
-                find_window.focus()
+                find_window.focus_set()
                 find_window.grab_set()
                 find_window.title('Find')
                 find_entry = Entry(find_window)
                 find_button = Button(find_window,text='Find',command = lambda: find(find_entry.get(),find_window))
                 find_entry.pack()
                 find_button.pack(side='right')
+            def replacenfind(value,window,replace_value):
+                text_find = str(value)
+                index = '1.0'
+                TextArea.tag_remove('found', '1.0', END)
+                if value:
+                        while 1:
+                            index = TextArea.search(text_find,index,nocase=1,stopindex=END)
+                            if not index:break
+                            lastidx = '% s+% dc' % (index, len(text_find))
+                            TextArea.delete(index,lastidx)
+                            TextArea.insert(index,replace_value)
+                            lastidx = '% s+% dc' % (index, len(replace_value))
+                            TextArea.tag_add('found', index, lastidx)
+                            index = lastidx
+                        TextArea.tag_config('found', foreground ='blue')
+                window.focus_set()
             def find(value,window):
                 text_find = str(value)
                 index = '1.0'
@@ -814,6 +841,8 @@ def window_after(username, hash_password):
             def popup_menu(e):
                 my_menu.tk_popup(e.x_root, e.y_root)
             root.bind('<Control-Key-f>',primary)
+            root.bind('<Control-Key-h>',secondary)
+
             EditMenu = Menu(MenuBar, tearoff=0)
             my_menu = Menu(mainarea, tearoff=0)
             my_menu.add_command(label='Highlight', command=highlight_text)
@@ -928,6 +957,7 @@ def window_after(username, hash_password):
             EditMenu.add_command(label="Copy", command=copy)
             EditMenu.add_command(label="Paste", command=paste)
             EditMenu.add_command(label="Find", command=primary,accelerator = '(Ctrl+f)')
+            EditMenu.add_command(label="Replace", command=secondary,accelerator = '(Ctrl+h)')
             EditMenu.add_command(
                 label="Undo", command=TextArea.edit_undo, accelerator='(Ctrl+z)')
             EditMenu.add_command(
