@@ -837,7 +837,14 @@ def window_after(username, hash_password):
 
             def popup_menu(e):
                 my_menu.tk_popup(e.x_root, e.y_root)
-
+            try:
+                f = TextArea.get()
+                if f !='':
+                    root.title('*untitled-Notepad')
+                else:
+                    pass
+            except:
+                root.title('Untitled-Notepad')
             root.bind('<Control-Key-f>', primary)
             root.bind('<Control-Key-h>', secondary)
 
@@ -1049,23 +1056,16 @@ def gameloop(username, hashed_password, window):
 
         def save():
             global image_path
-            print(image_path)
             global exist
             list_account = [str(username_window_entry.get()), str(
                 password_entry.get()), str(name_of_social_entry.get()), image_path]
 
-            print(list_account)
             verifying = verify(username_window_entry.get(),
                                name_of_social_entry.get())
             if verifying:
-                try:
-                    print('h')
-
-                except:
-                    exist = False
-                    line = [list_account]
+                messagebox.showerror('Error','The account already exists')
+                
             elif not exist:
-                print(list)
                 name_file = username + "decrypted.bin"
                 with open(name_file, "rb") as f:
                     try:
@@ -1123,6 +1123,7 @@ def gameloop(username, hashed_password, window):
                 print(social_account_password)
                 print(image_account_path)
                 if not image_account_path :
+                    print('path exists')
                     username_widget = Label(window, text='Username:')
                     password_widget = Label(window, text='Password:')
                     username_label_widget = Label(
@@ -1137,8 +1138,12 @@ def gameloop(username, hashed_password, window):
                         im = image.open(image_account_path)
                         tkimage = tk_image.PhotoImage(im)
                     except:
-                        pass
-
+                          messagebox.showerror('Error',f'No icon exists in {image_account_path} ')
+                          default_image = tk_image.PhotoImage(image.open('photo.png'))
+                          tkimage = tk_image.PhotoImage(default_image)
+                          default_image_button = Button(window,image=tkimage)
+                          default_image_button.grid(row=0, column=0)
+                          default_image_button.config(command=lambda: change_icon(default_image_button))
                 else:
                     print('working')
                     username_widget = Label(window, text='Username:')
@@ -1158,7 +1163,7 @@ def gameloop(username, hashed_password, window):
                     default_image_button.config(command=lambda: change_icon(default_image_button))
 
     except:
-        print('error occured 1')
+        print('file is empty')
         # file is empty
         add = 0
 
@@ -1191,14 +1196,7 @@ def gameloop(username, hashed_password, window):
         add_label = Label(window, text="Add account")
         add_label.grid(row=1, column=add)
 
-    elif add > 8:
-        add_button = Button(
-            window, image=image_add, border="0", command=addaccount
-        )
-        add_button.photo = image_add
-        add_button.grid(row=0, column=add, padx=10 + 100 * add, pady=20 + 200)
-        add_label = Label(window, text="Add account")
-        add_label.grid(row=1, column=add)
+
 
     elif add < 4:
         add_button = Button(
@@ -1209,7 +1207,8 @@ def gameloop(username, hashed_password, window):
         add_button.grid(row=0, padx=10 + 100 * add, pady=20, column=add)
         add_label = Label(window, text="Add account")
         add_label.grid(row=1, column=add)
-
+    elif add  == 8:
+        pass
 
 def login():
     login_window = Tk()
