@@ -455,8 +455,7 @@ def testing(root, mainarea, username, hash_password):
     emptyMenu = Menu(root)
     mainarea.config(bg="white")
     root.config(menu=emptyMenu)
-    secondary_frame = Frame(root)
-    secondary_frame.grid()
+
     list = mainarea.pack_slaves()
     for l in list:
         l.destroy()
@@ -1015,59 +1014,6 @@ def gameloop(username, hashed_password, window):
     no_accounts = my_cursor.fetchall()
     add = 0
     exist = False
-
-    for num in no_accounts:
-        add = int(num[0])
-
-    try:
-        with open(username + 'decrypted.bin', 'rb') as f:
-            print('file reading error')
-            account_fetch = pickle.load(f)
-            for i in account_fetch:
-                social_account_username = i[0]
-                social_account_media = i[2]
-                social_account_password = i[1]
-                image_account_path = i[3]
-                print('no error after reagin')
-                print(social_account_username)
-                print(social_account_media)
-                print(social_account_password)
-                print(image_account_path)
-                if image_account_path != "''":
-                    username_widget = Label(window, text='Username:')
-                    password_widget = Label(window, text='Password:')
-                    username_label_widget = Label(
-                        window, text=social_account_username)
-                    password_label_widget = Label(
-                        window, text=social_account_password)
-                    username_widget.grid(row=2, column=0)
-                    password_widget.grid(row=3, column=0)
-                    username_label_widget.grid(row=2, column=1)
-                    password_label_widget.grid(row=2, column=1)
-                    try:
-                        im = image.open(image_account_path)
-                        tkimage = tk_image.PhotoImage(im)
-                    except:
-                        pass
-                        # image_path = fd.askopenfilename()
-                        # im = image.open(image_path)
-                        # tkimage = tk_image.PhotoImage(im)
-                        # image_label = Label(window, image=tkimage)
-    except:
-        print('error occured 1')
-        # file is empty
-        add = 0
-
-    def verify(social_username, social_media):
-        try:
-            with open(file_name, 'r') as f:
-                test_values = pickle.load(f)
-                for user in test_values:
-                    if user[0] == str(social_username) or user[2] == str(social_media):
-                        return True
-        except:
-            return False
-
     def addaccount():
 
         root1 = Toplevel()
@@ -1154,6 +1100,79 @@ def gameloop(username, hashed_password, window):
         save_button.grid(row=4, column=1)
 
         root1.mainloop()
+    def change_icon(button):
+        image_path = fd.askopenfilename()
+        im = image.open(image_path)
+        new_tk = tk_image.PhotoImage(im)
+        button.config(image=new_tk)
+        button.photo = new_tk
+    for num in no_accounts:
+        add = int(num[0])
+
+    try:
+        with open(username + 'decrypted.bin', 'rb') as f:
+            print('file reading error')
+            account_fetch = pickle.load(f)
+            for i in account_fetch:
+                social_account_username = i[0]
+                social_account_media = i[2]
+                social_account_password = i[1]
+                image_account_path = i[3]
+                print('no error after reagin')
+                print(social_account_username)
+                print(social_account_media)
+                print(social_account_password)
+                print(image_account_path)
+                if not image_account_path :
+                    username_widget = Label(window, text='Username:')
+                    password_widget = Label(window, text='Password:')
+                    username_label_widget = Label(
+                        window, text=social_account_username)
+                    password_label_widget = Label(
+                        window, text=social_account_password)
+                    username_widget.grid(row=2, column=0)
+                    password_widget.grid(row=3, column=0)
+                    username_label_widget.grid(row=2, column=1)
+                    password_label_widget.grid(row=2, column=1)
+                    try:
+                        im = image.open(image_account_path)
+                        tkimage = tk_image.PhotoImage(im)
+                    except:
+                        pass
+
+                else:
+                    print('working')
+                    username_widget = Label(window, text='Username:')
+                    password_widget = Label(window, text='Password:')
+                    username_label_widget = Label(
+                        window, text=social_account_username)
+                    password_label_widget = Label(
+                        window, text=social_account_password)
+                    username_widget.grid(row=2, column=0)
+                    password_widget.grid(row=3, column=0)
+                    username_label_widget.grid(row=2, column=1)
+                    password_label_widget.grid(row=2, column=1)
+                    default_image = tk_image.PhotoImage(image.open('photo.png'))
+                    tkimage = tk_image.PhotoImage(default_image)
+                    default_image_button = Button(window,image=tkimage)
+                    default_image_button.grid(row=0, column=0)
+                    default_image_button.config(command=lambda: change_icon(default_image_button))
+
+    except:
+        print('error occured 1')
+        # file is empty
+        add = 0
+
+    def verify(social_username, social_media):
+        try:
+            with open(file_name, 'r') as f:
+                test_values = pickle.load(f)
+                for user in test_values:
+                    if user[0] == str(social_username) or user[2] == str(social_media):
+                        return True
+        except:
+            return False
+
 
     if add == 0:
         add_button = Button(
