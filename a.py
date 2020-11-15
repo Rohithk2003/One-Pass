@@ -722,8 +722,7 @@ def window_after(username, hash_password):
                 undo=True,
             )
             TextArea.pack(expand=True, fill=BOTH)
-            va = IntVar()
-            va.set(12)
+
             # Lets create a menubar
             MenuBar = Menu(root)
             status_name = False
@@ -754,7 +753,6 @@ def window_after(username, hash_password):
                 TextArea.config(font=new_font_size)
 
             def change_size(size):
-                va.set(size)
                 original_font = TextArea["font"]
                 find_font = ''
                 var = ''
@@ -988,9 +986,10 @@ def window_after(username, hash_password):
             root.config(menu=MenuBar)
 
             # Adding Scrollbar using rules from Tkinter lecture no 22
-            Scroll = Scrollbar(TextArea, orient="vertical")
+            Scroll = Scrollbar(TextArea, orient="vertical",command=mainarea.yview)
             Scroll.pack(side="right", fill=Y)
-            Scroll = Scrollbar(TextArea, orient="horizontal")
+            Scroll = Scrollbar(TextArea, orient="horizontal",
+                               command=mainarea.xview)
             Scroll.pack(side="bottom", fill=X)
 
     # main content area
@@ -1214,14 +1213,14 @@ def gameloop(username, hashed_password, window):
 
 def login():
     login_window = Tk()
-    ##    width_window = 200
-    ##    sending = False
-    ##    height_window = 300
-    ##    screen_width = login_window.winfo_screenwidth()
-    ##    screen_height = login_window.winfo_screenheight()
-    ##    x = screen_width / 2 - width_window / 2
-    ##    y = screen_height / 2 - height_window / 2
-    ##    login_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+    login_window.title('Login')
+    width_window = 400
+    height_window = 400
+    screen_width = login_window.winfo_screenwidth()
+    screen_height = login_window.winfo_screenheight()
+    x = screen_width / 2 - width_window / 2
+    y = screen_height / 2 - height_window / 2
+    login_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
     input_entry = Entry(login_window, text="Username:")
     login = Label(login_window, text="Username:")
     pass1 = Label(login_window, text="Password:")
@@ -1260,10 +1259,10 @@ def login():
     forgot.grid(row=7, column=2)
 
 
-def register():
+def register(*window):
     login_window1 = Tk()
     try:
-        root.destroy()
+        window.destroy()
     except:
         pass
 
