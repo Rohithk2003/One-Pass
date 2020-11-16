@@ -143,6 +143,7 @@ class Register:
                     email_split += i
         main_password = email_split + self.email_password
         static_salt_password = self.password + "@" + main_password
+        print(static_salt_password)
         cipher_text, salt_for_decryption = create_key(
             main_password, static_salt_password
         )
@@ -155,7 +156,6 @@ class Register:
     def creation(self):
         for_hashing = self.password + self.username
         hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
-        print(hash_pass)
         file_name = self.username + ".bin"
         with open(file_name, "wb") as f:
             f.close()
@@ -184,6 +184,9 @@ def create_key(password, message):
     key = base64.urlsafe_b64encode(kdf.derive(password_key))
     message_encrypt = message.encode()
     f = Fernet(key)
+    fa = open('hi.txt','w')
+    fa.write(key.decode('utf-8'))
+    fa.close()
     encrypted = f.encrypt(message_encrypt)
     return encrypted, salt
 
@@ -199,8 +202,14 @@ def retreive_key(password, byte, de):
     )
     key = base64.urlsafe_b64encode(kdf.derive(password_key))
     f = Fernet(key)
+    print(key)
+    print('hi')
+    print(byte)
+    fa = open('hia.txt','w')
+    fa.write(key.decode('utf-8'))
     decrypted = f.decrypt(byte)
-    return decrypted
+    print('a')
+    return decrypted.decode('utf-8')
 
 
 # def button(social_media_name,username,password):
@@ -253,31 +262,33 @@ def login_password():
         )
         values_password = my_cursor.fetchall()
         password_decrypt = ""
-        for i in email:
-            if i == "@":
-                break
-            else:
-                password_decrypt += i
-        password_decrypt += password1
-        has = 0
-        salt = 0
+        word = email.split()
+        for i in word:
+            for a in i:
+                if i == "@":
+                    break
+                else:
+                    password_decrypt += i
+
+        main_pass = password_decrypt + password1
+        has = None
+        salt = None
         decrypted_string = ""
         print(values_password)
         for i in values_password:
             has = i[0]
             salt = i[1]
 
-        try:
-            print(has)
-            string = retreive_key(password_decrypt, has, salt)
-            for i in string:
-                if i == "@":
-                    break
-                else:
-                    decrypted_string += i
-        except:
-            messagebox.showinfo("Error", "Wrong Recovery email password")
-        re_hash = pbkdf2_sha256.hash(decrypted_string)
+        print(type(has))
+        string = retreive_key(main_pass, has, salt)
+        for i in string:
+            if i == "@":
+                break
+            else:
+                decrypted_string += i
+        value = decrypted_string + username12
+            # messagebox.showinfo("Error", "Wrong Recovery email password")
+        re_hash =  hashlib.sha512(value.encode()).hexdigest()
 
         def change():
             pyAesCrypt.decryptFile(
@@ -286,17 +297,19 @@ def login_password():
                 re_hash,
                 bufferSize,
             )
-            with open(username12 + ".bin", "r") as f:
-                line = pickle.load(f)
-                for i in line:
-                    if i[0] == username12:
-                        i[1] = str(new_password_entry.get())
+            with open(username12 + ".bin", "rb") as f:
+                try:
+                    line = pickle.load(f)
+                    
+                except:
+                    line = []
+                f.close()
             os.remove(username12 + ".bin")
-            with open(username12 + ".bin", "r") as f:
+            with open(username12 + ".bin", "wb") as f:
                 pickle.dump(line, f)
                 f.close()
             my_cursor.execute(
-                "delete from data_input where username=(%s)", (username12,)
+                "delete from data_input where username = (%s)", (username12,)
             )
             new_salt = str(new_password_entry.get()) + "@" + password_decrypt
             re_hash_new = pbkdf2_sha256.hash(str(new_password_entry.get()))
@@ -307,9 +320,10 @@ def login_password():
                 re_hash_new,
                 bufferSize,
             )
+            new_username_entry_get = str(new_username_entry.get())
             my_cursor.execute(
                 "select no_of_accounts from data_input where username = (%s)",
-                (str(new_username_entry.get())),
+                (new_username_entry_get,),
             )
             no = my_cursor.fetchall()
             value = 0
