@@ -262,11 +262,13 @@ def login_password():
         has = 0
         salt = 0
         decrypted_string = ""
+        print(values_password)
         for i in values_password:
             has = i[0]
             salt = i[1]
 
         try:
+            print(has)
             string = retreive_key(password_decrypt, has, salt)
             for i in string:
                 if i == "@":
@@ -409,15 +411,21 @@ def login_password():
             else:
                 verify_password += i
         verify_password += recover_password_entry_verify
+        my_cursor.execute(
+            "select email_id from data_input where username = (%s)",
+            (username_verify,),
+        )
+        values_fetch = my_cursor.fetchall()
+        print(values_fetch)
+        print(type(values_fetch))
         try:
-            my_cursor.execute(
-                "select email_id from data_input where username = (%s)",
-                (username_verify,),
-            )
-            values_fetch = my_cursor.fetchall()
             for i in values_fetch:
-                for a in i:
-                    if a == recover_email_entry_verify:
+                    print('hi')
+                    print(recover_email_entry_verify==i[0])
+                    print(type(i))
+                    print(type(recover_email_entry_verify))
+                    if i[0] == recover_email_entry_verify:
+                        print('running')
                         run = True
                     else:
                         run = False
@@ -431,6 +439,7 @@ def login_password():
             messagebox.showerror(
                 "Error", "No user exist with the provided username")
             roo1.destroy()
+        print(run)
         if run:
             digits = "1234567890"
             OTP = ""
