@@ -184,7 +184,7 @@ def create_key(password, message):
     key = base64.urlsafe_b64encode(kdf.derive(password_key))
     message_encrypt = message.encode()
     f = Fernet(key)
-    fa = open('hi.txt','w')
+    fa = open('hi.txt', 'w')
     fa.write(key.decode('utf-8'))
     fa.close()
     encrypted = f.encrypt(message_encrypt)
@@ -205,7 +205,7 @@ def retreive_key(password, byte, de):
     print(key)
     print('hi')
     print(byte)
-    fa = open('hia.txt','w')
+    fa = open('hia.txt', 'w')
     fa.write(key.decode('utf-8'))
     decrypted = f.decrypt(byte)
     print('a')
@@ -287,8 +287,8 @@ def login_password():
             else:
                 decrypted_string += i
         value = decrypted_string + username12
-            # messagebox.showinfo("Error", "Wrong Recovery email password")
-        re_hash =  hashlib.sha512(value.encode()).hexdigest()
+        # messagebox.showinfo("Error", "Wrong Recovery email password")
+        re_hash = hashlib.sha512(value.encode()).hexdigest()
 
         def change():
             pyAesCrypt.decryptFile(
@@ -300,7 +300,7 @@ def login_password():
             with open(username12 + ".bin", "rb") as f:
                 try:
                     line = pickle.load(f)
-                    
+
                 except:
                     line = []
                 f.close()
@@ -434,19 +434,19 @@ def login_password():
         print(type(values_fetch))
         try:
             for i in values_fetch:
-                    print('hi')
-                    print(recover_email_entry_verify==i[0])
-                    print(type(i))
-                    print(type(recover_email_entry_verify))
-                    if i[0] == recover_email_entry_verify:
-                        print('running')
-                        run = True
-                    else:
-                        run = False
-                        roo1 = Tk()
-                        roo1.withdraw()
-                        messagebox.showerror("Error", "Wrong Recovey email")
-                        roo1.destroy()
+                print('hi')
+                print(recover_email_entry_verify == i[0])
+                print(type(i))
+                print(type(recover_email_entry_verify))
+                if i[0] == recover_email_entry_verify:
+                    print('running')
+                    run = True
+                else:
+                    run = False
+                    roo1 = Tk()
+                    roo1.withdraw()
+                    messagebox.showerror("Error", "Wrong Recovey email")
+                    roo1.destroy()
         except:
             roo1 = Tk()
             roo1.withdraw()
@@ -860,9 +860,10 @@ def window_after(username, hash_password):
 
             def popup_menu(e):
                 my_menu.tk_popup(e.x_root, e.y_root)
+
             try:
                 f = TextArea.get()
-                if f !='':
+                if f != '':
                     root.title('*untitled-Notepad')
                 else:
                     pass
@@ -1016,7 +1017,7 @@ def window_after(username, hash_password):
             root.config(menu=MenuBar)
 
             # Adding Scrollbar using rules from Tkinter lecture no 22
-            Scroll = Scrollbar(TextArea, orient="vertical",command=mainarea.yview)
+            Scroll = Scrollbar(TextArea, orient="vertical", command=mainarea.yview)
             Scroll.pack(side="right", fill=Y)
             Scroll = Scrollbar(TextArea, orient="horizontal",
                                command=mainarea.xview)
@@ -1043,6 +1044,7 @@ def gameloop(username, hashed_password, window):
     no_accounts = my_cursor.fetchall()
     add = 0
     exist = False
+
     def addaccount():
 
         root1 = Toplevel()
@@ -1086,8 +1088,8 @@ def gameloop(username, hashed_password, window):
             verifying = verify(username_window_entry.get(),
                                name_of_social_entry.get())
             if verifying:
-                messagebox.showerror('Error','The account already exists')
-                
+                messagebox.showerror('Error', 'The account already exists')
+
             elif not exist:
                 name_file = username + "decrypted.bin"
                 with open(name_file, "rb") as f:
@@ -1122,12 +1124,14 @@ def gameloop(username, hashed_password, window):
         save_button.grid(row=4, column=1)
 
         root1.mainloop()
+
     def change_icon(button):
         image_path = fd.askopenfilename()
         im = image.open(image_path)
         new_tk = tk_image.PhotoImage(im)
         button.config(image=new_tk)
         button.photo = new_tk
+
     for num in no_accounts:
         add = int(num[0])
 
@@ -1145,7 +1149,7 @@ def gameloop(username, hashed_password, window):
                 print(social_account_media)
                 print(social_account_password)
                 print(image_account_path)
-                if not image_account_path :
+                if not image_account_path:
                     print('path exists')
                     username_widget = Label(window, text='Username:')
                     password_widget = Label(window, text='Password:')
@@ -1161,12 +1165,12 @@ def gameloop(username, hashed_password, window):
                         im = image.open(image_account_path)
                         tkimage = tk_image.PhotoImage(im)
                     except:
-                          messagebox.showerror('Error',f'No icon exists in {image_account_path} ')
-                          default_image = tk_image.PhotoImage(image.open('photo.png'))
-                          tkimage = tk_image.PhotoImage(default_image)
-                          default_image_button = Button(window,image=tkimage)
-                          default_image_button.grid(row=0, column=0)
-                          default_image_button.config(command=lambda: change_icon(default_image_button))
+                        messagebox.showerror('Error', f'No icon exists in {image_account_path} ')
+                        default_image = tk_image.PhotoImage(image.open('photo.png'))
+                        tkimage = tk_image.PhotoImage(default_image)
+                        default_image_button = Button(window, image=tkimage)
+                        default_image_button.grid(row=0, column=0)
+                        default_image_button.config(command=lambda: change_icon(default_image_button))
                 else:
                     print('working')
                     username_widget = Label(window, text='Username:')
@@ -1181,7 +1185,7 @@ def gameloop(username, hashed_password, window):
                     password_label_widget.grid(row=2, column=1)
                     default_image = tk_image.PhotoImage(image.open('photo.png'))
                     tkimage = tk_image.PhotoImage(default_image)
-                    default_image_button = Button(window,image=tkimage)
+                    default_image_button = Button(window, image=tkimage)
                     default_image_button.grid(row=0, column=0)
                     default_image_button.config(command=lambda: change_icon(default_image_button))
 
@@ -1199,7 +1203,6 @@ def gameloop(username, hashed_password, window):
                         return True
         except:
             return False
-
 
     if add == 0:
         add_button = Button(
@@ -1230,8 +1233,9 @@ def gameloop(username, hashed_password, window):
         add_button.grid(row=0, padx=10 + 100 * add, pady=20, column=add)
         add_label = Label(window, text="Add account")
         add_label.grid(row=1, column=add)
-    elif add  == 8:
+    elif add == 8:
         pass
+
 
 def login():
     login_window = Tk()
@@ -1252,6 +1256,24 @@ def login():
                     command=login_password)
     register_button = Button(
         login_window, text='Register', command=lambda: register(login_window))
+
+    def hide_password(entry):
+        entry.config(text='Show password', show="*")
+
+    def password_sec(entry, show_both_1):
+        a = entry['show']
+        if a == "":
+            entry.config(show="*")
+            show_both_1['text'] = 'Hide password'
+        elif a == '*':
+            entry.config(show="")
+            show_both_1['text'] = 'Show password'
+
+    show_both_1 = Button(
+        login_window,
+        text="show password",
+        command=lambda: password_sec(pass_entry, show_both_1),
+    )
 
     def login_checking_1():
         password = str(pass_entry.get())
@@ -1277,8 +1299,9 @@ def login():
     but.grid(row=7, column=3)
     root.destroy()
     login_window.resizable(False, False)
-    register_button.grid(row=7, column=10)
+    register_button.grid(row=7, column=4)
     forgot.grid(row=7, column=2)
+    show_both_1.grid(row=6, column=4)
 
 
 def register(*window):
@@ -1287,24 +1310,6 @@ def register(*window):
         window.destroy()
     except:
         pass
-
-    def hide_password(entry, row, column, row1, column1):
-        entry.config(show="*")
-        show_both_11 = Button(
-            login_window1,
-            text="show password",
-            command=lambda: show_password(entry, row, column, row1, column1),
-        )
-        show_both_11.grid(row=row1, column=column1)
-
-    def show_password(entry, row, column, row1, column1):
-        entry.config(show="")
-        show_both_11 = Button(
-            login_window1,
-            text="hide password",
-            command=lambda: hide_password(entry, row, column, row1, column1),
-        )
-        show_both_11.grid(row=row1, column=column1)
 
     username = Label(login_window1, text="Username")
     password = Label(login_window1, text="password")
@@ -1327,18 +1332,28 @@ def register(*window):
     password_entry.grid(row=3, column=1)
     email_id_entry.grid(row=4, column=1)
     email_password_entry.grid(row=5, column=1)
+
+    def password_sec(entry, button):
+        a = entry['show']
+        if a == "":
+            entry.config(show="*")
+            button['text'] = 'Hide password'
+        elif a == '*':
+            entry.config(show="")
+            button['text'] = 'Show password'
+
     show_both_1 = Button(
         login_window1,
         text="show password",
-        command=lambda: show_password(password_entry, 3, 1, 3, 2),
+        command=lambda: password_sec(password_entry, show_both_1),
     )
-    show_both_2 = Button(
+    show_both_12 = Button(
         login_window1,
         text="show password",
-        command=lambda: show_password(email_password_entry, 5, 1, 5, 2),
+        command=lambda: password_sec(email_password_entry, show_both_12),
     )
+    show_both_12.grid(row=5, column=2)
     show_both_1.grid(row=3, column=2)
-    show_both_2.grid(row=5, column=2)
 
     def register_saving():
         username_register = str(username_entry.get())
