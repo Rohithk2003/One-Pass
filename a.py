@@ -67,12 +67,15 @@ white = (255, 255, 255)
 red = (255, 0, 0)
 blue = (0, 0, 255)
 green = (0, 255, 0)
+
+# global tools
 catch_error = True
 
 social_media_user_text = ""
 social_media_active = False
 image_path = ''
 exist = False
+cutting_value = False
 
 
 class Login:
@@ -81,24 +84,24 @@ class Login:
         self.password = str(password)
 
     def login_checking(self):
-        file_name = str(self.username)
+
         for_hashing_both = self.password + self.username
         main_password = hashlib.sha512(for_hashing_both.encode()).hexdigest()
         try:
             pyAesCrypt.decryptFile(
-                file_name + ".bin.fenc",
-                file_name + "decrypted.bin",
+                self.username + ".bin.fenc",
+                self.username + "decrypted.bin",
                 main_password,
                 bufferSize,
             )
         except OSError:
-            root = Tk()
-            root.withdraw()
+            root_error = Tk()
+            root_error.withdraw()
             messagebox.showerror(
                 "Error",
                 f"No user exist with {self.username}, Please register or provide the correct username",
             )
-            root.destroy()
+            root_error.destroy()
             return False, main_password
         except ValueError:
             root = Tk()
@@ -242,7 +245,7 @@ def login_password():
     def generate_key1(file):
         pyAesCrypt.encryptFile(file, "otp.bin.fenc", key, bufferSize)
         os.unlink(file)
-        messagebox.showinfo("OTP", "2 minutes to verify otp send to email")
+        messagebox.showinfo("OTP", f"An OTP has been sent to your {srt(recover_email_entry)}")
 
     def change_password(email, password1, username12):
         root = Tk()
@@ -374,7 +377,7 @@ def login_password():
             global running
             running = True
             SUBJECT = "OTP verification for ONE-PASS-MANAGER"
-            otp = "Hey " + username + " Your one time password is " + OTP
+            otp = f"Hey {username}! Your OTP for your ONE-PASS manager is {OTP}.Please use this to verify your email"
             msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
             s = smtplib.SMTP("smtp.gmail.com", 587)
             s.starttls()
@@ -715,17 +718,25 @@ def window_after(username, hash_password):
             def quitApp():
                 root.destroy()
 
-            def cut():
-                TextArea.event_generate(("<Control-Key-x>"))
+            def cut(*event):
+                global cutting_value
+                if TextArea.selection_get():
+                    # grabbing selected text from text area
+                    cutting_value = TextArea.selection_get()
+                    TextArea.delete("sel.first", 'sel.last')
 
-            def copy():
-                TextArea.event_generate(("<Control-Key-c>"))
+            def copy(*event):
+                global cutting_value
+                if TextArea.selection_get():
+                    cutting_value = TextArea.selection_get()
 
-            def paste():
-                TextArea.event_generate(("<Control-Key-v>"))
+            def paste(*event):
+                if cutting_value:
+                    postion = TextArea.index(INSERT)
+                    TextArea.insert(postion, cutting_value)
 
             def about():
-                messagebox.showinfo("Notepad", "Notepad by Rohithk-2020")
+                messagebox.showinfo("Notepad", "Notepad by Rohithk-25-11-2020")
 
             # Basic tkinter setup
             root.geometry("700x600")
@@ -735,6 +746,10 @@ def window_after(username, hash_password):
             root.resizable(0, 0)
             font_main = ("freesansbold", 12)
 
+            Scroll_y = Scrollbar(mainarea, orient="vertical")
+            Scroll_y.pack(side="right", fill=Y)
+            Scroll_x = Scrollbar(mainarea, orient="horizontal")
+            Scroll_x.pack(side="bottom", fill=X)
             TextArea = Text(
                 mainarea,
                 font=font_main,
@@ -743,7 +758,11 @@ def window_after(username, hash_password):
                 insertontime=600,
                 insertbackground="black",
                 undo=True,
+                xscrollcommand=Scroll_x.set,
+                yscrollcommand=Scroll_y.set
             )
+            Scroll_y.config(command=TextArea.yview)
+            Scroll_x.config(command=TextArea.xview)
             TextArea.pack(expand=True, fill=BOTH)
 
             # Lets create a menubar
@@ -823,7 +842,8 @@ def window_after(username, hash_password):
                 find_window.grab_set()
                 find_window.title('Find')
                 find_entry = Entry(find_window)
-                find_button = Button(find_window, text='Find', command=lambda: find(find_entry.get(), find_window))
+                find_button = Button(find_window, text='Find', command=lambda: find(
+                    find_entry.get(), find_window))
                 find_entry.pack()
                 find_button.pack(side='right')
 
@@ -833,8 +853,10 @@ def window_after(username, hash_password):
                 TextArea.tag_remove('found', '1.0', END)
                 if value:
                     while 1:
-                        index = TextArea.search(text_find, index, nocase=1, stopindex=END)
-                        if not index: break
+                        index = TextArea.search(
+                            text_find, index, nocase=1, stopindex=END)
+                        if not index:
+                            break
                         lastidx = '% s+% dc' % (index, len(text_find))
                         TextArea.delete(index, lastidx)
                         TextArea.insert(index, replace_value)
@@ -850,8 +872,10 @@ def window_after(username, hash_password):
                 TextArea.tag_remove('found', '1.0', END)
                 if value:
                     while 1:
-                        index = TextArea.search(text_find, index, nocase=1, stopindex=END)
-                        if not index: break
+                        index = TextArea.search(
+                            text_find, index, nocase=1, stopindex=END)
+                        if not index:
+                            break
                         lastidx = '% s+% dc' % (index, len(text_find))
                         TextArea.tag_add('found', index, lastidx)
                         index = lastidx
@@ -936,7 +960,14 @@ def window_after(username, hash_password):
             submenu.add_command(
                 label="Cascadia Code", command=lambda: select_font("Cascadia Code")
             )
-
+            submenu_size.add_command(
+                label='6', command=lambda: change_size(6), )
+            submenu_size.add_command(
+                label='7', command=lambda: change_size(7), )
+            submenu_size.add_command(
+                label='8', command=lambda: change_size(8), )
+            submenu_size.add_command(
+                label='9', command=lambda: change_size(9), )
             submenu_size.add_command(
                 label='10', command=lambda: change_size(10), )
             submenu_size.add_command(
@@ -982,11 +1013,13 @@ def window_after(username, hash_password):
 
             EditMenu.add_command(label="Text Color", command=change_color)
             EditMenu.add_command(label="Background Color", command=bg_color)
-            EditMenu.add_command(label="Cut", command=cut)
-            EditMenu.add_command(label="Copy", command=copy)
-            EditMenu.add_command(label="Paste", command=paste)
-            EditMenu.add_command(label="Find", command=primary, accelerator='(Ctrl+f)')
-            EditMenu.add_command(label="Replace", command=secondary, accelerator='(Ctrl+h)')
+            EditMenu.add_command(label="Cut", command=cut, accelerator='(Ctrl+x)')
+            EditMenu.add_command(label="Copy", command=copy, accelerator='(Ctrl+c)')
+            EditMenu.add_command(label="Paste", command=paste, accelerator='(Ctrl+v)')
+            EditMenu.add_command(
+                label="Find", command=primary, accelerator='(Ctrl+f)')
+            EditMenu.add_command(
+                label="Replace", command=secondary, accelerator='(Ctrl+h)')
             EditMenu.add_command(
                 label="Undo", command=TextArea.edit_undo, accelerator='(Ctrl+z)')
             EditMenu.add_command(
@@ -1003,9 +1036,12 @@ def window_after(username, hash_password):
                 save_as_File(file)
                 # To Open already existing file
 
+            # bindings
             root.bind("<Control-Key-s>", callback)
             root.bind("<Control-Shift-S>", second_callback)
-
+            root.bind('<Control-Key-x>', cut)
+            root.bind('<Control-Key-c>', copy)
+            root.bind('<Control-Key-v>', paste)
             # Help Menu Starts
             HelpMenu = Menu(MenuBar, tearoff=0)
             HelpMenu.add_command(label="About Notepad", command=about)
@@ -1015,13 +1051,6 @@ def window_after(username, hash_password):
             MenuBar.pack_propagate(0)
             sidebar.pack_propagate(0)
             root.config(menu=MenuBar)
-
-            # Adding Scrollbar using rules from Tkinter lecture no 22
-            Scroll = Scrollbar(TextArea, orient="vertical", command=mainarea.yview)
-            Scroll.pack(side="right", fill=Y)
-            Scroll = Scrollbar(TextArea, orient="horizontal",
-                               command=mainarea.xview)
-            Scroll.pack(side="bottom", fill=X)
 
     # main content area
     mainarea = Frame(root, bg="#0d0d0d", width=500, height=500)
@@ -1035,7 +1064,6 @@ def window_after(username, hash_password):
 
 
 def gameloop(username, hashed_password, window):
-    image_add = tk_image.PhotoImage(image.open("add-button.png"))
     global image_path
     window.grid_propagate(0)
     file_name = username + 'decrypted.bin'
@@ -1134,65 +1162,64 @@ def gameloop(username, hashed_password, window):
 
     for num in no_accounts:
         add = int(num[0])
-
     try:
         with open(username + 'decrypted.bin', 'rb') as f:
-            print('file reading error')
-            account_fetch = pickle.load(f)
-            for i in account_fetch:
-                social_account_username = i[0]
-                social_account_media = i[2]
-                social_account_password = i[1]
-                image_account_path = i[3]
-                print('no error after reagin')
-                print(social_account_username)
-                print(social_account_media)
-                print(social_account_password)
-                print(image_account_path)
-                if not image_account_path:
-                    print('path exists')
-                    username_widget = Label(window, text='Username:')
-                    password_widget = Label(window, text='Password:')
-                    username_label_widget = Label(
-                        window, text=social_account_username)
-                    password_label_widget = Label(
-                        window, text=social_account_password)
-                    username_widget.grid(row=2, column=0)
-                    password_widget.grid(row=3, column=0)
-                    username_label_widget.grid(row=2, column=1)
-                    password_label_widget.grid(row=2, column=1)
-                    try:
-                        im = image.open(image_account_path)
-                        tkimage = tk_image.PhotoImage(im)
-                    except:
-                        messagebox.showerror('Error', f'No icon exists in {image_account_path} ')
-                        default_image = tk_image.PhotoImage(image.open('photo.png'))
-                        tkimage = tk_image.PhotoImage(default_image)
-                        default_image_button = Button(window, image=tkimage)
+                account_fetch = pickle.load(f)
+                for i in account_fetch:
+                    social_account_username = i[0]
+                    social_account_media = i[2]
+                    social_account_password = i[1]
+                    image_account_path = i[3]
+                    print(social_account_username)
+                    print(social_account_media)
+                    print(social_account_password)
+                    print(image_account_path)
+                    print(not image_account_path)
+                    if not image_account_path:
+                        username_widget = Label(window, text='Username:')
+                        password_widget = Label(window, text='Password:')
+                        username_label_widget = Label(
+                            window, text=social_account_username)
+                        password_label_widget = Label(
+                            window, text=social_account_password)
+                        username_widget.grid(row=2, column=0)
+                        password_widget.grid(row=3, column=0)
+                        username_label_widget.grid(row=2, column=1)
+                        password_label_widget.grid(row=3, column=1)
+                        try:
+                            im = image.open(image_account_path)
+                            tkimage = tk_image.PhotoImage(im)
+                        except:
+                            tkimage = tk_image.PhotoImage(image.open('photo.png'))
+                            default_image_button = Button(window, image=tkimage,borderwidth='0',
+                                                          command=lambda: change_icon(default_image_button))
+                            default_image_button.photo = tkimage
+                            default_image_button.grid(row=0, column=0)
+
+                    else:
+                        print('working')
+                        username_widget = Label(window, text='Username:')
+                        password_widget = Label(window, text='Password:')
+                        username_label_widget = Label(
+                            window, text=social_account_username)
+                        password_label_widget = Label(
+                            window, text=social_account_password)
+                        username_widget.grid(row=2, column=0)
+                        password_widget.grid(row=3, column=0)
+                        username_label_widget.grid(row=2, column=1)
+                        password_label_widget.grid(row=2, column=1)
+                        new_tkimage = tk_image.PhotoImage( image.open('photo.png'))
+                        default_image_button = Button(window, image=new_tkimage,
+                                                      command=lambda: change_icon(default_image_button))
+                        default_image_button.photo = new_tkimage
                         default_image_button.grid(row=0, column=0)
-                        default_image_button.config(command=lambda: change_icon(default_image_button))
-                else:
-                    print('working')
-                    username_widget = Label(window, text='Username:')
-                    password_widget = Label(window, text='Password:')
-                    username_label_widget = Label(
-                        window, text=social_account_username)
-                    password_label_widget = Label(
-                        window, text=social_account_password)
-                    username_widget.grid(row=2, column=0)
-                    password_widget.grid(row=3, column=0)
-                    username_label_widget.grid(row=2, column=1)
-                    password_label_widget.grid(row=2, column=1)
-                    default_image = tk_image.PhotoImage(image.open('photo.png'))
-                    tkimage = tk_image.PhotoImage(default_image)
-                    default_image_button = Button(window, image=tkimage)
-                    default_image_button.grid(row=0, column=0)
-                    default_image_button.config(command=lambda: change_icon(default_image_button))
+
+
 
     except:
-        print('file is empty')
-        # file is empty
-        add = 0
+            print('file is empty')
+            # file is empty
+            add = 0
 
     def verify(social_username, social_media):
         try:
@@ -1204,6 +1231,7 @@ def gameloop(username, hashed_password, window):
         except:
             return False
 
+    image_add = tk_image.PhotoImage(image.open('add-button.png'))
     if add == 0:
         add_button = Button(
             window, image=image_add, borderwidth="0", command=addaccount
@@ -1218,11 +1246,9 @@ def gameloop(username, hashed_password, window):
             window, image=image_add, border="0", command=addaccount
         )
         add_button.photo = image_add
-        add_button.grid(row=0, column=add, padx=10 + 100 * add, pady=20 + 100)
+        add_button.grid(row=0, column=add+1, padx=10 + 100 * add, pady=20 + 100)
         add_label = Label(window, text="Add account")
         add_label.grid(row=1, column=add)
-
-
 
     elif add < 4:
         add_button = Button(
@@ -1230,9 +1256,9 @@ def gameloop(username, hashed_password, window):
         )
         add_button.photo = image_add
 
-        add_button.grid(row=0, padx=10 + 100 * add, pady=20, column=add)
+        add_button.grid(row=0, padx=10 + 100 * add, pady=20, column=add+1)
         add_label = Label(window, text="Add account")
-        add_label.grid(row=1, column=add)
+        add_label.grid(row=1, column=add+1)
     elif add == 8:
         pass
 
@@ -1276,6 +1302,11 @@ def login():
     )
 
     def login_checking_1():
+        my_cursor.execute("select email_id from data_input where username = (%s)", (str(input_entry.get()),))
+        val_list = my_cursor.fetchall()
+        email = ''
+        for i in val_list:
+            email = i[0]
         password = str(pass_entry.get())
         username = str(input_entry.get())
         login = Login(username, password)
@@ -1291,12 +1322,13 @@ def login():
             pass
 
     but = Button(login_window, text="Login", command=login_checking_1)
+    but.grid(row=7, column=3)
+
     login.grid(row=2, column=2)
     lbl.grid(row=0, column=2, columnspan=2)
     pass1.grid(row=6, column=2)
     input_entry.grid(row=2, column=3)
     pass_entry.grid(row=6, column=3)
-    but.grid(row=7, column=3)
     root.destroy()
     login_window.resizable(False, False)
     register_button.grid(row=7, column=4)
@@ -1310,7 +1342,13 @@ def register(*window):
         window.destroy()
     except:
         pass
-
+    width_window = 400
+    height_window = 400
+    screen_width = login_window1.winfo_screenwidth()
+    screen_height = login_window1.winfo_screenheight()
+    x = screen_width / 2 - width_window / 2
+    y = screen_height / 2 - height_window / 2
+    login_window1.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
     username = Label(login_window1, text="Username")
     password = Label(login_window1, text="password")
     email_id = Label(login_window1, text="Recovery Email :")
@@ -1320,8 +1358,6 @@ def register(*window):
     email_id_entry = Entry(login_window1)
     email_password_entry = Entry(login_window1, show="*")
     width = login_window1.winfo_screenwidth()
-
-    # register button
 
     # putting the buttons and entries
     username.grid(row=2, column=0)
@@ -1356,6 +1392,7 @@ def register(*window):
     show_both_1.grid(row=3, column=2)
 
     def register_saving():
+
         username_register = str(username_entry.get())
         password_register = str(password_entry.get())
         email_id_register = str(email_id_entry.get())
