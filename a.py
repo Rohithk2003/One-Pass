@@ -1063,6 +1063,7 @@ def window_after(username, hash_password):
     root.mainloop()
 
 
+# noinspection PyTypeChecker
 def gameloop(username, hashed_password, window):
     global image_path
     window.grid_propagate(0)
@@ -1144,6 +1145,7 @@ def gameloop(username, hashed_password, window):
                     to_append = real_accounts + 1
                 my_cursor.execute('update data_input set no_of_accounts =(%s) where username = (%s)',
                                   (to_append, username))
+                print('added!')
             elif not verifying:
                 messagebox.showerror(
                     'Error', 'Account with the username already exist')
@@ -1154,72 +1156,103 @@ def gameloop(username, hashed_password, window):
         root1.mainloop()
 
     def change_icon(button):
-        image_path = fd.askopenfilename()
-        im = image.open(image_path)
-        new_tk = tk_image.PhotoImage(im)
-        button.config(image=new_tk)
-        button.photo = new_tk
+        l = [(32, 32), (16, 16)]
+        image_path = fd.askopenfilename(filetypes=[("image", "*.png"), ("image", "*.jpeg"), ("image", "*.jpg")],
+                                        title='Add icon')
+        try:
+            im = image.open(image_path)
+            for i in l:
+                    if  im:
+                        if i == im.size:
+                            new_tk = tk_image.PhotoImage(im)
+                            button.config(image=new_tk)
+                            button.photo = new_tk
+                        elif not im.size:
+                            im = image.open('photo.png')
+                            new_tk = tk_image.PhotoImage(im)
+                            button.config(image=new_tk)
+                            button.photo = new_tk
+                        else:
+                            messagebox.showerror('Error', 'Please provide icon size of 32x32 or 16x16')
+                            image_path = fd.askopenfilename(filetypes=[("image", "*.png")], title='Add icon')
+                            # button.config(image=image_new)
+                            # button.photo = image_new
+                            try:
+                                im = image.open(image_path)
+                            except:
+                                im = image.open('photo.png')
+                                new_tk = tk_image.PhotoImage(im)
+                                button.config(image=new_tk)
+                                button.photo = new_tk
+                                break
+        except:
+            im = image.open('photo.png')
+            new_tk = tk_image.PhotoImage(im)
+            button.config(image=new_tk)
+            button.photo = new_tk
+
 
     for num in no_accounts:
         add = int(num[0])
     try:
         with open(username + 'decrypted.bin', 'rb') as f:
-                account_fetch = pickle.load(f)
-                for i in account_fetch:
-                    social_account_username = i[0]
-                    social_account_media = i[2]
-                    social_account_password = i[1]
-                    image_account_path = i[3]
-                    print(social_account_username)
-                    print(social_account_media)
-                    print(social_account_password)
-                    print(image_account_path)
-                    print(not image_account_path)
-                    if not image_account_path:
-                        username_widget = Label(window, text='Username:')
-                        password_widget = Label(window, text='Password:')
-                        username_label_widget = Label(
-                            window, text=social_account_username)
-                        password_label_widget = Label(
-                            window, text=social_account_password)
-                        username_widget.grid(row=2, column=0)
-                        password_widget.grid(row=3, column=0)
-                        username_label_widget.grid(row=2, column=1)
-                        password_label_widget.grid(row=3, column=1)
-                        try:
-                            im = image.open(image_account_path)
-                            tkimage = tk_image.PhotoImage(im)
-                        except:
-                            tkimage = tk_image.PhotoImage(image.open('photo.png'))
-                            default_image_button = Button(window, image=tkimage,borderwidth='0',
-                                                          command=lambda: change_icon(default_image_button))
-                            default_image_button.photo = tkimage
-                            default_image_button.grid(row=0, column=0)
+            account_fetch = pickle.load(f)
+            length = len(account_fetch)
+            for i in range(length):
+                social_account_media = account_fetch[i][2]
+                social_account_username = account_fetch[i][0]
+                social_account_password = account_fetch[i][1]
+                image_account_path = account_fetch[i][3]
+                print(social_account_username)
+                print(social_account_password)
 
-                    else:
-                        print('working')
-                        username_widget = Label(window, text='Username:')
-                        password_widget = Label(window, text='Password:')
-                        username_label_widget = Label(
-                            window, text=social_account_username)
-                        password_label_widget = Label(
-                            window, text=social_account_password)
-                        username_widget.grid(row=2, column=0)
-                        password_widget.grid(row=3, column=0)
-                        username_label_widget.grid(row=2, column=1)
-                        password_label_widget.grid(row=2, column=1)
-                        new_tkimage = tk_image.PhotoImage( image.open('photo.png'))
-                        default_image_button = Button(window, image=new_tkimage,
-                                                      command=lambda: change_icon(default_image_button))
-                        default_image_button.photo = new_tkimage
-                        default_image_button.grid(row=0, column=0)
+                if not image_account_path:
+                    username_widget = Label(window, text='Username:')
+                    password_widget = Label(window, text='Password:')
+                    username_label_widget = Label(
+                        window, text=social_account_username)
+                    password_label_widget = Label(
+                        window, text=social_account_password)
+                    try:
+                        im = image.open(image_account_path)
+                        tkimage = tk_image.PhotoImage(im)
+                    except:
+                        tkimage = tk_image.PhotoImage(image.open('photo.png'))
+                    default_image_button = Button(window, image=tkimage, borderwidth='0',
+                                                  command=lambda: change_icon(default_image_button))
+                    # account username, password, image.........
+                    if 0 < add < 3:
+                        username_widget.grid(row=1 + i + 1, column=0)
+                        password_widget.grid(row=2 + i + 1, column=0)
+                        username_label_widget.grid(row=1 + i + 1, column=1)
+                        password_label_widget.grid(row=2 + i + 1, column=1)
+                        default_image_button.photo = tkimage
+                        default_image_button.grid(row=0 + i + 1, column=0)
+
+                else:
+                    print('working')
+                    username_widget = Label(window, text='Username:')
+                    password_widget = Label(window, text='Password:')
+                    username_label_widget = Label(
+                        window, text=social_account_username)
+                    password_label_widget = Label(
+                        window, text=social_account_password)
+                    username_widget.grid(row=2, column=0)
+                    password_widget.grid(row=3, column=0)
+                    username_label_widget.grid(row=2, column=1)
+                    password_label_widget.grid(row=2, column=1)
+                    new_tkimage = tk_image.PhotoImage(image.open('photo.png'))
+                    default_image_button = Button(window, image=new_tkimage,
+                                                  command=lambda: change_icon(default_image_button))
+                    default_image_button.photo = new_tkimage
+                    default_image_button.grid(row=0, column=0)
 
 
 
     except:
-            print('file is empty')
-            # file is empty
-            add = 0
+        print('file is empty')
+        # file is empty
+        add = 0
 
     def verify(social_username, social_media):
         try:
@@ -1231,8 +1264,8 @@ def gameloop(username, hashed_password, window):
         except:
             return False
 
-    image_add = tk_image.PhotoImage(image.open('add-button.png'))
     if add == 0:
+        image_add = tk_image.PhotoImage(image.open('add-button.png'))
         add_button = Button(
             window, image=image_add, borderwidth="0", command=addaccount
         )
@@ -1242,23 +1275,25 @@ def gameloop(username, hashed_password, window):
         add_button.grid(row=0, column=1)
 
     elif 4 < add < 8:
+        image_add = tk_image.PhotoImage(image.open('add-button.png'))
         add_button = Button(
             window, image=image_add, border="0", command=addaccount
         )
         add_button.photo = image_add
-        add_button.grid(row=0, column=add+1, padx=10 + 100 * add, pady=20 + 100)
+        add_button.grid(row=0, column=add + 1, padx=10 + 100 * add, pady=20 + 100)
         add_label = Label(window, text="Add account")
         add_label.grid(row=1, column=add)
 
     elif add < 4:
+        image_add = tk_image.PhotoImage(image.open('add-button.png'))
         add_button = Button(
             window, image=image_add, border="0", command=addaccount
         )
         add_button.photo = image_add
 
-        add_button.grid(row=0, padx=10 + 100 * add, pady=20, column=add+1)
+        add_button.grid(row=0, padx=10 + 100 * add, pady=20, column=add + 1)
         add_label = Label(window, text="Add account")
-        add_label.grid(row=1, column=add+1)
+        add_label.grid(row=1, column=add + 1)
     elif add == 8:
         pass
 
