@@ -173,7 +173,7 @@ class Register:
 
 def create_key(password, message):
     password_key = password.encode()
-    salt = os.urandom(16)
+    salt = os.urandom(32)
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
