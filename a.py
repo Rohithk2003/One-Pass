@@ -1,4 +1,4 @@
-# modules
+# all required modules
 import base64
 import glob
 import hashlib
@@ -363,7 +363,6 @@ def login_password():
                 "Error", "Please provide the OTP  send to your email")
 
     def forgot_password(OTP, email, username):
-        try:
             global running
             running = True
             SUBJECT = "OTP verification for ONE-PASS-MANAGER"
@@ -371,12 +370,12 @@ def login_password():
             msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
             s = smtplib.SMTP("smtp.gmail.com", 587)
             s.starttls()
-            s.login("rohithk652@gmail.com", "rohithk2003")
-            s.sendmail("rohithk652@gmail.com", email, msg)
-        except:
-            messagebox.showinfo(
-                "Error", "Please Connect to the internet \n then retry")
-            sys.exit()
+            s.login("rohithk6474@gmail.com", "Kedaram@123")
+            s.sendmail("rohithk6474@gmail.com", email, msg)
+        # except:
+        #     messagebox.showinfo(
+        #         "Error", "Please Connect to the internet \n then retry")
+        #     sys.exit()
 
     def main(key):
         run = False
@@ -1055,13 +1054,15 @@ def gameloop(username, hashed_password, window):
     global image_path
     window.grid_propagate(0)
 
-    subbar = Frame(window,width=200,height=800, bg='black',relief="sunken", borderwidth=2)
+    subbar = Frame(window,width=200,height=800,relief="sunken", borderwidth=2)
     # my_canvas = Canvas(subbar)
     # Scroll_y = Scrollbar(subbar, orient="vertical")
     # Scroll_y.pack(side="right", fill=Y)
     # subbar.config( yscrollcommand=Scroll_y.set)
     # Scroll_y.config(command=subbar.yview)
     subbar.grid(row=0,column=0)
+    subbar.grid_propagate(0)
+
     file_name = username + 'decrypted.bin'
     my_cursor.execute(
         'select no_of_accounts from data_input where username = (%s)', (username,))
@@ -1147,24 +1148,34 @@ def gameloop(username, hashed_password, window):
         save_button.grid(row=4, column=1)
 
         root1.mainloop()
-    def sidebar_account(username,password,social_media,social_account,path,window):
-            print(path)
-            print('hi')
+    def sidebar_account(username,password,social_media,social_account,path,window,ogi,another_button):
             if path:
+                print('hi')
                 main_im = image.open(path)
                 main_tk = tk_image.PhotoImage(main_im)
             else:
+                print('hello')
                 main_im = image.open('photo.png')
+                print('hmm')
                 main_tk = tk_image.PhotoImage(main_im)
-            image_button = Button(window,image=main_tk,justify='center')
-            # image_button.config(command=change_icon(image_button,username,social_account))
-            username_label_widget =Label(window,text='Username: {username}')
-            password_label_widget = Label(window,text='Password: {password}')
-            social_media_widget = Label(window,text='Account Name: {social_media}')
-            username_label_widget.grid(row=2,column=1)
-            password_label_widget.grid(row=3,column=1)
-            social_media_widget.grid(row=1, column=1)
-            image_button.grid(row=0,column=1)
+            new = Button(window,image=main_tk,relief='sunken')
+            new.photo = main_tk
+            new['border'] = 0
+
+            new.configure(command=lambda: change_icon(new,username,social_account))
+            username_label_widget =Label(window,relief='sunken',text=f'Username: {username}',font=('helvetica',15))
+            password_label_widget = Label(window, relief='sunken',text=f'Password: {password}', font=('helvetica', 15))
+            social_media_widget = Label(window,relief='sunken',text=f'Account Name: {social_media}',font=('helvetica',15))
+            username_label_widget.grid(row=0, column=1)
+            username_label_widget.place(x=315,y=250)
+            password_label_widget.grid(row=0,column=1)
+            password_label_widget.place(x=315,y=300)
+            social_media_widget.grid(row=0, column=1)
+            social_media_widget.place(x=315, y=200)
+            new.grid(row=0, column=1)
+            new.place(x=375, y=100)
+
+
     def change_icon(button, usernam, users_username):
         file_name = users_username + 'decrypted.bin'
         l = [(32, 32), (16, 16)]
@@ -1187,6 +1198,8 @@ def gameloop(username, hashed_password, window):
                 if im.size in l:
                     for i in pad:
                         if i[0] == usernam:
+                            print(i[0])
+                            print(usernam)
                             i[3] = image_path
                     f.close()
                     with open(file_name, 'wb') as f1:
@@ -1220,36 +1233,50 @@ def gameloop(username, hashed_password, window):
             new_tk = tk_image.PhotoImage(path_im)
             button.config(image=new_tk)
             button.photo = new_tk
-    for num in no_accounts:
-        add = int(num[0])
     try:
-        with open(username + 'decrypted.bin', 'rb') as f:
-            account_fetch = pickle.load(f)
-            length = len(account_fetch)
-            for i in range(length):
-                social_account_media = account_fetch[i][2]
-                social_account_username = account_fetch[i][0]
-                social_account_password = account_fetch[i][1]
-                image_account_path = account_fetch[i][3]
-                try:
-                    image_account = image.open(image_account_path)
-                except:
-                    image_account = image.open('photo.png')
-                tkimage = tk_image.PhotoImage(image_account)
-                username_widget = Label(
-                    subbar, text=f'Account Name {social_account_media}\nUsername: {social_account_username}\nPassword:{social_account_password}', bd=1, relief='sunken', anchor='w', justify='left')
+        for num in no_accounts:
+            add = int(num[0])
+        with open(username+'decrypted.bin','rb') as f:
+            list_val = pickle.load(f)
+            le = length(list_val)
+            for i in range(le):
+                image_account_load = le[i][3]
+                social_account_media_surface = le[i][2]
+                
+    def main_bar():
+        for num in no_accounts:
+            add = int(num[0])
 
-                account_image = Button(subbar, text=social_account_media, image=tkimage, width='0', compound="top", command=lambda: sidebar_account(
-                    social_account_username, social_account_password, social_account_media,username, image_account_path,window))
-                account_image.photo = tkimage
-                account_image["border"] = "0"
-                username_widget.config(anchor='w', justify='left')
-                # username_widget.grid(row=0 + i, column=0)
-                account_image.grid(row=0 + i, column=0)
+        try:
+            with open(username + 'decrypted.bin', 'rb') as f:
+                account_fetch = pickle.load(f)
+                length = len(account_fetch)
+                for i in range(length):
+                    social_account_media = account_fetch[i][2]
+                    social_account_username = account_fetch[i][0]
+                    social_account_password = account_fetch[i][1]
+                    image_account_path = account_fetch[i][3]
+                    print(social_account_username)
+                    print(social_account_password)
+                    try:
+                        image_account = image.open(image_account_path)
+                    except:
+                        image_account = image.open('photo.png')
+                    tkimage = tk_image.PhotoImage(image_account)
+                    username_widget = Label(
+                        subbar, text=f'Account Name {social_account_media}\nUsername: {social_account_username}\nPassword:{social_account_password}', bd=1, relief='sunken', anchor='w', justify='left')
 
-    except:
+                    account_image = Button(subbar, text=social_account_media, image=tkimage, width='0', compound="top", command=lambda: sidebar_account(
+                        social_account_username, social_account_password, social_account_media,username, image_account_path,window,username,account_image))
+                    account_image.photo = tkimage
+                    account_image["border"] = "0"
+                    username_widget.config(anchor='w', justify='left')
+                    # username_widget.grid(row=0 + i, column=0)
+                    account_image.grid(row=0 + i, column=0)
 
-        add = 0
+        except:
+
+            add = 0
 
     def verify(social_username, social_media):
         try:
