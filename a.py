@@ -676,7 +676,7 @@ def window_after(username, hash_password):
                             ],
                         )
                         gmm = str(file)
-                        password = str(simpledialog.askstring(title="Test",
+                        password = str(simpledialog.askstring(title="Password",
                                                               prompt="Please provide the password"))
                         status_name = file
                         if file == "":
@@ -1054,7 +1054,13 @@ def window_after(username, hash_password):
 def gameloop(username, hashed_password, window):
     global image_path
     window.grid_propagate(0)
-    subbar = Frame(window,width=200,height=800, relief="sunken", borderwidth=2)
+
+    subbar = Frame(window,width=200,height=800, bg='black',relief="sunken", borderwidth=2)
+    # my_canvas = Canvas(subbar)
+    # Scroll_y = Scrollbar(subbar, orient="vertical")
+    # Scroll_y.pack(side="right", fill=Y)
+    # subbar.config( yscrollcommand=Scroll_y.set)
+    # Scroll_y.config(command=subbar.yview)
     subbar.grid(row=0,column=0)
     file_name = username + 'decrypted.bin'
     my_cursor.execute(
@@ -1141,7 +1147,24 @@ def gameloop(username, hashed_password, window):
         save_button.grid(row=4, column=1)
 
         root1.mainloop()
-
+    def sidebar_account(username,password,social_media,social_account,path,window):
+            print(path)
+            print('hi')
+            if path:
+                main_im = image.open(path)
+                main_tk = tk_image.PhotoImage(main_im)
+            else:
+                main_im = image.open('photo.png')
+                main_tk = tk_image.PhotoImage(main_im)
+            image_button = Button(window,image=main_tk,justify='center')
+            # image_button.config(command=change_icon(image_button,username,social_account))
+            username_label_widget =Label(window,text='Username: {username}')
+            password_label_widget = Label(window,text='Password: {password}')
+            social_media_widget = Label(window,text='Account Name: {social_media}')
+            username_label_widget.grid(row=2,column=1)
+            password_label_widget.grid(row=3,column=1)
+            social_media_widget.grid(row=1, column=1)
+            image_button.grid(row=0,column=1)
     def change_icon(button, usernam, users_username):
         file_name = users_username + 'decrypted.bin'
         l = [(32, 32), (16, 16)]
@@ -1216,8 +1239,8 @@ def gameloop(username, hashed_password, window):
                 username_widget = Label(
                     subbar, text=f'Account Name {social_account_media}\nUsername: {social_account_username}\nPassword:{social_account_password}', bd=1, relief='sunken', anchor='w', justify='left')
 
-                account_image = Button(subbar,text=social_account_media, image=tkimage, width='0',compound="top", command=lambda: change_icon(
-                    account_image, social_account_username, username))
+                account_image = Button(subbar, text=social_account_media, image=tkimage, width='0', compound="top", command=lambda: sidebar_account(
+                    social_account_username, social_account_password, social_account_media,username, image_account_path,window))
                 account_image.photo = tkimage
                 account_image["border"] = "0"
                 username_widget.config(anchor='w', justify='left')
