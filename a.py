@@ -143,7 +143,6 @@ class Register:
                     email_split += i
         main_password = email_split + self.email_password
         static_salt_password = self.password + "@" + main_password
-        print(static_salt_password)
         cipher_text, salt_for_decryption = create_key(
             main_password, static_salt_password
         )
@@ -157,6 +156,7 @@ class Register:
         for_hashing = self.password + self.username
         hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
         file_name = self.username + ".bin"
+        decrypted_file = self.username + 'decrypted.bin'
         with open(file_name, "wb") as f:
             f.close()
         pyAesCrypt.encryptFile(file_name, file_name +
@@ -173,7 +173,7 @@ class Register:
 
 def create_key(password, message):
     password_key = password.encode()
-    salt = os.urandom(32)
+    salt = os.urandom(64)
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
@@ -184,9 +184,6 @@ def create_key(password, message):
     key = base64.urlsafe_b64encode(kdf.derive(password_key))
     message_encrypt = message.encode()
     f = Fernet(key)
-    fa = open('hi.txt', 'w')
-    fa.write(key.decode('utf-8'))
-    fa.close()
     encrypted = f.encrypt(message_encrypt)
     return encrypted, salt
 
@@ -202,13 +199,10 @@ def retreive_key(password, byte, de):
     )
     key = base64.urlsafe_b64encode(kdf.derive(password_key))
     f = Fernet(key)
-    print(key)
-    print('hi')
-    print(byte)
+
     fa = open('hia.txt', 'w')
     fa.write(key.decode('utf-8'))
     decrypted = f.decrypt(byte)
-    print('a')
     return decrypted.decode('utf-8')
 
 
@@ -242,7 +236,8 @@ def login_password():
     def generate_key1(file):
         pyAesCrypt.encryptFile(file, "otp.bin.fenc", key, bufferSize)
         os.unlink(file)
-        messagebox.showinfo("OTP", f"An OTP has been sent to your {(recover_email_entry)}")
+        messagebox.showinfo(
+            "OTP", f"An OTP has been sent to your {(recover_email_entry)}")
 
     def change_password(email, password1, username12):
         root = Tk()
@@ -274,12 +269,10 @@ def login_password():
         has = None
         salt = None
         decrypted_string = ""
-        print(values_password)
         for i in values_password:
             has = i[0]
             salt = i[1]
 
-        print(type(has))
         string = retreive_key(main_pass, has, salt)
         for i in string:
             if i == "@":
@@ -430,16 +423,11 @@ def login_password():
             (username_verify,),
         )
         values_fetch = my_cursor.fetchall()
-        print(values_fetch)
-        print(type(values_fetch))
+
         try:
             for i in values_fetch:
-                print('hi')
-                print(recover_email_entry_verify == i[0])
-                print(type(i))
-                print(type(recover_email_entry_verify))
+
                 if i[0] == recover_email_entry_verify:
-                    print('running')
                     run = True
                 else:
                     run = False
@@ -453,7 +441,6 @@ def login_password():
             messagebox.showerror(
                 "Error", "No user exist with the provided username")
             roo1.destroy()
-        print(run)
         if run:
             digits = "1234567890"
             OTP = ""
@@ -473,22 +460,22 @@ def login_password():
 
 
 def testing(root, mainarea, username, hash_password):
-    print('function has been called')
     root.title("Passwords")
     emptyMenu = Menu(root)
+    root.geometry('800x600')
     mainarea.config(bg="white")
     root.config(menu=emptyMenu)
 
     list = mainarea.pack_slaves()
     for l in list:
         l.destroy()
-    print('gameloop is getting executed')
     gameloop(username, hash_password, mainarea)
 
 
 def window_after(username, hash_password):
     # sidebar
     root = Tk()
+    root.geometry('800x600')
     status_name = False
     sidebar = Frame(
         root, width=500, bg="#0d0d0d", height=500, relief="sunken", borderwidth=2
@@ -736,7 +723,7 @@ def window_after(username, hash_password):
                 messagebox.showinfo("Notepad", "Notepad by Rohithk-25-11-2020")
 
             # Basic tkinter setup
-            root.geometry("700x600")
+            root.geometry("800x600")
             root.title("Untitled - Notepad")
             root.config(bg="#0d0d0d")
             # Add TextArea
@@ -1010,9 +997,12 @@ def window_after(username, hash_password):
 
             EditMenu.add_command(label="Text Color", command=change_color)
             EditMenu.add_command(label="Background Color", command=bg_color)
-            EditMenu.add_command(label="Cut", command=cut, accelerator='(Ctrl+x)')
-            EditMenu.add_command(label="Copy", command=copy, accelerator='(Ctrl+c)')
-            EditMenu.add_command(label="Paste", command=paste, accelerator='(Ctrl+v)')
+            EditMenu.add_command(label="Cut", command=cut,
+                                 accelerator='(Ctrl+x)')
+            EditMenu.add_command(label="Copy", command=copy,
+                                 accelerator='(Ctrl+c)')
+            EditMenu.add_command(
+                label="Paste", command=paste, accelerator='(Ctrl+v)')
             EditMenu.add_command(
                 label="Find", command=primary, accelerator='(Ctrl+f)')
             EditMenu.add_command(
@@ -1064,15 +1054,17 @@ def window_after(username, hash_password):
 def gameloop(username, hashed_password, window):
     global image_path
     window.grid_propagate(0)
+    subbar = Frame(window,width=200,height=800, relief="sunken", borderwidth=2)
+    subbar.grid(row=0,column=0)
     file_name = username + 'decrypted.bin'
     my_cursor.execute(
         'select no_of_accounts from data_input where username = (%s)', (username,))
     no_accounts = my_cursor.fetchall()
     add = 0
     exist = False
-
+    def delete_account(username,account_name):
+        pass
     def addaccount():
-
         root1 = Toplevel()
         name_of_social = Label(root1, text="Name of the social media")
         name_of_social.grid(row=0, column=1)
@@ -1126,7 +1118,6 @@ def gameloop(username, hashed_password, window):
                     line.append(list_account)
                     f.close()
                 with open(name_file, 'wb') as f1:
-                    print(line)
                     pickle.dump(line, f1)
                     f.close()
                 os.remove(username + '.bin.fenc')
@@ -1142,7 +1133,6 @@ def gameloop(username, hashed_password, window):
                     to_append = real_accounts + 1
                 my_cursor.execute('update data_input set no_of_accounts =(%s) where username = (%s)',
                                   (to_append, username))
-                print('added!')
             elif not verifying:
                 messagebox.showerror(
                     'Error', 'Account with the username already exist')
@@ -1152,42 +1142,61 @@ def gameloop(username, hashed_password, window):
 
         root1.mainloop()
 
-    def change_icon(button):
+    def change_icon(button, usernam, users_username):
+        file_name = users_username + 'decrypted.bin'
         l = [(32, 32), (16, 16)]
         image_path = fd.askopenfilename(filetypes=[("image", "*.png"), ("image", "*.jpeg"), ("image", "*.jpg")],
                                         title='Add icon')
+        f = open(file_name, 'rb')
+        pad = pickle.load(f)
+        path = ''
+        for i in pad:
+            if i[0] == usernam:
+                path = i[3]
+        if path == '':
+            path_im = image.open('photo.png')
+        else:
+            path_im = image.open(path)
+
         try:
             im = image.open(image_path)
-            for i in l:
-                if im:
-                    if i == im.size:
-                        new_tk = tk_image.PhotoImage(im)
-                        button.config(image=new_tk)
-                        button.photo = new_tk
-                    elif not im.size:
+            if im:
+                if im.size in l:
+                    for i in pad:
+                        if i[0] == usernam:
+                            i[3] = image_path
+                    f.close()
+                    with open(file_name, 'wb') as f1:
+                        pickle.dump(pad, f1)
+                        f1.close()
+                    os.remove(users_username + '.bin.fenc')
+                    pyAesCrypt.encryptFile(
+                        file_name, users_username + '.bin.fenc', hashed_password, bufferSize)
+                    new_tk = tk_image.PhotoImage(im)
+                    button.config(image=new_tk)
+                    button.photo = new_tk
+                else:
+                    messagebox.showerror(
+                        'Error', 'Please provide icon size of 32x32 or 16x16')
+                    im = image.open('photo.png')
+                    new_tk = tk_image.PhotoImage(im)
+                    button.config(image=new_tk)
+                    button.photo = new_tk
+                    image_path = fd.askopenfilename(
+                        filetypes=[("image", "*.png")], title='Add icon')
+
+                    try:
+                        im = image.open(image_path)
+                    except:
                         im = image.open('photo.png')
                         new_tk = tk_image.PhotoImage(im)
                         button.config(image=new_tk)
                         button.photo = new_tk
-                    else:
-                        messagebox.showerror('Error', 'Please provide icon size of 32x32 or 16x16')
-                        image_path = fd.askopenfilename(filetypes=[("image", "*.png")], title='Add icon')
-                        # button.config(image=image_new)
-                        # button.photo = image_new
-                        try:
-                            im = image.open(image_path)
-                        except:
-                            im = image.open('photo.png')
-                            new_tk = tk_image.PhotoImage(im)
-                            button.config(image=new_tk)
-                            button.photo = new_tk
-                            break
+
         except:
-            im = image.open('photo.png')
-            new_tk = tk_image.PhotoImage(im)
+            new_tk = tk_image.PhotoImage(path_im)
             button.config(image=new_tk)
             button.photo = new_tk
-
     for num in no_accounts:
         add = int(num[0])
     try:
@@ -1199,27 +1208,22 @@ def gameloop(username, hashed_password, window):
                 social_account_username = account_fetch[i][0]
                 social_account_password = account_fetch[i][1]
                 image_account_path = account_fetch[i][3]
-                print(social_account_username)
-                print(social_account_password)
-
-            for i in account_fetch:
-                social_account_username = i[0]
-                social_account_media = i[2]
-                social_account_password = i[1]
-                image_account_path = i[3]
                 try:
                     image_account = image.open(image_account_path)
                 except:
                     image_account = image.open('photo.png')
                 tkimage = tk_image.PhotoImage(image_account)
-                username_widget = Label(window,text=f'Username: {social_account_username}')
-                password_widget = Label(window,text=f'Password: {social_account_password}')
-                account_image = Button(window,image=tkimage,command = lambda: change_icon(account_image))
+                username_widget = Label(
+                    subbar, text=f'Account Name {social_account_media}\nUsername: {social_account_username}\nPassword:{social_account_password}', bd=1, relief='sunken', anchor='w', justify='left')
+
+                account_image = Button(subbar,text=social_account_media, image=tkimage, width='0',compound="top", command=lambda: change_icon(
+                    account_image, social_account_username, username))
                 account_image.photo = tkimage
-                if add == 0:
-                    username_widget.grid(row=1,column=0)
-                    password_widget.grid(row=2,column=0)
-                    account_image.grid(row=0,column=0)
+                account_image["border"] = "0"
+                username_widget.config(anchor='w', justify='left')
+                # username_widget.grid(row=0 + i, column=0)
+                account_image.grid(row=0 + i, column=0)
+
     except:
 
         add = 0
@@ -1233,39 +1237,12 @@ def gameloop(username, hashed_password, window):
                         return True
         except:
             return False
-
-    if add == 0:
-        image_add = tk_image.PhotoImage(image.open('add-button.png'),master=window)
-        add_button = Button(
-            window, image=image_add, borderwidth="0", command=addaccount
-        )
-        add_label = Label(window, text="Add account")
-        add_label.grid(row=1, column=1)
-        add_button.photo = image_add
-        add_button.grid(row=0, column=1)
-
-    elif 4 < add < 8:
-        image_add = tk_image.PhotoImage(image.open('add-button.png'))
-        add_button = Button(
-            window, image=image_add, border="0", command=addaccount
-        )
-        add_button.photo = image_add
-        add_button.grid(row=0, column=add + 1)
-        add_label = Label(window, text="Add account")
-        add_label.grid(row=1, column=add)
-
-    elif 0 < add < 4:
-        image_add = tk_image.PhotoImage(image.open('add-button.png'))
-        add_button = Button(
-            window, image=image_add, border="0", command=addaccount
-        )
-        add_button.photo = image_add
-        add_button.grid(row=0, column=add + 1)
-        add_label = Label(window, text="Add account")
-        add_label.grid(row=1, column=add + 1)
-    elif add == 8:
-        pass
-
+    add_label = Label(subbar, text="Add account", bd=1, relief='sunken')
+    image_add = tk_image.PhotoImage(image.open('add-button.png'))
+    add_button = Button(subbar, image=image_add, border="0", command=addaccount)
+    add_button.photo = image_add
+    add_button.grid(row=add + 1, column=0)
+    add_label.grid(row=add + 1, column=0)
 
 def login():
     login_window = Tk()
@@ -1303,7 +1280,8 @@ def login():
     )
 
     def login_checking_1():
-        my_cursor.execute("select email_id from data_input where username = (%s)", (str(input_entry.get()),))
+        my_cursor.execute(
+            "select email_id from data_input where username = (%s)", (str(input_entry.get()),))
         val_list = my_cursor.fetchall()
         password = str(pass_entry.get())
         username = str(input_entry.get())
@@ -1404,7 +1382,6 @@ def register(*window):
         checking = register_user.check_pass_length()
         if checking:
             registering = register_user.saving(my_cursor)
-            print(registering)
             if registering:
                 root = Tk()
                 root.withdraw()
