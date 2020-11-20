@@ -1155,7 +1155,19 @@ def gameloop(username, hashed_password, window):
         save_button.grid(row=4, column=1)
         root1.mainloop()
 
-    def sidebar_account(username, password, social_media, social_account, path, window, ogi, another_button):
+    def sidebar_account(social_media, path, window, real_username):
+
+        with open(real_username+'decrypted.bin','rb') as f:
+            accounts = pickle.load(f)
+            iusername = ''
+            ipassword = ''
+            for i in accounts:
+                if i[2] == social_media and i[3] == path:
+                    iusername = i[0] 
+                    ipassword = i[1]
+                    print(iusername)
+                    print(ipassword)
+            f.close()
         if path:
             print('hi')
             main_im = image.open(path)
@@ -1165,13 +1177,20 @@ def gameloop(username, hashed_password, window):
             main_im = image.open('photo.png')
             print('hmm')
             main_tk = tk_image.PhotoImage(main_im)
+        try:
+            list = window.grid_slaves()
+            for i in list:
+                print(i)
+        except:
+            print('lemme check')
+            pass
         new = Button(window, image=main_tk, relief='sunken')
         new.photo = main_tk
         new['border'] = 0
 
-        new.configure(command=lambda: change_icon(new, username, social_account))
-        username_label_widget = Label(window, relief='sunken', text=f'Username: {username}', font=('helvetica', 15))
-        password_label_widget = Label(window, relief='sunken', text=f'Password: {password}', font=('helvetica', 15))
+        new.configure(command=lambda: change_icon(new, iusername, social_account))
+        username_label_widget = Label(window, relief='sunken', text=f'Username: {iusername}', font=('helvetica', 15))
+        password_label_widget = Label(window, relief='sunken', text=f'Password: {ipassword}', font=('helvetica', 15))
         social_media_widget = Label(window, relief='sunken', text=f'Account Name: {social_media}',
                                     font=('helvetica', 15))
         username_label_widget.grid(row=0, column=1)
@@ -1241,48 +1260,11 @@ def gameloop(username, hashed_password, window):
             button.config(image=new_tk)
             button.photo = new_tk
 
-
+    def redirect():
+        
     # except:
     #     print('returning error')
     #     pass
-
-    def main_bar(path,account_name):
-        for num in no_accounts:
-            add = int(num[0])
-
-        try:
-            with open(username + 'decrypted.bin', 'rb') as f:
-                account_fetch = pickle.load(f)
-                length = len(account_fetch)
-                for i in range(length):
-                    if account_name == account_fetch[i][2] and path == account_fetch[i][3]:
-                        social_account_username = account_fetch[i][0]
-                        social_account_password = account_fetch[i][1]
-                        print(social_account_username)
-                        print(social_account_password)
-                        try:
-                            image_account = image.open(image_account_path)
-                        except:
-                            image_account = image.open('photo.png')
-                        tkimage = tk_image.PhotoImage(image_account)
-                        username_widget = Label(
-                            subbar,
-                            text=f'Account Name {social_account_media}\nUsername: {social_account_username}\nPassword:{social_account_password}',
-                            bd=1, relief='sunken', anchor='w', justify='left')
-
-                        account_image = Button(subbar, text=social_account_media, image=tkimage, width='0', compound="top",
-                                               command=lambda: sidebar_account(
-                                                   social_account_username, social_account_password, social_account_media,
-                                                   username, image_account_path, window, username, account_image))
-                        account_image.photo = tkimage
-                        account_image["border"] = "0"
-                        username_widget.config(anchor='w', justify='left')
-                        # username_widget.grid(row=0 + i, column=0)
-                        account_image.grid(row=0 + i, column=0)
-
-        except:
-
-            add = 0
 
     for num in no_accounts:
             add = int(num[0])
@@ -1298,7 +1280,7 @@ def gameloop(username, hashed_password, window):
                 else:
                     image_file = tk_image.PhotoImage(image.open('photo.png'))
                 label_account = Button(subbar, text=f"{social_account_media_surface}", image=image_file, compound='top',
-                                      command=main_bar(image_account_load,social_account_media_surface))
+                                      command=lambda: sidebar_account(social_account_media_surface,image_account_load,window,username))
                 label_account.photo = image_file
                 label_account.grid(row=0 + i, column=0)
         except:
@@ -1313,12 +1295,10 @@ def gameloop(username, hashed_password, window):
         except:
             return False
 
-    add_label = Label(subbar, text="Add account", bd=1, relief='sunken')
     image_add = tk_image.PhotoImage(image.open('add-button.png'))
-    add_button = Button(subbar, image=image_add, border="0", command=addaccount)
+    add_button = Button(subbar, text='Add account',image=image_add, border="0", command=addaccount,compound='top')
     add_button.photo = image_add
     add_button.grid(row=add + 1, column=0)
-    add_label.grid(row=add + 1, column=0)
 
 
 def login():
