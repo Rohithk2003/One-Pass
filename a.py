@@ -1260,7 +1260,7 @@ def gameloop(username, hashed_password, window):
             button.config(image=new_tk)
             button.photo = new_tk
 
-    def redirect():
+    # def redirect():
         
     # except:
     #     print('returning error')
