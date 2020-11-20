@@ -153,7 +153,7 @@ class Register:
         )
         return False
 
-    def creation(self):
+    def creation(self,window):
         for_hashing = self.password + self.username
         hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
         file_name = self.username + ".bin"
@@ -167,6 +167,7 @@ class Register:
         windows.withdraw()
         messagebox.showinfo("Success", "Your account has been created")
         windows.destroy()
+        window.destroy()
         window_after(self.username, self.password)
         pyAesCrypt.decryptFile(file_name + ".fenc",
                                file_name, hash_pass, bufferSize)
@@ -1465,7 +1466,7 @@ def register(*window):
                     "Error", "Username and email already exists")
                 root.destroy()
             if not registering:
-                register_user.creation()
+                register_user.creation(login_window1)
 
         else:
             messagebox.showinfo(
