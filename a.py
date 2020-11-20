@@ -7,14 +7,14 @@ import os.path
 import pickle
 import random
 import smtplib
+
 from tkinter import colorchooser
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from tkinter import simpledialog
 from tkinter.ttk import *
 from tkinter import *
-# hmmm
-import mysql.connector
+import sqlite3
 import pyAesCrypt
 from PIL import Image as image
 from PIL import ImageTk as tk_image
@@ -41,18 +41,9 @@ y = screen_height / 2 - height_window / 2
 root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 
 "------------------------------------ mysql database ------------------------------------"
-my_database = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="rohithk123",
-    auth_plugin="mysql_native_password",
-)
-my_cursor = my_database.cursor()
-my_cursor.execute("set autocommit=1")
-my_cursor.execute(
-    "create database if not exists  USERS DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci"
-)
-my_cursor.execute("use USERS")
+connection = sqlite3.connect('users.db',isolation_level=None)
+my_cursor = connection.cursor()
+
 my_cursor.execute(
     "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,"
     "salt blob,no_of_accounts int(120) default 0) "
@@ -81,35 +72,45 @@ class Login:
         self.password = str(password)
 
     def login_checking(self):
-
-        for_hashing_both = self.password + self.username
-        main_password = hashlib.sha512(for_hashing_both.encode()).hexdigest()
-        try:
-            pyAesCrypt.decryptFile(
-                self.username + ".bin.fenc",
-                self.username + "decrypted.bin",
-                main_password,
-                bufferSize,
-            )
-        except OSError:
+        if self.username == '' or self.username == ' ' :
             root_error = Tk()
             root_error.withdraw()
-            messagebox.showerror(
-                "Error",
-                f"No user exist with {self.username}, Please register or provide the correct username",
-            )
+            messagebox.showerror('Error','Cannot have blank username ')
             root_error.destroy()
-            return False, main_password
-        except ValueError:
-            root = Tk()
-            root.withdraw()
-            messagebox.showerror(
-                "Error",
-                f"Wrong password for {self.username}",
-            )
-            root.destroy()
-            return False, main_password
-        return True, main_password
+        elif  self.password == '' or self.password == ' ':
+            root_error = Tk()
+            root_error.withdraw()
+            messagebox.showerror('Error','Password cannot be empty ')
+            root_error.destroy()
+        else:
+            for_hashing_both = self.password + self.username
+            main_password = hashlib.sha512(for_hashing_both.encode()).hexdigest()
+            try:
+                pyAesCrypt.decryptFile(
+                    self.username + ".bin.fenc",
+                    self.username + "decrypted.bin",
+                    main_password,
+                    bufferSize,
+                )
+            except OSError:
+                root_error = Tk()
+                root_error.withdraw()
+                messagebox.showerror(
+                    "Error",
+                    f"No user exist with  the username {self.username}, Please register or provide the correct username",
+                )
+                root_error.destroy()
+                return False, main_password
+            except ValueError:
+                root = Tk()
+                root.withdraw()
+                messagebox.showerror(
+                    "Error",
+                    f"Wrong password for {self.username}",
+                )
+                root.destroy()
+                return False, main_password
+            return True, main_password
 
     def windows(self, main_password, window, cursor):
         window_after(self.username, main_password)
@@ -147,7 +148,7 @@ class Register:
             main_password, static_salt_password
         )
         object.execute(
-            "insert into data_input values (%s, %s, %s, %s, 0)",
+            "insert into data_input values (?,?,?,?, 0)",
             (self.username, self.email_id, cipher_text, salt_for_decryption),
         )
         return False
@@ -237,7 +238,7 @@ def login_password():
         pyAesCrypt.encryptFile(file, "otp.bin.fenc", key, bufferSize)
         os.unlink(file)
         messagebox.showinfo(
-            "OTP", f"An OTP has been sent to your {(recover_email_entry)}")
+            "OTP", f"An OTP has been sent to your {recover_email_entry}")
 
     def change_password(email, password1, username12):
         root = Tk()
@@ -252,7 +253,7 @@ def login_password():
         new_username_entry.grid(row=1, column=1)
         new_password_entry.grid(row=2, column=1)
         my_cursor.execute(
-            "select password,salt from data_input where email_id = (%s)", (
+            "select password,salt from data_input where email_id = (?)", (
                 email,)
         )
         values_password = my_cursor.fetchall()
@@ -302,7 +303,7 @@ def login_password():
                 pickle.dump(line, f)
                 f.close()
             my_cursor.execute(
-                "delete from data_input where username = (%s)", (username12,)
+                "delete from data_input where username = (?)", (username12,)
             )
             new_salt = str(new_password_entry.get()) + "@" + password_decrypt
             re_hash_new = pbkdf2_sha256.hash(str(new_password_entry.get()))
@@ -315,7 +316,7 @@ def login_password():
             )
             new_username_entry_get = str(new_username_entry.get())
             my_cursor.execute(
-                "select no_of_accounts from data_input where username = (%s)",
+                "select no_of_accounts from data_input where username = (?)",
                 (new_username_entry_get,),
             )
             no = my_cursor.fetchall()
@@ -323,7 +324,7 @@ def login_password():
             for i in no:
                 value = i[0]
             my_cursor.execute(
-                "insert into data_input values(%s,%s,%s,%s,%s)",
+                "insert into data_input values(?,?,?,?,?)",
                 (str(new_username_entry.get()), email, re_encrypt, new_salt, value),
             )
             if os.path.exists(str(new_username_entry.get()) + ".bin.fenc"):
@@ -363,20 +364,21 @@ def login_password():
                 "Error", "Please provide the OTP  send to your email")
 
     def forgot_password(OTP, email, username):
-        global running
-        running = True
-        SUBJECT = "OTP verification for ONE-PASS-MANAGER"
-        otp = f"Hey {username}! Your OTP for your ONE-PASS manager is {OTP}.Please use this to verify your email"
-        msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
-        s = smtplib.SMTP("smtp.gmail.com", 587)
-        s.starttls()
-        s.login("rohithk6474@gmail.com", "Kedaram@123")
-        s.sendmail("rohithk6474@gmail.com", email, msg)
+        try:
+            global running
+            running = True
+            SUBJECT = "OTP verification for ONE-PASS-MANAGER"
+            otp = f"Hey {username}! Your OTP for your ONE-PASS manager is {OTP}.Please use this to verify your email"
+            msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
+            s = smtplib.SMTP("smtp.gmail.com", 587)
+            s.starttls()
+            s.login("rohithk6474@gmail.com", "Kedaram@123")
+            s.sendmail("rohithk6474@gmail.com", email, msg)
 
-    # except:
-    #     messagebox.showinfo(
-    #         "Error", "Please Connect to the internet \n then retry")
-    #     sys.exit()
+        except:
+             messagebox.showinfo(
+                 "Error", "Please Connect to the internet \n then retry")
+             sys.exit()
 
     def main(key):
         run = False
@@ -745,11 +747,12 @@ def window_after(username, hash_password):
                 xscrollcommand=Scroll_x.set,
                 yscrollcommand=Scroll_y.set
             )
+
             Scroll_y.config(command=TextArea.yview)
             Scroll_x.config(command=TextArea.xview)
             TextArea.pack(expand=True, fill=BOTH)
 
-            # Lets create a menubar
+            # create a menubar
             MenuBar = Menu(root)
             status_name = False
             # File Menu Starts
@@ -1066,7 +1069,7 @@ def gameloop(username, hashed_password, window):
 
     file_name = username + 'decrypted.bin'
     my_cursor.execute(
-        'select no_of_accounts from data_input where username = (%s)', (username,))
+        'select no_of_accounts from data_input where username = (?)', (username,))
     no_accounts = my_cursor.fetchall()
     add = 0
     exist = False
@@ -1135,13 +1138,13 @@ def gameloop(username, hashed_password, window):
                     name_file, username + '.bin.fenc', hashed_password, bufferSize)
                 messagebox.showinfo('Success', 'Your account has been saved')
                 my_cursor.execute(
-                    'select no_of_accounts from data_input where username = (%s)', (username,))
+                    'select no_of_accounts from data_input where username = (?)', (username,))
                 val = my_cursor.fetchall()
                 to_append = 0
                 for i in val:
                     real_accounts = int(i[0])
                     to_append = real_accounts + 1
-                my_cursor.execute('update data_input set no_of_accounts =(%s) where username = (%s)',
+                my_cursor.execute('update data_input set no_of_accounts =(?) where username =(?)',
                                   (to_append, username))
             elif not verifying:
                 messagebox.showerror(
@@ -1283,6 +1286,7 @@ def gameloop(username, hashed_password, window):
     for num in no_accounts:
             add = int(num[0])
     with open(username + 'decrypted.bin', 'rb') as f:
+        try:
             list_val = pickle.load(f)
             le = len(list_val)
             for i in range(le):
@@ -1296,6 +1300,8 @@ def gameloop(username, hashed_password, window):
                                       command=main_bar(image_account_load,social_account_media_surface))
                 label_account.photo = image_file
                 label_account.grid(row=0 + i, column=0)
+        except:
+            pass
     def verify(social_username, social_media):
         try:
             with open(file_name, 'r') as f:
@@ -1351,7 +1357,7 @@ def login():
 
     def login_checking_1():
         my_cursor.execute(
-            "select email_id from data_input where username = (%s)", (str(input_entry.get()),))
+            "select email_id from data_input where username = (?)", (str(input_entry.get()),))
         val_list = my_cursor.fetchall()
         password = str(pass_entry.get())
         username = str(input_entry.get())
