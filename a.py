@@ -1472,29 +1472,3 @@ for i in list_file:
         os.remove(converting_str)
     except:
         pass
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
-#testingsome changes have been made
