@@ -41,7 +41,7 @@ y = screen_height / 2 - height_window / 2
 root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 
 "------------------------------------ mysql database ------------------------------------"
-connection = sqlite3.connect('users.db',isolation_level=None)
+connection = sqlite3.connect('users.db', isolation_level=None)
 my_cursor = connection.cursor()
 
 my_cursor.execute(
@@ -72,19 +72,20 @@ class Login:
         self.password = str(password)
 
     def login_checking(self):
-        if self.username == '' or self.username == ' ' :
+        if self.username == '' or self.username == ' ':
             root_error = Tk()
             root_error.withdraw()
-            messagebox.showerror('Error','Cannot have blank username ')
+            messagebox.showerror('Error', 'Cannot have blank username ')
             root_error.destroy()
-        elif  self.password == '' or self.password == ' ':
+        elif self.password == '' or self.password == ' ':
             root_error = Tk()
             root_error.withdraw()
-            messagebox.showerror('Error','Password cannot be empty ')
+            messagebox.showerror('Error', 'Password cannot be empty ')
             root_error.destroy()
         else:
             for_hashing_both = self.password + self.username
             main_password = hashlib.sha512(for_hashing_both.encode()).hexdigest()
+
             try:
                 pyAesCrypt.decryptFile(
                     self.username + ".bin.fenc",
@@ -153,7 +154,7 @@ class Register:
         )
         return False
 
-    def creation(self,window):
+    def creation(self, window):
         for_hashing = self.password + self.username
         hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
         file_name = self.username + ".bin"
@@ -162,15 +163,14 @@ class Register:
             f.close()
         pyAesCrypt.encryptFile(file_name, file_name +
                                ".fenc", hash_pass, bufferSize)
-        os.remove(file_name)
         windows = Tk()
         windows.withdraw()
         messagebox.showinfo("Success", "Your account has been created")
         windows.destroy()
         window.destroy()
-        window_after(self.username, self.password)
-        pyAesCrypt.decryptFile(file_name + ".fenc",
-                               file_name, hash_pass, bufferSize)
+        pyAesCrypt.decryptFile(file_name + ".fenc",f'{self.username}decrypted.bin', hash_pass, bufferSize)
+        window_after(self.username, hash_pass)
+
 
 
 def create_key(password, message):
@@ -377,9 +377,9 @@ def login_password():
             s.sendmail("rohithk6474@gmail.com", email, msg)
 
         except:
-             messagebox.showinfo(
-                 "Error", "Please Connect to the internet \n then retry")
-             sys.exit()
+            messagebox.showinfo(
+                "Error", "Please Connect to the internet \n then retry")
+            sys.exit()
 
     def main(key):
         run = False
@@ -461,7 +461,7 @@ def login_password():
         window, text="verify", command=lambda: main(key))
     forgot_password_button.grid(row=5, column=1)
 
-
+var = 0
 def testing(root, mainarea, username, hash_password):
     root.title("Passwords")
     emptyMenu = Menu(root)
@@ -478,6 +478,7 @@ def testing(root, mainarea, username, hash_password):
 def window_after(username, hash_password):
     # sidebar
     root = Tk()
+    global var
     root.geometry('800x600')
     status_name = False
     sidebar = Frame(
@@ -485,10 +486,10 @@ def window_after(username, hash_password):
     )
     sidebar.pack(expand=False, fill="both", side="left")
     file = None
-
     def ap():
         global status_name
         global password
+        global var
         try:
             list = mainarea.pack_slaves()
             for i in list:
@@ -735,8 +736,6 @@ def window_after(username, hash_password):
 
             Scroll_y = Scrollbar(mainarea, orient="vertical")
             Scroll_y.pack(side="right", fill=Y)
-            Scroll_x = Scrollbar(mainarea, orient="horizontal")
-            Scroll_x.pack(side="bottom", fill=X)
             TextArea = Text(
                 mainarea,
                 font=font_main,
@@ -745,12 +744,10 @@ def window_after(username, hash_password):
                 insertontime=600,
                 insertbackground="black",
                 undo=True,
-                xscrollcommand=Scroll_x.set,
                 yscrollcommand=Scroll_y.set
             )
 
             Scroll_y.config(command=TextArea.yview)
-            Scroll_x.config(command=TextArea.xview)
             TextArea.pack(expand=True, fill=BOTH)
 
             # create a menubar
@@ -783,6 +780,16 @@ def window_after(username, hash_password):
                 TextArea.config(font=new_font_size)
 
             def change_size(size):
+                global var
+                lb = Label(mainarea,text=var,anchor = E)
+                lb.pack(fill=X,side=TOP)
+                var = len(str(TextArea.get("1.0", 'end-1c')))
+                lb.config(text=var)
+                def update(event):
+                    var = len(str(TextArea.get("1.0", 'end-1c')))
+                    lb.config(text=var)
+                TextArea.bind('<KeyPress>', update)
+                TextArea.bind("<KeyRelease>", update)
                 original_font = TextArea["font"]
                 find_font = ''
                 var = ''
@@ -1037,11 +1044,19 @@ def window_after(username, hash_password):
             HelpMenu = Menu(MenuBar, tearoff=0)
             HelpMenu.add_command(label="About Notepad", command=about)
             MenuBar.add_cascade(label="Help", menu=HelpMenu)
-
+            lb = Label(mainarea,text=var,anchor = E)
+            lb.pack(fill=X,side=TOP,ipady=5)
+            var = len(str(TextArea.get("1.0", 'end-1c')))
+            lb.config(text=var)
+            def update(event):
+                var = len(str(TextArea.get("1.0", 'end-1c')))
+                lb.config(text=var)
             # Help Menu Ends
             MenuBar.pack_propagate(0)
             sidebar.pack_propagate(0)
             root.config(menu=MenuBar)
+            TextArea.bind('<KeyPress>', update)
+            TextArea.bind("<KeyRelease>", update)
 
     # main content area
     mainarea = Frame(root, bg="#0d0d0d", width=500, height=500)
@@ -1074,10 +1089,20 @@ def gameloop(username, hashed_password, window):
     no_accounts = my_cursor.fetchall()
     add = 0
     exist = False
-
-    def delete_account(username, account_name):
-        pass
-
+    def delete_main_account(username, account_name):
+        answer = messagebox.askyesno('Are you sure you want to delete you account')
+        if answer == True:
+            result = messagebox.askquestion('Delete Account',f'Please type {username}-CONFIRM to delete your account',icon='warning')
+            if result == f'{username}-CONFIRM':
+                os.remove(username+'decrypted.bin')
+                os.remove(username+'.bin.fenc')
+                my_cursor.execute(f'delete from data_input where username = {username}')
+                messagebox.showinfo('Account deletetion','Success your account has been deleted. See you!!')
+                sys.exit()
+            else:
+                quit()
+        else:
+            quit()
     def addaccount():
         root1 = Toplevel()
         name_of_social = Label(root1, text="Name of the social media")
@@ -1155,19 +1180,12 @@ def gameloop(username, hashed_password, window):
         save_button.grid(row=4, column=1)
         root1.mainloop()
 
-    def sidebar_account(social_media, path, window, real_username):
-
-        with open(real_username+'decrypted.bin','rb') as f:
-            accounts = pickle.load(f)
-            iusername = ''
-            ipassword = ''
-            for i in accounts:
-                if i[2] == social_media and i[3] == path:
-                    iusername = i[0] 
-                    ipassword = i[1]
-                    print(iusername)
-                    print(ipassword)
-            f.close()
+    def sidebar_account(iusername, ipassword, social_media, path, window, real_username):
+        try:
+            for widget in window.winfo_children():
+                widget.winfo_class()
+        except:
+            print('it means the widgets can')
         if path:
             print('hi')
             main_im = image.open(path)
@@ -1177,18 +1195,13 @@ def gameloop(username, hashed_password, window):
             main_im = image.open('photo.png')
             print('hmm')
             main_tk = tk_image.PhotoImage(main_im)
-        try:
-            list = window.grid_slaves()
-            for i in list:
-                print(i)
-        except:
-            print('lemme check')
-            pass
+
         new = Button(window, image=main_tk, relief='sunken')
         new.photo = main_tk
         new['border'] = 0
 
-        new.configure(command=lambda: change_icon(new, iusername, social_account))
+        new.configure(command=lambda: change_icon(
+            new, iusername, real_username))
         username_label_widget = Label(window, relief='sunken', text=f'Username: {iusername}', font=('helvetica', 15))
         password_label_widget = Label(window, relief='sunken', text=f'Password: {ipassword}', font=('helvetica', 15))
         social_media_widget = Label(window, relief='sunken', text=f'Account Name: {social_media}',
@@ -1260,31 +1273,18 @@ def gameloop(username, hashed_password, window):
             button.config(image=new_tk)
             button.photo = new_tk
 
-    # def redirect():
-        
-    # except:
-    #     print('returning error')
-    #     pass
+    def redirect(social_media_user, image_path, real_username,window):
+        print(social_media_user)
+        with open (f"{real_username}decrypted.bin",'rb') as file_read:
+            ival = pickle.load(file_read)
+            for i in ival:
+                if i[2] == social_media_user and i[3] == image_path:
+                    account_username = i[0]
+                    account_password = i[1]
+                    print(account_username)
+                    print(account_password)
+                    sidebar_account(account_username, account_password, social_media_user, image_path, window, real_username)
 
-    for num in no_accounts:
-            add = int(num[0])
-    with open(username + 'decrypted.bin', 'rb') as f:
-        try:
-            list_val = pickle.load(f)
-            le = len(list_val)
-            for i in range(le):
-                image_account_load = list_val[i][3]
-                social_account_media_surface = list_val[i][2]
-                if image_account_load:
-                    image_file = tk_image.PhotoImage(image.open(image_account_load))
-                else:
-                    image_file = tk_image.PhotoImage(image.open('photo.png'))
-                label_account = Button(subbar, text=f"{social_account_media_surface}", image=image_file, compound='top',
-                                      command=lambda: sidebar_account(social_account_media_surface,image_account_load,window,username))
-                label_account.photo = image_file
-                label_account.grid(row=0 + i, column=0)
-        except:
-            pass
     def verify(social_username, social_media):
         try:
             with open(file_name, 'r') as f:
@@ -1296,7 +1296,7 @@ def gameloop(username, hashed_password, window):
             return False
 
     image_add = tk_image.PhotoImage(image.open('add-button.png'))
-    add_button = Button(subbar, text='Add account',image=image_add, border="0", command=addaccount,compound='top')
+    add_button = Button(subbar, text='Add account', image=image_add, border="0", command=addaccount, compound='top')
     add_button.photo = image_add
     add_button.grid(row=add + 1, column=0)
 
