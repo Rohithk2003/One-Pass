@@ -122,17 +122,7 @@ class Login:
         window_after(self.username, main_password)
 
 
-class Settings:
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
 
-
-def configuration(self, username):
-    file = self.username + '.cfg'
-    with open(file, 'r'):
-        texts = file.read()
-        word = texts.split()
 
 def checkforupdates( ):
     if isUpToDate('a.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py') and isUpToDate('version.txt','https://raw.githubusercontent.com/Rohithk2003/One-Pass/master/version.txt'):
@@ -193,7 +183,7 @@ class Register:
         )
         return False
 
-    def creation(self, window):
+    def creation(self):
         for_hashing = self.password + self.username
         hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
         file_name = self.username + ".bin"
@@ -202,11 +192,11 @@ class Register:
             f.close()
         pyAesCrypt.encryptFile(file_name, file_name +
                                ".fenc", hash_pass, bufferSize)
+        os.remove(file_name)
         windows = Tk()
         windows.withdraw()
         messagebox.showinfo("Success", "Your account has been created")
         windows.destroy()
-        window.destroy()
         pyAesCrypt.decryptFile(
             file_name + ".fenc", f'{self.username}decrypted.bin', hash_pass, bufferSize)
         window_after(self.username, hash_pass)
@@ -1340,34 +1330,41 @@ def gameloop(username, hashed_password, window):
         pass
     image_add = tk_image.PhotoImage(image.open('add-button.png'))
 
-    if add < 4:
-        image_add = tk_image.PhotoImage(image.open('add-button.png'))
-        add_button_text = Label(window, text='Add Account')
-        add_button = Button(
-            window,  image=image_add, border="0", compound='top', command=addaccount
-        )
+    try:
 
-        add_button.photo = image_add
-        add_button.grid(row=1, column=0 + add)
-    elif 4 <= add < 8:
-        image_add = tk_image.PhotoImage(image.open('add-button.png'))
-        add_button_text = Label(window, text='Add Account')
-        add_button = Button(
-            window,  image=image_add, border="0", compound='top', command=addaccount
-        )
+        if add < 4:
+            image_add = tk_image.PhotoImage(image.open('add-button.png'))
+            add_button_text = Label(window, text='Add Account')
+            add_button = Button(
+                window,  image=image_add, border="0", compound='top', command=addaccount
+            )
+            add_button_text.grid(row=2, column=0 + add)
+            add_button.photo = image_add
+            add_button.grid(row=1, column=0 + add)
+        elif 4 <= add < 8:
+            image_add = tk_image.PhotoImage(image.open('add-button.png'))
+            add_button_text = Label(window, text='Add Account')
+            add_button = Button(
+                window,  image=image_add, border="0", compound='top', command=addaccount
+            )
 
-        add_button.photo = image_add
-        d = int(add%4)
-        add_button.grid(row=1 + 3, column=0+d )
-    elif 8 < add < 12:
-        image_add = tk_image.PhotoImage(image.open('add-button.png'))
-        add_button_text = Label(window, text='Add Account')
-        add_button = Button(
-            window,  image=image_add, border="0", compound='top', command=addaccount
-        )
+            add_button.photo = image_add
+            d = int(add%4)
+            add_button_text.grid(row=5, column=0 + d)
+            add_button.grid(row=1 + 3, column=0+d )
+        elif 8 < add < 12:
+            image_add = tk_image.PhotoImage(image.open('add-button.png'))
+            add_button_text = Label(window, text='Add Account')
+            add_button = Button(
+                window,  image=image_add, border="0", compound='top', command=addaccount
+            )
 
-        add_button.photo = image_add
-        add_button.grid(row=1 + 6, column=0 + add)
+            add_button.photo = image_add
+            add_button_text.grid(row=8, column=0 + d)
+            d = int(add%4)
+            add_button.grid(row=1 + 6, column=0 + add)
+    except:
+        pass
 
 
 def login():
@@ -1412,16 +1409,17 @@ def login():
         password = str(pass_entry.get())
         username = str(input_entry.get())
         login = Login(username, password)
-        check, main_password = login.login_checking()
-        if check:
-            root = Tk()
-            root.withdraw()
-            messagebox.showinfo("Succes", "You have now logged in ")
-            root.destroy()
-            login_window.destroy()
-            login.windows(main_password, login_window, my_cursor)
-        else:
-            pass
+        if username!='' or password!='':
+            check, main_password = login.login_checking()
+            if check:
+                root = Tk()
+                root.withdraw()
+                messagebox.showinfo("Succes", "You have now logged in ")
+                root.destroy()
+                login_window.destroy()
+                login.windows(main_password, login_window, my_cursor)
+            else:
+                pass
 
     but = Button(login_window, text="Login", command=login_checking_1)
     but.grid(row=7, column=3)
@@ -1515,7 +1513,7 @@ def register(*window):
                     "Error", "Username and email already exists")
                 root.destroy()
             if not registering:
-                register_user.creation(login_window1)
+                register_user.creation()
 
         else:
             messagebox.showinfo(
