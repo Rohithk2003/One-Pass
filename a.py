@@ -133,7 +133,6 @@ def configuration(self, username):
     with open(file, 'r'):
         texts = file.read()
         word = texts.split()
-#testing
 
 def checkforupdates( ):
     if isUpToDate('a.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py') and isUpToDate('version.txt','https://raw.githubusercontent.com/Rohithk2003/One-Pass/master/version.txt'):
@@ -145,6 +144,8 @@ def checkforupdates( ):
                     "Updating", 'Please wait while the software is being updated')
                 update(
                     a.py, 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py')
+                messagebox.showinfo(
+                    "Updated", 'The software has been updated please restart to take effect')
             except:
                 messagebox.showerror(
                     'No internet Available', 'Please connect to the internet')
