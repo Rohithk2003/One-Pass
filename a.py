@@ -76,49 +76,50 @@ class Login:
             root_error.withdraw()
             messagebox.showerror('Error', 'Password cannot be empty ')
             root_error.destroy()
+
         else:
             for_hashing_both = self.password + self.username
             main_password = hashlib.sha512(for_hashing_both.encode()).hexdigest()
 
             try:
-                pyAesCrypt.decryptFile(
-                    self.username + ".bin.fenc",
-                    self.username + "decrypted.bin",
-                    main_password,
-                    bufferSize,
-                )
+                    pyAesCrypt.decryptFile(
+                        self.username + ".bin.fenc",
+                        self.username + "decrypted.bin",
+                        main_password,
+                        bufferSize,
+                    )
             except OSError:
-                root_error = Tk()
-                root_error.withdraw()
-                messagebox.showerror(
-                    "Error",
-                    f"No user exist with  the username {self.username}, Please register or provide the correct username",
-                )
-                root_error.destroy()
-                return False, main_password
+                    root_error = Tk()
+                    root_error.withdraw()
+                    messagebox.showerror(
+                        "Error",
+                        f"No user exist with  the username {self.username}, Please register or provide the correct username",
+                    )
+                    root_error.destroy()
+                    return False, main_password
             except ValueError:
-                root = Tk()
-                root.withdraw()
-                messagebox.showerror(
-                    "Error",
-                    f"Wrong password for {self.username}",
-                )
-                root.destroy()
-                return False, main_password
+                    root = Tk()
+                    root.withdraw()
+                    messagebox.showerror(
+                        "Error",
+                        f"Wrong password for {self.username}",
+                    )
+                    root.destroy()
+                    return False, main_password
             return True, main_password
 
     def windows(self, main_password, window, cursor):
         window_after(self.username, main_password)
 class Settings:
-    def __init__(self, username, password, file):
+    def __init__(self, username, password):
         self.username = username
         self.password = password
-    def configuration(self, username):
+def configuration(self, username):
         file = self.username + '.cfg'
         with open(file, 'r'):
             texts = file.read()
             word = texts.split()
-    def checkforupdates(self,username):
+def checkforupdates(self,username):
         if isUpToDate('a.py','https://github.com/Rohithk2003/One-Pass/blob/master/a.py') and isUpToDate('version.txt','hi.txt'):
             result = messagebox.askyesno('Update Available','Do you want to update the app?')
             if result == True:
@@ -130,18 +131,12 @@ class Settings:
 
             else:
                 quit()
-    def radio_buttons(self,window):
-        #adding radio buttons-CHECK FOR UPDATE 
-        pass
-    def automatic_check_for_update(self,username,window):
-        file = self.username + '.cfg'
-        with open(file,'r') as f:
-            line = f.readlines()
-            for i in line:
-                if i == 'Check For Update When you run this program':
-                    if i[0] == 1:
-                        checkforupdates(self,username)
+
+
 #for handling registration
+def settings(username):
+    root = Tk()
+
 class Register:
     def __init__(self, username, password, email_id, email_password):
         self.username = str(username)
@@ -446,7 +441,7 @@ def login_password():
                 verify_password += i
         verify_password += recover_password_entry_verify
         my_cursor.execute(
-            "select email_id from data_input where username = (%s)",
+            "select email_id from data_input where username = (?)",
             (username_verify,),
         )
         values_fetch = my_cursor.fetchall()
@@ -1081,6 +1076,9 @@ def window_after(username, hash_password):
     b = Button(sidebar, text="Notes", command=ap, width=20)
     button.grid(row=0, column=1)
     b.grid(row=1, column=1, columnspan=1)
+    file = username + '.cfg'
+    settings_button = Button(sidebar, text="Settings",  width=20)
+    settings_button.grid(row=10,column=1,columnspan=1)
     root.mainloop()
 
 def gameloop(username, hashed_password, window):
@@ -1345,38 +1343,40 @@ def gameloop(username, hashed_password, window):
     
     for num in no_accounts:
         add = int(num[0])
-    with open(username + 'decrypted.bin', 'rb') as f:
-            account_fetch = pickle.load(f)
-            for i in account_fetch:
-                    print(account_fetch)
-                    social_username = i[0]
-                    social_password = i[1]
-                    social_media = i[2]
-                    image_path_loc = i[3]
-                    username_label_widget = Label(window,text=f'Username:{social_username}')
-                    password_label_widget = Label(window, text = f'Password:{social_password}')
-                    social_media_label = Label(window, text=f'Account Name: {social_media}')
-                    if image_path_loc:
-                        try:
-                            tkimage = tk_image.PhotoImage(image.open(image_path_loc))
-                        except:
+    try:
+        with open(username + 'decrypted.bin', 'rb') as f:
+                account_fetch = pickle.load(f)
+                for i in account_fetch:
+                        print(account_fetch)
+                        social_username = i[0]
+                        social_password = i[1]
+                        social_media = i[2]
+                        image_path_loc = i[3]
+                        username_label_widget = Label(window,text=f'Username:{social_username}')
+                        password_label_widget = Label(window, text = f'Password:{social_password}')
+                        social_media_label = Label(window, text=f'Account Name: {social_media}')
+                        if image_path_loc:
+                            try:
+                                tkimage = tk_image.PhotoImage(image.open(image_path_loc))
+                            except:
+                                tkimage = tk_image.PhotoImage(image.open('photo.png'))
+                        else:
                             tkimage = tk_image.PhotoImage(image.open('photo.png'))
-                    else:
-                        tkimage = tk_image.PhotoImage(image.open('photo.png'))
-                    default_image_button = Button(window, image=tkimage, borderwidth='0',
-                                                  command=lambda: change_icon(default_image_button, social_username, username))
-                    # account username, password, image....
-                    if add < 8:
-                        username_label_widget.grid(row=2, column=0 + account_fetch.index(i))
-                        password_label_widget.grid(row=3 , column=0+account_fetch.index(i))
-                        social_media_label.grid(row=1, column= 0 + account_fetch.index(i))
-                        default_image_button.photo = tkimage
-                        default_image_button.grid(row=0 , column=0 + account_fetch.index(i))
-
                         default_image_button = Button(window, image=tkimage, borderwidth='0',
                                                       command=lambda: change_icon(default_image_button, social_username, username))
-                        default_image_button.photo = tkimage
+                        # account username, password, image....
+                        df = int(add%4)
+                        if add < 12:
+                            for d in range(df):
+                                username_label_widget.grid(row=2+d, column=0 + account_fetch.index(i))
+                                password_label_widget.grid(row=3 + d, column=0+account_fetch.index(i))
+                                social_media_label.grid(row=1 + d, column= 0 + account_fetch.index(i))
+                                default_image_button.photo = tkimage
+                                default_image_button.grid(row=0 + d, column=0 + account_fetch.index(i))
 
+    except:
+        pass
+    sa = int(add%3)
     image_add = tk_image.PhotoImage(image.open('add-button.png'))
     if add < 8:
         image_add = tk_image.PhotoImage(image.open('add-button.png'))
@@ -1384,8 +1384,9 @@ def gameloop(username, hashed_password, window):
         add_button = Button(
             window,  image=image_add, border="0", compound = 'top', command=addaccount
         )
+    
         add_button.photo = image_add
-        
+        add_button.grid(row=1,column=0+add)
 def login():
     login_window = Tk()
     login_window.title('Login')
