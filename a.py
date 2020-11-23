@@ -133,7 +133,7 @@ def configuration(self, username):
     with open(file, 'r'):
         texts = file.read()
         word = texts.split()
-
+#testing
 
 def checkforupdates( ):
     if isUpToDate('a.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py') and isUpToDate('version.txt','https://raw.githubusercontent.com/Rohithk2003/One-Pass/master/version.txt'):
