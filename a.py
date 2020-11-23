@@ -1,18 +1,22 @@
 # all required modules
+import base64
 import glob
+import hashlib
 import os
 import os.path
 import pickle
 import random
 import smtplib
 import sqlite3
+from tkinter import *
 # tkinter modules
 from tkinter import colorchooser
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from tkinter import simpledialog
 from tkinter.ttk import *
-from tkinter import *
+
+import pyAesCrypt
 from PIL import Image as image
 from PIL import ImageTk as tk_image
 # for encryption and decryption
@@ -21,11 +25,9 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from passlib.hash import pbkdf2_sha256
-import base64
-import hashlib
-import pyAesCrypt
 from update_check import isUpToDate
 from update_check import update
+
 # main window
 bufferSize = 64 * 1024
 root = Tk()
