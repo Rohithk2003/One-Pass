@@ -8,13 +8,13 @@ import pickle
 import random
 import smtplib
 import sqlite3
-from tkinter import *
 # tkinter modules
 from tkinter import colorchooser
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from tkinter import simpledialog
 from tkinter.ttk import *
+from tkinter import *
 
 from PIL import Image as image
 from PIL import ImageTk as tk_image
@@ -134,7 +134,7 @@ def checkforupdates( ):
                 messagebox.showinfo(
                     "Updating", 'Please wait while the software is being updated')
                 update(
-                    a.py, 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py')
+                    'a.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py')
                 messagebox.showinfo(
                     "Updated", 'The software has been updated please restart to take effect')
             except:
@@ -192,7 +192,6 @@ class Register:
         for_hashing = self.password + self.username
         hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
         file_name = self.username + ".bin"
-        decrypted_file = self.username + 'decrypted.bin'
         with open(file_name, "wb") as f:
             f.close()
         pyAesCrypt.encryptFile(file_name, file_name +
@@ -225,26 +224,27 @@ def create_key(password, message):
     return encrypted, salt
 
 def delete_social_media_account(real_username,hashed_password):
-        with open(real_username+'decrypted.bin','rb') as f:
-            try:
-                ls = pickle.load(f)
                 application_window = Tk()
                 application_window.withdraw()
                 ask = simpledialog.askstring(
                                 "Delete Account", "What is the name of the account to be deleted?", parent=application_window
                             )
                 application_window.destroy()
+
                 if ask:
-                    result = messagebox.askyesorno('Confirm','Are you sure that you want to delete your account')
+                    result = messagebox.askyesno('Confirm','Are you sure that you want to delete your account')
                     if result == True:
-                        val = simpledialog.askstring('Delete account',f'Please type {real_username}-{ask} to successfully delete your account')
-                        if val == f'{real_username}-{ask}':
+                        val = simpledialog.askstring('Delete account',f'Please type {real_username}/{ask} to successfully delete your account')
+                        if val == f'{real_username}/{ask}':
                             with open(f'{real_username}decrypted.bin','rb') as f:
                                 values = pickle.load(f)
                                 for i in values:
-                                    if i[0] == ask:
+                                    if i[2] == ask:
                                         inde = values.index(i)
                                         values.pop(inde)
+                                        print(values)
+                                    
+                                f.close()
                             try:
                                 os.remove(f'{real_username}decrypted.bin')
                             except:
@@ -252,20 +252,24 @@ def delete_social_media_account(real_username,hashed_password):
                             with open(f'{real_username}decrypted.bin','wb') as f:
                                 pickle.dump(values,f)
                                 f.close()
-                            try:
-                                pyAesCrypt.encryptFile(f'{real_username}decrypted.bin',f'{real_username}.bin.fenc',hashed_password,bufferSize)
-                                os.remove(f'{real_username}decrypted.bin')
-                            except:
-                                pass
-                            quit()
+                            x = my_cursor.execute('select no_of_accounts from data_input where username=(?)',(real_username,))
+                            new_val = 0
+                            for i in x:
+                                new_val = i[0]
+                            new_val -= 1
+                            my_cursor.execute(f'update data_input set no_of_accounts = {new_val} where username={real_username}')
+                            pyAesCrypt.encryptFile(f'{real_username}decrypted.bin',f'{real_username}.bin.fenc',hashed_password,bufferSize)
+                            os.remove(f'{real_username}decrypted.bin')
+
+                            messagebox.showinfo('Success','Your account has been successfully deleted')
                         else:
-                            quit()
+                            messagebox.showinfo("The account doesn't exists")
                     else:
                         quit()
                 else:
                     quit()
-            except:
-                messagebox.showerror('Error','You have not  created a account please create one')
+            # except:
+            #     messagebox.showerror('Error','You have not  created a account please create one')
         
 def delete_main_account(username):
         answer = messagebox.askyesno('Delete Account','Are you sure you want to delete you account')
@@ -348,6 +352,7 @@ def login_password():
     def change_password(email, password1, username12):
         root = Tk()
         root.title("Change Password")
+        root.geometry('100x200')
         new_username = Label(root, text="New Username")
         new_password = Label(root, text="New Password")
         new_username_entry = Entry(root)
@@ -487,6 +492,7 @@ def login_password():
 
     def main(key):
         run = False
+        print('gd')
         global running
         username_verify = str(username_forgot_entry.get())
         recover_email_entry_verify = str(recover_email_entry.get())
@@ -504,21 +510,7 @@ def login_password():
             )
             roo21.destroy()
         verify_password = ""
-        otp_label = Label(window, text="OTP:")
-        otp_entry = Entry(window)
-        otp_entry.grid(row=6, column=1)
-        otp_entry_button = Button(
-            window,
-            text="verify otp",
-            command=lambda: Verification(
-                key,
-                otp_entry.get(),
-                recover_email_entry_verify,
-                recover_password_entry_verify,
-                username_verify,
-            ),
-        )
-        otp_entry_button.grid(row=8, column=1)
+
         for i in recover_email_entry_verify:
             if i == "@":
                 break
@@ -529,19 +521,20 @@ def login_password():
             "select email_id from data_input where username = (?)",
             (username_verify,),
         )
+        print('hi')
         values_fetch = my_cursor.fetchall()
 
         try:
             for i in values_fetch:
 
-                if i[0] == recover_email_entry_verify:
-                    run = True
-                else:
-                    run = False
-                    roo1 = Tk()
-                    roo1.withdraw()
-                    messagebox.showerror("Error", "Wrong Recovey email")
-                    roo1.destroy()
+                    if i[0] == recover_email_entry_verify:
+                        run = True
+                    else:
+                        run = False
+                        roo1 = Tk()
+                        roo1.withdraw()
+                        messagebox.showerror("Error", "Wrong Recovey email")
+                        roo1.destroy()
         except:
             roo1 = Tk()
             roo1.withdraw()
@@ -549,6 +542,20 @@ def login_password():
                 "Error", "No user exist with the provided username")
             roo1.destroy()
         if run:
+            otp_entry = Entry(window)
+            otp_entry.grid(row=6, column=1)
+            otp_entry_button = Button(
+                    window,
+                    text="verify otp",
+                    command=lambda: Verification(
+                        key,
+                        otp_entry.get(),
+                        recover_email_entry_verify,
+                        recover_password_entry_verify,
+                        username_verify,
+                    ),
+                )
+            otp_entry_button.grid(row=8, column=1)
             digits = "1234567890"
             OTP = ""
             for i in range(6):
@@ -560,7 +567,12 @@ def login_password():
                 f.close()
             generate_key1("otp.bin")
             forgot_password(OTP, recover_email_entry_verify, username_verify)
-
+        else:
+            roo1 = Tk()
+            roo1.withdraw()
+            messagebox.showerror(
+                "Error", "No user exist with the provided username")
+            roo1.destroy()
     forgot_password_button = Button(
         window, text="verify", command=lambda: main(key))
     forgot_password_button.grid(row=5, column=1)
@@ -1194,6 +1206,10 @@ def gameloop(username, hashed_password, window):
 
     def addaccount():
         root1 = Toplevel()
+        root1.geometry('400x300')
+        root1.title('Add Account')
+        root1.focus_set()
+        root1.grab_set()
         name_of_social = Label(root1, text="Name of the social media")
         name_of_social.grid(row=0, column=1)
         name_of_social_entry = Entry(root1)
@@ -1219,7 +1235,7 @@ def gameloop(username, hashed_password, window):
             except:
                 pass
 
-        new_id = tk_image.PhotoImage(image.open("add-button.png"))
+        new_id = tk_image.PhotoImage(image.open("photo.png"))
         add_icon_button = Button(
             root1, image=new_id, borderwidth="0", command=browsefunc)
         add_icon_button.photo = new_id
@@ -1410,42 +1426,33 @@ def gameloop(username, hashed_password, window):
         pass
     image_add = tk_image.PhotoImage(image.open('add-button.png'))
 
-    if add < 3:
+    if add < 9:
         image_add = tk_image.PhotoImage(image.open('add-button.png'))
         add_button_text = Label(window, text='Add Account')
         add_button = Button(
             window,  image=image_add, border="0", compound='top', command=addaccount
         )
-        add_button_text.grid(row=2, column=0 + add)
-        add_button.photo = image_add
-        add_button.place(x=40+add*250,y= 10)
-        add_button.grid(row=1, column=0 + add)
-    elif 3 <= add < 6:
-        image_add = tk_image.PhotoImage(image.open('add-button.png'))
-        add_button_text = Label(window, text='Add Account')
-        add_button = Button(
-            window,  image=image_add, border="0", compound='top', command=addaccount
-        )
-
         add_button.photo = image_add
         d = int(add%4)
-        add_button_text.grid(row=5, column=0 + d)
-        add_button.grid(row=1 + 3, column=0+d )
-        add_button.place(x=40+add*250,y= 300)
-    elif add>=6 and add < 9:
-        print('hmm')
+        add_button.grid(row=10,column=10)
+        add_button_text.grid(row=11, column=10)
+
+        add_button.place(x=750, y=400)
+        add_button_text.place(x=750, y=480)
+        
+    else:
         image_add = tk_image.PhotoImage(image.open('add-button.png'))
         add_button_text = Label(window, text='Add Account')
         add_button = Button(
             window,  image=image_add, border="0", compound='top', command=addaccount
         )
+        add_button.config(state = DISABLED)
         add_button.photo = image_add
-        d = int(add//4)
-        add_button_text.grid(row=3, column=0 + d)
-        add_button.grid(row=2, column=0 + d)
-        add_button.place(x=40+d*250,y= 300)
-        add_button_text.place(x = 20+d*250,y = 340)
-
+        d = int(add%4)
+        add_button.grid(row=10,column=10)
+        add_button_text.grid(row=11, column=10)
+        add_button.place(x=750, y=400)
+        add_button_text.place(x=750, y=480)
 
     # except:
     #     pass
