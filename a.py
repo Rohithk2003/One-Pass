@@ -666,13 +666,11 @@ def window_after(username, hash_password):
                         "Input", "What is new file name?", parent=application_window
                     )
                     application_window.destroy()
-                    print(root.title())
                     if file != None or file != 0 :
                         new_file, file_extension = os.path.splitext(file)
                         b = os.path.basename(new_file)
                         new_d = os.path.basename(b)
                         new_file_name = os.path.basename(b)
-                        print(file)
                         f = open(file, 'r')
                         dir = os.path.dirname(file)
                         values = f.read()
@@ -1292,8 +1290,6 @@ def gameloop(username, hashed_password, window):
                 if im.size in l:
                     for i in pad:
                         if i[0] == usernam:
-                            print(i[0])
-                            print(usernam)
                             i[3] = image_path
                     f.close()
                     with open(file_name, 'wb') as f1:
@@ -1383,7 +1379,6 @@ def gameloop(username, hashed_password, window):
 
                 elif i>=3 and i <6:
                     dd = int(i%3) 
-                    print(dd)
                     username_label_widget.grid( row=2 +1, column=0 + dd)
                     password_label_widget.grid(row=3 + 1, column=0 + dd)
                     social_media_label.grid(row=1 + 1, column=0 + dd)
@@ -1395,7 +1390,6 @@ def gameloop(username, hashed_password, window):
                     password_label_widget.place(x = 30+dd*250,y=270)
                 elif 6 <= i < 9:
                     dd = int(i%6 ) 
-                    print('how many')
                     username_label_widget.grid( row=2 +1, column=0 + dd)
                     password_label_widget.grid(row=3 + 1, column=0 + dd)
                     social_media_label.grid(row=1 + 1, column=0 + dd)
@@ -1433,7 +1427,6 @@ def gameloop(username, hashed_password, window):
         add_button.grid(row=1 + 3, column=0+d )
         add_button.place(x=40+add*250,y= 300)
     elif add>=6 and add < 9:
-        print('hmm')
         image_add = tk_image.PhotoImage(image.open('add-button.png'))
         add_button_text = Label(window, text='Add Account')
         add_button = Button(
