@@ -8,6 +8,8 @@ import pickle
 import random
 import smtplib
 import sqlite3
+
+
 # tkinter modules
 from tkinter import colorchooser
 from tkinter import filedialog as fd
@@ -65,7 +67,7 @@ if os.path.exists('version.txt'):
     pass
 else:
     with open('version.txt','w') as f:
-        f.write('0.5.0')
+        f.write('0.6.0')
 
 # for handling login
 
