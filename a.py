@@ -30,9 +30,7 @@ from update_check import update
 bufferSize = 64 * 1024
 root = Tk()
 root.title("ONE-PASS")
-root.config(bg="black")
-root23 = Style()
-root23.theme_use("alt")
+
 width_window = 300
 height_window = 300
 screen_width = root.winfo_screenwidth()
@@ -58,6 +56,7 @@ social_media_active = False
 image_path = ''
 exist = False
 cutting_value = False
+file = 0
 
 #version file
 if os.path.exists('version.txt'):
@@ -183,7 +182,11 @@ class Register:
         )
         return False
 
-    def creation(self):
+    def creation(self,window):
+        try:
+            window.destroy()
+        except:
+            pass
         for_hashing = self.password + self.username
         hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
         file_name = self.username + ".bin"
@@ -219,10 +222,75 @@ def create_key(password, message):
     encrypted = f.encrypt(message_encrypt)
     return encrypted, salt
 
-def settings():
+def delete_social_media_account(real_username,hashed_password):
+        with open(real_username+'decrypted.bin','rb') as f:
+            try:
+                ls = pickle.load(f)
+                application_window = Tk()
+                application_window.withdraw()
+                ask = simpledialog.askstring(
+                                "Delete Account", "What is the name of the account to be deleted?", parent=application_window
+                            )
+                application_window.destroy()
+                if ask:
+                    result = messagebox.askyesorno('Confirm','Are you sure that you want to delete your account')
+                    if result == True:
+                        val = simpledialog.askstring('Delete account',f'Please type {real_username}-{ask} to successfully delete your account')
+                        if val == f'{real_username}-{ask}':
+                            with open(f'{real_username}decrypted.bin','rb') as f:
+                                values = pickle.load(f)
+                                for i in values:
+                                    if i[0] == ask:
+                                        inde = values.index(i)
+                                        values.pop(inde)
+                            try:
+                                os.remove(f'{real_username}decrypted.bin')
+                            except:
+                                pass
+                            with open(f'{real_username}decrypted.bin','wb') as f:
+                                pickle.dump(values,f)
+                                f.close()
+                            try:
+                                pyAesCrypt.encryptFile(f'{real_username}decrypted.bin',f'{real_username}.bin.fenc',hashed_password,bufferSize)
+                                os.remove(f'{real_username}decrypted.bin')
+                            except:
+                                pass
+                            quit()
+                        else:
+                            quit()
+                    else:
+                        quit()
+                else:
+                    quit()
+            except:
+                messagebox.showerror('Error','You have not  created a account please create one')
+        
+def delete_main_account(username):
+        answer = messagebox.askyesno('Delete Account','Are you sure you want to delete you account')
+        if answer == True:
+            result = simpledialog.askstring('Delete Account',f'Please type {username}-CONFIRM to delete your account')
+            if result == f'{username}-CONFIRM':
+                try:
+                    os.remove(username+'decrypted.bin')
+                    os.remove(username+'.bin.fenc')
+
+                    my_cursor.execute('delete from data_input where username = (?)',(username,))
+                    messagebox.showinfo('Account deletion','Success your account has been deleted. See you!!')
+                    quit()
+                except:
+                    pass
+            else:
+                quit()
+        else:
+            quit()
+def settings(real_username,hashed_password):
     settings_window =Tk()
     check_for_updates = Button(settings_window,text='Check for updates',command=checkforupdates )
-    check_for_updates.grid(row=0,column=1)
+    check_for_updates.pack()
+    Delete_account_button = Button(settings_window,text='Delete main account',command=lambda:delete_main_account(real_username))
+    Delete_social_button = Button(settings_window,text='Delete sub  account',command=lambda:delete_social_media_account(real_username,hashed_password))
+    Delete_account_button.pack()
+    Delete_social_button.pack()
     settings_window.mainloop()
 
 def retreive_key(password, byte, de):
@@ -237,8 +305,6 @@ def retreive_key(password, byte, de):
     key = base64.urlsafe_b64encode(kdf.derive(password_key))
     f = Fernet(key)
 
-    fa = open('hia.txt', 'w')
-    fa.write(key.decode('utf-8'))
     decrypted = f.decrypt(byte)
     return decrypted.decode('utf-8')
 
@@ -504,7 +570,7 @@ var = 0
 def testing(root, mainarea, username, hash_password):
     root.title("Passwords")
     emptyMenu = Menu(root)
-    root.geometry('800x600')
+    root.geometry('1000x500')
     mainarea.config(bg="white")
     root.config(menu=emptyMenu)
 
@@ -518,7 +584,8 @@ def window_after(username, hash_password):
     # sidebar
     root = Tk()
     global var
-    root.geometry('800x600')
+    global file
+    root.geometry('1000x500')
     status_name = False
     sidebar = Frame(
         root, width=500, bg="#0d0d0d", height=500, relief="sunken", borderwidth=2
@@ -543,7 +610,6 @@ def window_after(username, hash_password):
             list = mainarea.grid_slaves()
             for l in list:
                 l.destroy()
-            file = 0
 
             def newFile():
                 global password
@@ -591,34 +657,40 @@ def window_after(username, hash_password):
 
             def rename_file():
                 global file
-                application_window = Tk()
-                application_window.withdraw()
-                a = simpledialog.askstring(
-                    "Input", "What is new file name?", parent=application_window
-                )
-                application_window.destroy()
-                if file != None:
-                    new_file, file_extension = os.path.splitext(file)
-                    b = os.path.basename(new_file)
-                    new_d = os.path.basename(b)
-                    new_file_name = os.path.basename(b)
-                    f = open(file, 'r')
-                    dir = os.path.dirname(file)
-                    values = f.read()
-                    f.close()
-                    os.remove(file)
-                    file = (dir) + '/' + a + file_extension
-                    with open(file, "w") as f:
-                        f.write(values)
+                if root.title()!='Untitled-Notepad':
+                    application_window = Tk()
+                    application_window.withdraw()
+                    a = simpledialog.askstring(
+                        "Input", "What is new file name?", parent=application_window
+                    )
+                    application_window.destroy()
+                    print(root.title())
+                    if file != None or file != 0 :
+                        new_file, file_extension = os.path.splitext(file)
+                        b = os.path.basename(new_file)
+                        new_d = os.path.basename(b)
+                        new_file_name = os.path.basename(b)
+                        print(file)
+                        f = open(file, 'r')
+                        dir = os.path.dirname(file)
+                        values = f.read()
                         f.close()
-                    TextArea.delete(1.0, END)
-                    with open(file, 'r') as f:
-                        TextArea.insert(1.0, f.read())
-                        f.close()
-                    root.title(a + file_extension + " - Notepad")
+                        os.remove(file)
+                        file = (dir) + '/' + a + file_extension
+                        with open(file, "w") as f:
+                            f.write(values)
+                            f.close()
+                        TextArea.delete(1.0, END)
+                        with open(file, 'r') as f:
+                            TextArea.insert(1.0, f.read())
+                            f.close()
+                        root.title(a + file_extension + " - Notepad")
+                    else:
+                        messagebox.showinfo('Rename','Please save your file before renaming it')
+                        save_as_File()
                 else:
-                    save_as_File()
-
+                        messagebox.showinfo('Rename','Please save your file before renaming it')
+                        save_as_File()
             def save_as_File():
                 global password
                 global file
@@ -767,7 +839,7 @@ def window_after(username, hash_password):
                 messagebox.showinfo("Notepad", "Notepad by Rohithk-25-11-2020")
 
             # Basic tkinter setup
-            root.geometry("800x600")
+            root.geometry("1000x500")
             root.title("Untitled - Notepad")
             root.config(bg="#0d0d0d")
             # Add TextArea
@@ -1099,7 +1171,7 @@ def window_after(username, hash_password):
     button.grid(row=0, column=1)
     b.grid(row=1, column=1, columnspan=1)
     file = username + '.cfg'
-    settings_button = Button(sidebar, text="Settings",  width=20,command=settings)
+    settings_button = Button(sidebar, text="Settings",  width=20,command=lambda:settings(username,hash_password))
     settings_button.grid(row=10, column=1, columnspan=1)
     root.mainloop()
 
@@ -1273,19 +1345,18 @@ def gameloop(username, hashed_password, window):
             account_fetch = pickle.load(f)
     except:
         account_fetch = []
+
     i = 0
-    print(account_fetch)
     try:
         while i < 12:
-                print(i)
                 social_username = account_fetch[i][0]
                 social_password = account_fetch[i][1]
                 social_media = account_fetch[i][2]
                 image_path_loc = account_fetch[i][3]
                 username_label_widget = Label(
-                    window, text=f'Username:{social_username}')
+                    window, text=f'Username: {social_username}')
                 password_label_widget = Label(
-                    window, text=f'Password:{social_password}')
+                    window, text=f'Password: {social_password}')
                 social_media_label = Label(
                     window, text=f'Account Name: {social_media}')
                 if image_path_loc:
@@ -1297,78 +1368,90 @@ def gameloop(username, hashed_password, window):
                     tkimage = tk_image.PhotoImage(image.open('photo.png'))
                 default_image_button = Button(window, image=tkimage, borderwidth='0',
                                             command=lambda: change_icon(default_image_button, social_username, username))
-                if i <4 :
-                    username_label_widget.grid(row=2, column=0 + i)
-                    password_label_widget.grid(row=3, column=0 + i)
-                    social_media_label.grid(row=1, column=0 + i)
+                if i <3 :
+                    username_label_widget.grid(row=2, column=0 + i,rowspan=1)
+                    password_label_widget.grid(row=3, column=0 + i,rowspan=1)
+                    social_media_label.grid(row=1, column=0 + i,rowspan=1)
                     default_image_button.photo = tkimage
-                    default_image_button.grid(row=0, column=0 + i)
-                elif i>4 and i <12:
-                    print('g')
-                    dd = int(i%4)
-                    if i == 5:
-                        username_label_widget.grid(row=2 + 2, column=0 )
-                        password_label_widget.grid(row=3 + 2, column=0 )
-                        social_media_label.grid(row=1 + 2, column=0)
-                        default_image_button.photo = tkimage
-                        default_image_button.grid(row=0 + 2, column=0 )
-                    else:
-                        username_label_widget.grid(
-                                                    row=2 + 2, column=0 + dd)
-                        password_label_widget.grid(row=3 + 2, column=0 + dd)
-                        social_media_label.grid(row=1 + 2, column=0 + dd)
-                        default_image_button.photo = tkimage
-                        default_image_button.grid(row=0 + 2, column=0 + dd)
-                elif 8 < i <= 12:
-                    username_label_widget.grid(row=2 + 4, column=0 + i)
-                    password_label_widget.grid(row=3 + 4, column=0 + i)
-                    social_media_label.grid(row=1 + 4, column=0 + i)
+                    default_image_button.grid(row=0, column=0 + i,rowspan=1)
+                    default_image_button.place(x=40+i*250,y= 10)
+                    username_label_widget.place(x = 30+i*250,y=110)
+                    social_media_label.place(x=30+i*250,y=90)
+                    password_label_widget.place(x = 30+i*250,y=130)
+
+                elif i>=3 and i <6:
+                    dd = int(i%3) 
+                    print(dd)
+                    username_label_widget.grid( row=2 +1, column=0 + dd)
+                    password_label_widget.grid(row=3 + 1, column=0 + dd)
+                    social_media_label.grid(row=1 + 1, column=0 + dd)
                     default_image_button.photo = tkimage
-                    default_image_button.grid(row=0 + 4, column=0 + i)
-                i = i+ 1
+                    default_image_button.grid(row=0 + 1, column=0 + dd)
+                    default_image_button.place(x=40+dd*250,y= 170)
+                    username_label_widget.place(x = 30+dd*250,y=250)
+                    social_media_label.place(x=30+dd*250,y=230)
+                    password_label_widget.place(x = 30+dd*250,y=270)
+                elif 6 <= i < 9:
+                    dd = int(i%6 ) 
+                    print('how many')
+                    username_label_widget.grid( row=2 +1, column=0 + dd)
+                    password_label_widget.grid(row=3 + 1, column=0 + dd)
+                    social_media_label.grid(row=1 + 1, column=0 + dd)
+                    default_image_button.photo = tkimage
+                    default_image_button.grid(row=0 + 1, column=0 + dd)
+                    default_image_button.place(x=40+dd*250,y= 300)
+                    social_media_label.place(x=30+dd*250,y=380)
+                    username_label_widget.place(x = 30+dd*250,y=400)
+                    password_label_widget.place(x = 30+dd*250,y=420)
+                i = i+1
     except:
         pass
     image_add = tk_image.PhotoImage(image.open('add-button.png'))
 
-    try:
+    if add < 3:
+        image_add = tk_image.PhotoImage(image.open('add-button.png'))
+        add_button_text = Label(window, text='Add Account')
+        add_button = Button(
+            window,  image=image_add, border="0", compound='top', command=addaccount
+        )
+        add_button_text.grid(row=2, column=0 + add)
+        add_button.photo = image_add
+        add_button.place(x=40+add*250,y= 10)
+        add_button.grid(row=1, column=0 + add)
+    elif 3 <= add < 6:
+        image_add = tk_image.PhotoImage(image.open('add-button.png'))
+        add_button_text = Label(window, text='Add Account')
+        add_button = Button(
+            window,  image=image_add, border="0", compound='top', command=addaccount
+        )
 
-        if add < 4:
-            image_add = tk_image.PhotoImage(image.open('add-button.png'))
-            add_button_text = Label(window, text='Add Account')
-            add_button = Button(
-                window,  image=image_add, border="0", compound='top', command=addaccount
-            )
-            add_button_text.grid(row=2, column=0 + add)
-            add_button.photo = image_add
-            add_button.grid(row=1, column=0 + add)
-        elif 4 <= add < 8:
-            image_add = tk_image.PhotoImage(image.open('add-button.png'))
-            add_button_text = Label(window, text='Add Account')
-            add_button = Button(
-                window,  image=image_add, border="0", compound='top', command=addaccount
-            )
+        add_button.photo = image_add
+        d = int(add%4)
+        add_button_text.grid(row=5, column=0 + d)
+        add_button.grid(row=1 + 3, column=0+d )
+        add_button.place(x=40+add*250,y= 300)
+    elif add>=6 and add < 9:
+        print('hmm')
+        image_add = tk_image.PhotoImage(image.open('add-button.png'))
+        add_button_text = Label(window, text='Add Account')
+        add_button = Button(
+            window,  image=image_add, border="0", compound='top', command=addaccount
+        )
+        add_button.photo = image_add
+        d = int(add//4)
+        add_button_text.grid(row=3, column=0 + d)
+        add_button.grid(row=2, column=0 + d)
+        add_button.place(x=40+d*250,y= 300)
+        add_button_text.place(x = 20+d*250,y = 340)
 
-            add_button.photo = image_add
-            d = int(add%4)
-            add_button_text.grid(row=5, column=0 + d)
-            add_button.grid(row=1 + 3, column=0+d )
-        elif 8 < add < 12:
-            image_add = tk_image.PhotoImage(image.open('add-button.png'))
-            add_button_text = Label(window, text='Add Account')
-            add_button = Button(
-                window,  image=image_add, border="0", compound='top', command=addaccount
-            )
 
-            add_button.photo = image_add
-            add_button_text.grid(row=8, column=0 + d)
-            d = int(add%4)
-            add_button.grid(row=1 + 6, column=0 + add)
-    except:
-        pass
+    # except:
+    #     pass
 
 
 def login():
     login_window = Tk()
+
     login_window.title('Login')
     width_window = 400
     height_window = 400
@@ -1385,7 +1468,7 @@ def login():
     forgot = Button(login_window, text="Forgot Password",
                     command=login_password)
     register_button = Button(
-        login_window, text='Register', command=lambda: register(login_window))
+        login_window, text='Register', command= register)
 
     def password_sec(entry, show_both_1):
         a = entry['show']
@@ -1436,21 +1519,21 @@ def login():
     show_both_1.grid(row=6, column=4)
 
 
-def register(*window):
+def register(window):
     login_window1 = Tk()
-    try:
-        window.destroy()
-    except:
-        pass
+    window.destroy()
+    login_window1.resizable(False, False)
+    login_window1.title("Register")
     width_window = 400
     height_window = 400
     screen_width = login_window1.winfo_screenwidth()
     screen_height = login_window1.winfo_screenheight()
     x = screen_width / 2 - width_window / 2
     y = screen_height / 2 - height_window / 2
+
     login_window1.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-    username = Label(login_window1, text="Username")
-    password = Label(login_window1, text="password")
+    username = Label(login_window1, text="Username:")
+    password = Label(login_window1, text="password:")
     email_id = Label(login_window1, text="Recovery Email :")
     email_password = Label(login_window1, text="Recovery Email password")
     username_entry = Entry(login_window1)
@@ -1458,7 +1541,10 @@ def register(*window):
     email_id_entry = Entry(login_window1)
     email_password_entry = Entry(login_window1, show="*")
     width = login_window1.winfo_screenwidth()
-
+    len1=len(username['text'])
+    len2=len(password['text'])
+    len3=len(email_id['text'])
+    len4=len(email_password['text'])
     # putting the buttons and entries
     username.grid(row=2, column=0)
     password.grid(row=3, column=0)
@@ -1468,29 +1554,39 @@ def register(*window):
     password_entry.grid(row=3, column=1)
     email_id_entry.grid(row=4, column=1)
     email_password_entry.grid(row=5, column=1)
-
+    username.place(x =0,y=150)
+    password.place(x =0,y=180)
+    email_id.place(x =0,y=250)
+    email_password.place(x =0,y=280)
+    username_entry.place(x=len4*10,y=150)
+    password_entry.place(x=len4*10,y=180)
+    email_id_entry.place(x=len4*10,y=250)
+    email_password_entry.place(x=len4*10,y=280)
+    register_text= Label(login_window1,text='Register',font=('helvetica',30),underline=True)
+    register_text.place(x=120,y=50)
     def password_sec(entry, button):
         a = entry['show']
         if a == "":
             entry.config(show="*")
-            button['text'] = 'Hide password'
+            button['text'] = 'Hide'
         elif a == '*':
             entry.config(show="")
-            button['text'] = 'Show password'
+            button['text'] = 'Show'
 
     show_both_1 = Button(
         login_window1,
-        text="show password",
+        text="show",
         command=lambda: password_sec(password_entry, show_both_1),
     )
     show_both_12 = Button(
         login_window1,
-        text="show password",
+        text="show",
         command=lambda: password_sec(email_password_entry, show_both_12),
     )
     show_both_12.grid(row=5, column=2)
     show_both_1.grid(row=3, column=2)
-
+    show_both_1.place(x=len4*10,y=210)
+    show_both_12.place(x=len4*10,y=310)
     def register_saving():
 
         username_register = str(username_entry.get())
@@ -1507,36 +1603,44 @@ def register(*window):
         if checking:
             registering = register_user.saving(my_cursor)
             if registering:
-                root = Tk()
+                root2 = Tk()
                 root.withdraw()
                 messagebox.showinfo(
                     "Error", "Username and email already exists")
-                root.destroy()
+                root2.destroy()
+
             if not registering:
-                register_user.creation()
+                register_user.creation(login_window1)
 
         else:
-            messagebox.showinfo(
-                "Error", "Please provide password greater than 6 characters"
-            )
-
+                root2 = Tk()
+                root2.withdraw()
+                messagebox.showinfo(
+                    "Error", "Please provide password greater than 6 characters"
+                )
+                root2.destroy()
     register_button = Button(
         login_window1, text="Register", command=register_saving)
     register_button.grid(row=6, column=0)
+    register_button.place(x=150,y=350)
 
-
-main = Label(root, text="Welcome to ONE-PASS manager")
-login_text = Label(root, text="Do you already have an account")
+main = Label(root, text="Welcome to ONE-PASS")
+login_text = Label(root, text="Login:")
 register_text = Label(
-    root, text='If you don"t have an account please register')
-reg_button = Button(root, text="Register", command=register)
-login_button = Button(root, text="login", command=login)  # added login button
+    root, text='Register: ')
+reg_button = Button(root, text="Register", command=lambda:register(root))
+login_button = Button(root, text="login", command=login  )# added login button
 
 main.grid(row=0, column=1, columnspan=2)
 login_button.grid(row=7, column=1, columnspan=2)
 login_text.grid(row=6, column=1, columnspan=2)
 register_text.grid(row=8, column=1, columnspan=2)
 reg_button.grid(row=9, column=1, columnspan=2)
+main.place(x=40,y=40)
+login_text.place(x=40,y=78)
+login_button.place(x=140,y=70)
+register_text.place(x=40,y=128)
+reg_button.place(x=140,y=120)
 root.resizable(False, False)
 root.mainloop()
 
