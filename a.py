@@ -1475,7 +1475,6 @@ def login():
     login = Label(login_window, text="Username:")
     pass1 = Label(login_window, text="Password:")
     pass_entry = Entry(login_window, text="Password:", show="*")
-    lbl = Label(login_window, text="Please enter your username and password:")
     forgot = Button(login_window, text="Forgot Password",
                     command=login_password)
     register_button = Button(
@@ -1485,14 +1484,14 @@ def login():
         a = entry['show']
         if a == "":
             entry.config(show="*")
-            show_both_1['text'] = 'Hide password'
+            show_both_1['text'] = 'Hide'
         elif a == '*':
             entry.config(show="")
-            show_both_1['text'] = 'Show password'
+            show_both_1['text'] = 'Show'
 
     show_both_1 = Button(
         login_window,
-        text="show password",
+        text="show",
         command=lambda: password_sec(pass_entry, show_both_1),
     )
 
@@ -1519,7 +1518,6 @@ def login():
     but.grid(row=7, column=3)
 
     login.grid(row=2, column=2)
-    lbl.grid(row=0, column=2, columnspan=2)
     pass1.grid(row=6, column=2)
     input_entry.grid(row=2, column=3)
     pass_entry.grid(row=6, column=3)
@@ -1528,6 +1526,16 @@ def login():
     register_button.grid(row=7, column=4)
     forgot.grid(row=7, column=2)
     show_both_1.grid(row=6, column=4)
+
+
+    login.place(x=50-20, y=100)
+    pass1.place(x=50-20,y=230-100)
+    input_entry.place(x = 150-20, y= 200-100)
+    pass_entry.place(x=150-20, y=230-100)
+    show_both_1.place(x=315-20,y=223-100)
+    register_button.place(x=280-20, y=270-100)
+    but.place(x=200-20,y=270-100)
+    forgot.place(x=50-20,y=270-100)
 
 
 def register(window):
