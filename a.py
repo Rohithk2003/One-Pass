@@ -32,7 +32,7 @@ from update_check import update
 bufferSize = 64 * 1024
 root = Tk()
 root.title("ONE-PASS")
-
+#bug fix
 width_window = 300
 height_window = 300
 screen_width = root.winfo_screenwidth()
