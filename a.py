@@ -1492,15 +1492,16 @@ def get(window,name):
                 return d
 def handle_focus_in(entry,index):
         val = str(entry.get())
-        if val == 'Username' or val == 'Password':
+        print(val)
+        if val == 'Username' or val == 'Password' or val=='Email ID' or val=='Email password':
             entry.delete(0, END)
             entry.config(fg='black')
-        if index==2:
+        if index==2 or index==4:
             entry.config(show="*")
 
 def handle_focus_out(entry,val,index):
         a = entry.get()
-        if  a == '' and index == 2:
+        if  a == '' and index == 2 or a=='' and index==4:
             entry.delete(0, END)
             entry.config(fg='grey')
             entry.config(show='')
@@ -1649,12 +1650,23 @@ def register(window):
     password_entry.insert(0,'Password')
     password_entry.config(fg='grey')
     password_entry.config(show='')
+    email_password_entry.config(show='')
 
+    email_id_entry.config(fg='grey')
+    email_id_entry.insert(0,'Email ID')
+    email_password_entry.config(fg='grey')
+    email_password_entry.insert(0,'Email password')
     username_entry.bind('<FocusIn>',lambda event,val_val=username_entry,index=1:handle_focus_in(val_val,index))
     username_entry.bind("<FocusOut>", lambda event,val_val=username_entry,val='Username',index=1:handle_focus_out(val_val,val,index))
 
     password_entry.bind('<FocusIn>',lambda event,val_val=password_entry,index=2:handle_focus_in(val_val,index))
     password_entry.bind("<FocusOut>", lambda event,val_val=password_entry,val='Password',index=2:handle_focus_out(val_val,val,index))
+
+    email_id_entry.bind('<FocusIn>',lambda event,val_val=email_id_entry,index=3:handle_focus_in(val_val,index))
+    email_id_entry.bind("<FocusOut>", lambda event,val_val=email_id_entry,val='Email ID',index=3:handle_focus_out(val_val,val,index))
+
+    email_password_entry.bind('<FocusIn>',lambda event,val_val=email_password_entry,index=4:handle_focus_in(val_val,index))
+    email_password_entry.bind("<FocusOut>", lambda event,val_val=email_password_entry,val='Email password',index=4:handle_focus_out(val_val,val,index))
 
     username.grid(row=2, column=0)
     password.grid(row=3, column=0)
