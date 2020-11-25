@@ -84,7 +84,7 @@ class Login:#login_clas
             #checking for blank username
             root_error = Tk()
             for_hashing_both = self.password + self.username
-            main_password = hashlib.sha512(
+            main_password = hashlib.sha3_512(
                 for_hashing_both.encode()).hexdigest()#hashing the  password for returning
             root_error.withdraw()
             messagebox.showerror('Error', 'Cannot have blank Username ')
@@ -94,7 +94,7 @@ class Login:#login_clas
             #checking for blank password
             root_error = Tk()
             for_hashing_both = self.password + self.username
-            main_password = hashlib.sha512(
+            main_password = hashlib.sha3_512(
                 for_hashing_both.encode()).hexdigest()
             root_error.withdraw()
             messagebox.showerror('Error', 'Password cannot be empty ')
@@ -102,7 +102,7 @@ class Login:#login_clas
             return False, main_password
         else:
             for_hashing_both = self.password + self.username
-            main_password = hashlib.sha512(
+            main_password = hashlib.sha3_512(
                 for_hashing_both.encode()).hexdigest()
 
             try:
@@ -177,7 +177,7 @@ class Register:
         values_username = my_cursor.fetchall()
         for i in values_username:
             for usernames in i:
-                if usernames == self.username:
+                if usernames == self.username and os.path.exists(self.username+'.bin.fenc'):
                     return True#checking whether the username already exists in the database
 
         email_split = ""
@@ -196,10 +196,13 @@ class Register:
             main_password, static_salt_password
         )
         #incase the user wants to change his/her password
-        object.execute(
-            "insert into data_input values (?,?,?,?, 0)",
-            (self.username, self.email_id, cipher_text, salt_for_decryption),
-        )
+        try:
+            object.execute(
+                "insert into data_input values (?,?,?,?, 0)",
+                (self.username, self.email_id, cipher_text, salt_for_decryption),
+            )
+        except:
+            pass
         #so inserting the users details into database
         return False
     #adding the account 
@@ -323,7 +326,7 @@ def delete_main_account(username):
 
 def settings(real_username,hashed_password):
     settings_window =Tk()
-    settings_window.titile('Settings')
+    settings_window.title('Settings')
     settings_window.geometry('300x300')
     check_for_updates = Button(settings_window,text='Check for updates',command=checkforupdates )
     Delete_account_button = Button(settings_window,text='Delete main account',command=lambda:delete_main_account(real_username))
@@ -916,22 +919,24 @@ def window_after(username, hash_password):
             TextArea.pack(expand=True, fill=BOTH)
 
             # create a menubar
-            MenuBar = Menu(root)
+            MenuBar = Menu(root,bg="#292A2D",bd='0',activebackground ='#292A2D')
+            MenuBar.config(bg="#292A2D",bd='0',activebackground ='#292A2D')
             status_name = False
             # File Menu Starts
             FileMenu = Menu(MenuBar, tearoff=0)
-            # To open new file
-            FileMenu.add_command(label="New", command=newFile)
+            FileMenu.config(bg="#292A2D",bd='0',activebackground ='#292A2D')
 
-            FileMenu.add_command(label="Open", command=openFile)
+            # To open new file
+            FileMenu.add_command(label="New", command=newFile,foreground='white',activebackground ='#4B4C4F')
+
+            FileMenu.add_command(label="Open", command=openFile,foreground='white',activebackground ='#4B4C4F')
             # To save the current file
-            FileMenu.add_command(label="Save", command=lambda: save_file())
+            FileMenu.add_command(label="Save", command=lambda: save_file(),foreground='white',activebackground ='#4B4C4F')
             FileMenu.add_command(
-                label="Save As", command=lambda: save_as_File())
-            FileMenu.add_command(label="Rename", command=lambda: rename_file())
-            FileMenu.add_separator()
-            FileMenu.add_command(label="Exit", command=quitApp)
-            MenuBar.add_cascade(label="File", menu=FileMenu)
+                label="Save As", command=lambda: save_as_File(),foreground='white',activebackground ='#4B4C4F')
+            FileMenu.add_command(label="Rename", command=lambda: rename_file(),foreground='white',activebackground ='#4B4C4F')
+            FileMenu.add_command(label="Exit", command=quitApp,foreground='white',activebackground ='#4B4C4F')
+            MenuBar.add_cascade(label="File", menu=FileMenu,foreground='white',activebackground ='#4B4C4F')
 
             # File Menu ends
             def select_font(font):
@@ -1058,139 +1063,143 @@ def window_after(username, hash_password):
             root.bind('<Control-Key-h>', secondary)
 
             EditMenu = Menu(MenuBar, tearoff=0)
+            EditMenu.config(bg="#292A2D",bd='0',activebackground ='#292A2D')
+
             my_menu = Menu(mainarea, tearoff=0)
-            my_menu.add_command(label='Highlight', command=highlight_text)
-            my_menu.add_command(label='Copy', command=copy)
-            my_menu.add_command(label='Cut', command=cut)
-            my_menu.add_command(label='Paste', command=paste)
-            mainarea.focus_set()
-            a = root.focus_get()
-            if a.winfo_class() == 'Frame':
-                root.bind('<Button-3>', popup_menu)
+            my_menu.config(bg="#292A2D",bd='0',activebackground ='#292A2D')
+            my_menu.add_command(label='Highlight', command=highlight_text,foreground='white',activebackground ='#4B4C4F')
+            my_menu.add_command(label='Copy', command=copy,foreground='white',activebackground ='#4B4C4F')
+            my_menu.add_command(label='Cut', command=cut,foreground='white',activebackground ='#4B4C4F')
+            my_menu.add_command(label='Paste', command=paste,foreground='white',activebackground ='#4B4C4F')
+            TextArea.focus_set()
+
+            TextArea.bind('<Button-3>', popup_menu)
             # To give a feature of cut, copy and paste
             highlight_text_button = Button(
                 MenuBar, text='highlight', command=highlight_text)
             highlight_text_button.grid(row=0, column=5, sticky=W)
             submenu = Menu(EditMenu, tearoff=0)
             submenu_size = Menu(EditMenu, tearoff=0)
+            submenu.config(bg="#292A2D",bd='0',activebackground ='#292A2D')
+            submenu_size.config(bg="#292A2D",bd='0',activebackground ='#292A2D')
+
             submenu.add_command(
-                label="MS Sans Serif", command=lambda: select_font("MS Sans Serif")
+                label="MS Sans Serif", command=lambda: select_font("MS Sans Serif"),foreground='white',activebackground ='#4B4C4F'
             )
             submenu.add_command(
-                label="Arial", command=lambda: select_font("Arial"))
+                label="Arial", command=lambda: select_font("Arial"),foreground='white',activebackground ='#4B4C4F')
             submenu.add_command(
-                label="Bahnschrift", command=lambda: select_font("Bahnschrift")
+                label="Bahnschrift", command=lambda: select_font("Bahnschrift"),foreground='white',activebackground ='#4B4C4F'
             )
             submenu.add_command(
-                label="Cambria", command=lambda: select_font("Cambria"))
+                label="Cambria", command=lambda: select_font("Cambria"),foreground='white',activebackground ='#4B4C4F')
             submenu.add_command(
-                label="Consolas", command=lambda: select_font("Consolas")
+                label="Consolas", command=lambda: select_font("Consolas"),foreground='white',activebackground ='#4B4C4F'
             )
             submenu.add_command(
-                label="Courier", command=lambda: select_font("Courier"))
+                label="Courier", command=lambda: select_font("Courier"),foreground='white',activebackground ='#4B4C4F')
             submenu.add_command(
-                label="Century", command=lambda: select_font("Century"))
+                label="Century", command=lambda: select_font("Century"),foreground='white',activebackground ='#4B4C4F')
             submenu.add_command(
-                label="Calibri", command=lambda: select_font("Calibri"))
+                label="Calibri", command=lambda: select_font("Calibri"),foreground='white',activebackground ='#4B4C4F')
             submenu.add_command(
-                label="Yu Gothic", command=lambda: select_font("Yu Gothic")
+                label="Yu Gothic", command=lambda: select_font("Yu Gothic"),foreground='white',activebackground ='#4B4C4F'
             )
             submenu.add_command(label="Times New Roman",
-                                command=lambda: select_font("Times New Roman"))
+                                command=lambda: select_font("Times New Roman"),foreground='white',activebackground ='#4B4C4F')
             submenu.add_command(
-                label="Sylfaen", command=lambda: select_font("Sylfaen"))
+                label="Sylfaen", command=lambda: select_font("Sylfaen"),foreground='white',activebackground ='#4B4C4F')
             submenu.add_command(
-                label="Nirmala UI", command=lambda: select_font("Nirmala UI")
+                label="Nirmala UI", command=lambda: select_font("Nirmala UI"),foreground='white',activebackground ='#4B4C4F'
             )
             submenu.add_command(
-                label="Ebrima", command=lambda: select_font("Ebrima"))
+                label="Ebrima", command=lambda: select_font("Ebrima"),foreground='white',activebackground ='#4B4C4F')
             submenu.add_command(
-                label="Comic Sans MS", command=lambda: select_font("Comic Sans MS")
+                label="Comic Sans MS", command=lambda: select_font("Comic Sans MS"),foreground='white',activebackground ='#4B4C4F'
             )
             submenu.add_command(
                 label="Microsoft PhagsPa",
-                command=lambda: select_font("Microsoft PhagsPa"),
+                command=lambda: select_font("Microsoft PhagsPa"),foreground='white',activebackground ='#4B4C4F'
             )
             submenu.add_command(
-                label="Lucida  Console", command=lambda: select_font("Lucida Console")
+                label="Lucida  Console", command=lambda: select_font("Lucida Console"),foreground='white',activebackground ='#4B4C4F'
             )
             submenu.add_command(
                 label="Franklin Gothic Medium",
-                command=lambda: select_font("Franklin Gothic Medium"),
+                command=lambda: select_font("Franklin Gothic Medium"),foreground='white',activebackground ='#4B4C4F'
             )
             submenu.add_command(
-                label="Cascadia Code", command=lambda: select_font("Cascadia Code")
+                label="Cascadia Code", command=lambda: select_font("Cascadia Code"),foreground='white',activebackground ='#4B4C4F'
             )
             submenu_size.add_command(
-                label='6', command=lambda: change_size(6), )
+                label='6', command=lambda: change_size(6),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='7', command=lambda: change_size(7), )
+                label='7', command=lambda: change_size(7),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='8', command=lambda: change_size(8), )
+                label='8', command=lambda: change_size(8),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='9', command=lambda: change_size(9), )
+                label='9', command=lambda: change_size(9),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='10', command=lambda: change_size(10), )
+                label='10', command=lambda: change_size(10),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='11', command=lambda: change_size(11), )
+                label='11', command=lambda: change_size(11), foreground='white',activebackground ='#4B4C4F')
             submenu_size.add_command(
-                label='12', command=lambda: change_size(12), )
+                label='12', command=lambda: change_size(12),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='13', command=lambda: change_size(13), )
+                label='13', command=lambda: change_size(13), foreground='white',activebackground ='#4B4C4F')
             submenu_size.add_command(
-                label='14', command=lambda: change_size(14), )
+                label='14', command=lambda: change_size(14),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='15', command=lambda: change_size(15), )
+                label='15', command=lambda: change_size(15),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='16', command=lambda: change_size(16), )
+                label='16', command=lambda: change_size(16),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='17', command=lambda: change_size(17), )
+                label='17', command=lambda: change_size(17),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='18', command=lambda: change_size(18), )
+                label='18', command=lambda: change_size(18),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='19', command=lambda: change_size(19), )
+                label='19', command=lambda: change_size(19),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='20', command=lambda: change_size(20), )
+                label='20', command=lambda: change_size(20),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='21', command=lambda: change_size(21), )
+                label='21', command=lambda: change_size(21),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='22', command=lambda: change_size(22), )
+                label='22', command=lambda: change_size(22),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='23', command=lambda: change_size(23), )
+                label='23', command=lambda: change_size(23), foreground='white',activebackground ='#4B4C4F')
             submenu_size.add_command(
-                label='24', command=lambda: change_size(24), )
+                label='24', command=lambda: change_size(24),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='25', command=lambda: change_size(25), )
+                label='25', command=lambda: change_size(25),foreground='white',activebackground ='#4B4C4F' )
+            submenu_size.add_command(label='26', command=lambda: change_size(26), foreground='white',activebackground ='#4B4C4F')
             submenu_size.add_command(
-                label='26', command=lambda: change_size(26), )
+                label='27', command=lambda: change_size(27), foreground='white',activebackground ='#4B4C4F')
             submenu_size.add_command(
-                label='27', command=lambda: change_size(27), )
+                label='28', command=lambda: change_size(28),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='28', command=lambda: change_size(28), )
+                label='29', command=lambda: change_size(29),foreground='white',activebackground ='#4B4C4F' )
             submenu_size.add_command(
-                label='29', command=lambda: change_size(29), )
-            submenu_size.add_command(
-                label='30', command=lambda: change_size(30), )
+                label='30', command=lambda: change_size(30),foreground='white',activebackground ='#4B4C4F' )
 
-            EditMenu.add_command(label="Text Color", command=change_color)
-            EditMenu.add_command(label="Background Color", command=bg_color)
+            EditMenu.add_command(label="Text Color", command=change_color,foreground='white',activebackground ='#4B4C4F' )
+            EditMenu.add_command(label="Background Color", command=bg_color,foreground='white',activebackground ='#4B4C4F' )
             EditMenu.add_command(label="Cut", command=cut,
-                                 accelerator='(Ctrl+x)')
+                                 accelerator='(Ctrl+x)',foreground='white',activebackground ='#4B4C4F' )
             EditMenu.add_command(label="Copy", command=copy,
-                                 accelerator='(Ctrl+c)')
+                                 accelerator='(Ctrl+c)',foreground='white',activebackground ='#4B4C4F' )
             EditMenu.add_command(
-                label="Paste", command=paste, accelerator='(Ctrl+v)')
+                label="Paste", command=paste, accelerator='(Ctrl+v)',foreground='white',activebackground ='#4B4C4F' )
             EditMenu.add_command(
-                label="Find", command=primary, accelerator='(Ctrl+f)')
+                label="Find", command=primary, accelerator='(Ctrl+f)',foreground='white',activebackground ='#4B4C4F' )
             EditMenu.add_command(
-                label="Replace", command=secondary, accelerator='(Ctrl+h)')
+                label="Replace", command=secondary, accelerator='(Ctrl+h)',foreground='white',activebackground ='#4B4C4F' )
             EditMenu.add_command(
-                label="Undo", command=TextArea.edit_undo, accelerator='(Ctrl+z)')
+                label="Undo", command=TextArea.edit_undo, accelerator='(Ctrl+z)',foreground='white',activebackground ='#4B4C4F' )
             EditMenu.add_command(
-                label="Redo", command=TextArea.edit_redo, accelerator='(Ctrl+y)')
-            EditMenu.add_cascade(label="Font", menu=submenu)
-            EditMenu.add_cascade(label="Size", menu=submenu_size)
-            MenuBar.add_cascade(label="Edit", menu=EditMenu)
+                label="Redo", command=TextArea.edit_redo, accelerator='(Ctrl+y)',foreground='white',activebackground ='#4B4C4F' )
+            EditMenu.add_cascade(label="Font", menu=submenu,foreground='white',activebackground ='#4B4C4F' )
+            EditMenu.add_cascade(label="Size", menu=submenu_size,foreground='white',activebackground ='#4B4C4F' )
+            MenuBar.add_cascade(label="Edit", menu=EditMenu,foreground='white',activebackground ='#4B4C4F' )
 
             def callback(event):
                 save_file()
@@ -1207,9 +1216,9 @@ def window_after(username, hash_password):
             root.bind('<Control-Key-c>', copy)
             root.bind('<Control-Key-v>', paste)
             # Help Menu Starts
-            HelpMenu = Menu(MenuBar, tearoff=0)
-            HelpMenu.add_command(label="About Notepad", command=about)
-            MenuBar.add_cascade(label="Help", menu=HelpMenu)
+            HelpMenu = Menu(MenuBar, tearoff=0,bg="#292A2D",bd='0',activebackground ='#292A2D')
+            HelpMenu.add_command(label="About Notepad", command=about,foreground='white',activebackground ='#4B4C4F')
+            MenuBar.add_cascade(label="Help", menu=HelpMenu,foreground='white',activebackground ='#4B4C4F')
 
             # Help Menu Ends
             MenuBar.pack_propagate(0)
