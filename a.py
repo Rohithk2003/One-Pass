@@ -8,8 +8,6 @@ import pickle
 import random
 import smtplib
 import sqlite3
-import pyotp
-import time
 
 # tkinter modules
 from tkinter import colorchooser
@@ -35,7 +33,6 @@ from update_check import update
 bufferSize = 64 * 1024
 root = Tk()
 root.title("ONE-PASS")
-#bug fix
 width_window = 300
 height_window = 300
 screen_width = root.winfo_screenwidth()
@@ -52,7 +49,7 @@ my_cursor.execute(
     "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,"
     "salt blob,no_of_accounts int(120) default 0) "
 )
-
+#for image loading
 l= [{'1':'member.png'}]
 
 # global values
@@ -138,7 +135,7 @@ class Login:
 
 
 
-
+#checking for updates
 def checkforupdates( ):
     if isUpToDate('a.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py') and isUpToDate('version.txt','https://raw.githubusercontent.com/Rohithk2003/One-Pass/master/version.txt'):
         result = messagebox.askyesno(
@@ -160,7 +157,7 @@ def checkforupdates( ):
     else:
         messagebox.showinfo('Update', 'No update is currently available')
 
-
+#for handling registrations
 class Register:
     def __init__(self, username, password, email_id, email_password):
         self.username = str(username)
@@ -237,7 +234,7 @@ def create_key(password, message):
     f = Fernet(key)
     encrypted = f.encrypt(message_encrypt)
     return encrypted, salt
-
+#deleting sub account
 def delete_social_media_account(real_username,hashed_password):
                 application_window = Tk()
                 application_window.withdraw()
@@ -285,7 +282,7 @@ def delete_social_media_account(real_username,hashed_password):
                     quit()
             # except:
             #     messagebox.showerror('Error','You have not  created a account please create one')
-
+#delete main account
 def delete_main_account(username):
         answer = messagebox.askyesno('Delete Account','Are you sure you want to delete you account')
         if answer == True:
