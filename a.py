@@ -68,28 +68,30 @@ if os.path.exists('version.txt'):
         f.write('0.9.0')
 else:
     with open('version.txt','w') as f:
-        f.write('0.6.0')
+        f.write('0.6.0')#used for check_for_updates
 
 # for handling login
 
 
-class Login:
+class Login:#login_clas
     def __init__(self, username, password):
         self.username = str(username)
         self.password = str(password)
 
-    def login_checking(self):
+    def login_checking(self):#verifying the user
 
         if self.username=='Username':
+            #checking for blank username
             root_error = Tk()
             for_hashing_both = self.password + self.username
             main_password = hashlib.sha512(
-                for_hashing_both.encode()).hexdigest()
+                for_hashing_both.encode()).hexdigest()#hashing the  password for returning
             root_error.withdraw()
             messagebox.showerror('Error', 'Cannot have blank Username ')
             root_error.destroy()
             return False, main_password
         elif  self.password == 'Password':
+            #checking for blank password
             root_error = Tk()
             for_hashing_both = self.password + self.username
             main_password = hashlib.sha512(
@@ -104,14 +106,14 @@ class Login:
                 for_hashing_both.encode()).hexdigest()
 
             try:
-                my_cursor.execute('select password from data_input where username')
+                #trying to decrypt the users file to check whether the password entered is valid
                 pyAesCrypt.decryptFile(
                     self.username + ".bin.fenc",
                     self.username + "decrypted.bin",
                     main_password,
                     bufferSize,
                 )
-            except OSError:
+            except OSError:#if the file doesn't exist'
                 root_error = Tk()
                 root_error.withdraw()
                 messagebox.showerror(
@@ -120,7 +122,7 @@ class Login:
                 )
                 root_error.destroy()
                 return False, main_password
-            except ValueError:
+            except ValueError:#if the password is incorrect
                 root = Tk()
                 root.withdraw()
                 messagebox.showerror(
@@ -130,13 +132,14 @@ class Login:
                 root.destroy()
                 return False, main_password
             return True, main_password
-    def windows(self, main_password, window, cursor):
+    def windows(self, main_password, window, cursor):#for calling the main function
         window_after(self.username, main_password)
 
 
 
 #checking for updates
 def checkforupdates( ):
+    #isUpToDate check whether the file ie a.py and version.txt is same as the one present in my github repository and it returns true if same else false
     if isUpToDate('a.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py') and isUpToDate('version.txt','https://raw.githubusercontent.com/Rohithk2003/One-Pass/master/version.txt'):
         result = messagebox.askyesno(
             'Update Available', 'Do you want to update the app?')
@@ -144,6 +147,7 @@ def checkforupdates( ):
             try:
                 messagebox.showinfo(
                     "Updating", 'Please wait while the software is being updated')
+                #used for updating the file
                 update(
                     'a.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py')
                 messagebox.showinfo(
@@ -165,16 +169,16 @@ class Register:
         self.email_id = str(email_id)
         self.email_password = str(email_password)
 
-    def check_pass_length(self):
+    def check_pass_length(self):#checking if the entered password is lesser than 5
         return len(self.password) >= 5 and len(self.email_password) >= 5
-
-    def saving(self, object):
+    '''to create a file named user and to store his accounts and also add his details to the database'''
+    def saving(self, object):           
         my_cursor.execute("select username from data_input")
         values_username = my_cursor.fetchall()
         for i in values_username:
             for usernames in i:
                 if usernames == self.username:
-                    return True
+                    return True#checking whether the username already exists in the database
 
         email_split = ""
         word = self.email_id.split()
@@ -185,34 +189,39 @@ class Register:
                 else:
                     email_split += i
         val = email_split[::-1]
-        main_password = val + self.email_password
+        main_password = val +'/'+ self.email_password#static salt 
         static_salt_password = self.password + "@" + main_password
+        #hashing/encrypting the password and store the dynamic salt created during creat_key() fn is called along with the encrypted password in database
         cipher_text, salt_for_decryption = create_key(
             main_password, static_salt_password
         )
+        #incase the user wants to change his/her password
         object.execute(
             "insert into data_input values (?,?,?,?, 0)",
             (self.username, self.email_id, cipher_text, salt_for_decryption),
         )
+        #so inserting the users details into database
         return False
-
+    #adding the account 
     def creation(self,window):
         try:
             window.destroy()
         except:
             pass
         for_hashing = self.password + self.username
-        hash_pass = hashlib.sha512(for_hashing.encode()).hexdigest()
+        '''for encrypting the file'''
+        hash_pass = hashlib.sha3_512(for_hashing.encode()).hexdigest()
         file_name = self.username + ".bin"
         with open(file_name, "wb") as f:
-            f.close()
-        pyAesCrypt.encryptFile(file_name, file_name +
+            pyAesCrypt.encryptFile(file_name, file_name +
                                ".fenc", hash_pass, bufferSize)
         os.remove(file_name)
+        #to display that his account has been created
         windows = Tk()
         windows.withdraw()
         messagebox.showinfo("Success", "Your account has been created")
         windows.destroy()
+        #for opening the main section where he can store his passwords and use notepad so the file has to be decrypted
         pyAesCrypt.decryptFile(
             file_name + ".fenc", f'{self.username}decrypted.bin', hash_pass, bufferSize)
         window_after(self.username, hash_pass)
@@ -220,10 +229,11 @@ class Register:
 
 # for hashing-encryting and decrypting password and for (forgot_password)
 def create_key(password, message):
-    password_key = password.encode()
-    salt = os.urandom(64)
+    password_key = password.encode()#convert string to bytes
+    salt = os.urandom(64)#create a random 64 bit byte
+    #PBKDF2HMAC- it is a type of encryption-Password-Based Key Derivation Function 2,HMAC-hashed message authentication code
     kdf = PBKDF2HMAC(
-        algorithm=hashes.SHA256(),
+        algorithm=hashes.SHA3_512(),
         length=32,
         salt=salt,
         iterations=999999,
@@ -301,20 +311,24 @@ def delete_main_account(username):
                 quit()
         else:
             quit()
+
 def settings(real_username,hashed_password):
     settings_window =Tk()
+    settings_window.titile('Settings')
+    settings_window.geometry('300x300')
     check_for_updates = Button(settings_window,text='Check for updates',command=checkforupdates )
-    check_for_updates.pack()
     Delete_account_button = Button(settings_window,text='Delete main account',command=lambda:delete_main_account(real_username))
     Delete_social_button = Button(settings_window,text='Delete sub  account',command=lambda:delete_social_media_account(real_username,hashed_password))
-    Delete_account_button.pack()
-    Delete_social_button.pack()
+    Delete_account_button.grid(row=1,column=1)
+    check_for_updates.grid(row=2, column=1)
+
+    Delete_social_button.grid(row=2, column=2)
     settings_window.mainloop()
 
 def retreive_key(password, byte, de):
     password_key = password.encode()
     kdf = PBKDF2HMAC(
-        algorithm=hashes.SHA256(),
+        algorithm=hashes.SHA3_512(),
         length=32,
         salt=de,
         iterations=999999,
@@ -388,7 +402,7 @@ def login_password():
                 else:
                     password_decrypt += i
         new_val = password_decrypt[::-1]
-        main_pass = new_val + password1
+        main_pass = f'{new_val}/{password1}'
         has = None
         salt = None
         decrypted_string = ""
@@ -1738,7 +1752,8 @@ register_text.place(x=40,y=128)
 reg_button.place(x=140,y=120)
 root.resizable(False, False)
 root.mainloop()
-
+''' to remove all decrypted files
+the glob function returns a list of files ending with .decrypted.bin'''
 list_file = glob.glob("*decrypted.bin")
 for i in list_file:
     converting_str = str(i)
