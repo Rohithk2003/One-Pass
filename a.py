@@ -282,12 +282,21 @@ def delete_social_media_account(real_username,hashed_password):
                             my_cursor.execute(f'update data_input set no_of_accounts = {new_val} where username={real_username}')
                             pyAesCrypt.encryptFile(f'{real_username}decrypted.bin',f'{real_username}.bin.fenc',hashed_password,bufferSize)
                             os.remove(f'{real_username}decrypted.bin')
-
+                            a =  Tk()
+                            a.withdraw()                            
                             messagebox.showinfo('Success','Your account has been successfully deleted')
+                            a.destroy()
                         else:
+                            a =  Tk()
+                            a.withdraw()
                             messagebox.showinfo("The account doesn't exists")
+                            a.destroy()
+
                     else:
-                        quit()
+                        a =  Tk()
+                        a.withdraw()
+                        messagebox.showinfo('Error','Please try again')
+                        a.destroy()
                 else:
                     quit()
             # except:
@@ -887,7 +896,6 @@ def window_after(username, hash_password):
             # Basic tkinter setup
             root.geometry("1000x500")
             root.title("Untitled - Notepad")
-            root.config(bg="#0d0d0d")
             # Add TextArea
             root.resizable(0, 0)
             font_main = ("freesansbold", 12)
@@ -1010,10 +1018,10 @@ def window_after(username, hash_password):
                             text_find, index, nocase=1, stopindex=END)
                         if not index:
                             break
-                        lastidx = '% s+% dc' % (index, len(text_find))
+                        lastidx = '% s+% d' % (index, len(text_find))
                         TextArea.delete(index, lastidx)
                         TextArea.insert(index, replace_value)
-                        lastidx = '% s+% dc' % (index, len(replace_value))
+                        lastidx = '% s+% d' % (index, len(replace_value))
                         TextArea.tag_add('found', index, lastidx)
                         index = lastidx
                     TextArea.tag_config('found', foreground='blue')
@@ -1707,7 +1715,7 @@ def register(window):
                 registering = register_user.saving(my_cursor)
                 if registering:
                     root2 = Tk()
-                    root.withdraw()
+                    root2.withdraw()
                     messagebox.showinfo(
                         "Error", "Username and email already exists")
                     root2.destroy()
