@@ -8,7 +8,8 @@ import pickle
 import random
 import smtplib
 import sqlite3
-
+import pyotp
+import time
 
 # tkinter modules
 from tkinter import colorchooser
@@ -52,6 +53,7 @@ my_cursor.execute(
     "salt blob,no_of_accounts int(120) default 0) "
 )
 
+l= [{'1':'member.png'}]
 
 # global values
 catch_error = True
@@ -64,7 +66,9 @@ file = 0
 
 #version file
 if os.path.exists('version.txt'):
-    pass
+    os.remove('version.txt')
+    with open('version.txt','w') as f:
+        f.write('0.9.0')
 else:
     with open('version.txt','w') as f:
         f.write('0.6.0')
@@ -78,23 +82,32 @@ class Login:
         self.password = str(password)
 
     def login_checking(self):
-        if self.username == '' or self.username == ' ':
+
+        if self.username=='Username':
             root_error = Tk()
+            for_hashing_both = self.password + self.username
+            main_password = hashlib.sha512(
+                for_hashing_both.encode()).hexdigest()
             root_error.withdraw()
-            messagebox.showerror('Error', 'Cannot have blank username ')
+            messagebox.showerror('Error', 'Cannot have blank Username ')
             root_error.destroy()
-        elif self.password == '' or self.password == ' ':
+            return False, main_password
+        elif  self.password == 'Password':
             root_error = Tk()
+            for_hashing_both = self.password + self.username
+            main_password = hashlib.sha512(
+                for_hashing_both.encode()).hexdigest()
             root_error.withdraw()
             messagebox.showerror('Error', 'Password cannot be empty ')
             root_error.destroy()
-
+            return False, main_password
         else:
             for_hashing_both = self.password + self.username
             main_password = hashlib.sha512(
                 for_hashing_both.encode()).hexdigest()
 
             try:
+                my_cursor.execute('select password from data_input where username')
                 pyAesCrypt.decryptFile(
                     self.username + ".bin.fenc",
                     self.username + "decrypted.bin",
@@ -120,7 +133,6 @@ class Login:
                 root.destroy()
                 return False, main_password
             return True, main_password
-
     def windows(self, main_password, window, cursor):
         window_after(self.username, main_password)
 
@@ -175,7 +187,8 @@ class Register:
                     break
                 else:
                     email_split += i
-        main_password = email_split + self.email_password
+        val = email_split[::-1]
+        main_password = val + self.email_password
         static_salt_password = self.password + "@" + main_password
         cipher_text, salt_for_decryption = create_key(
             main_password, static_salt_password
@@ -245,7 +258,7 @@ def delete_social_media_account(real_username,hashed_password):
                                         inde = values.index(i)
                                         values.pop(inde)
                                         print(values)
-                                    
+
                                 f.close()
                             try:
                                 os.remove(f'{real_username}decrypted.bin')
@@ -272,7 +285,7 @@ def delete_social_media_account(real_username,hashed_password):
                     quit()
             # except:
             #     messagebox.showerror('Error','You have not  created a account please create one')
-        
+
 def delete_main_account(username):
         answer = messagebox.askyesno('Delete Account','Are you sure you want to delete you account')
         if answer == True:
@@ -354,7 +367,7 @@ def login_password():
     def change_password(email, password1, username12):
         root = Tk()
         root.title("Change Password")
-        root.geometry('100x200')
+        root.geometry('300x300')
         new_username = Label(root, text="New Username")
         new_password = Label(root, text="New Password")
         new_username_entry = Entry(root)
@@ -377,8 +390,8 @@ def login_password():
                     break
                 else:
                     password_decrypt += i
-
-        main_pass = password_decrypt + password1
+        new_val = password_decrypt[::-1]
+        main_pass = new_val + password1
         has = None
         salt = None
         decrypted_string = ""
@@ -441,7 +454,9 @@ def login_password():
             )
             if os.path.exists(str(new_username_entry.get()) + ".bin.fenc"):
                 os.remove(username12 + ".bin")
-                os.remove(file_name_reentry)
+                if str(new_username_entry.get()) != username12:
+
+                    os.remove(file_name_reentry)
 
         change_button = Button(root, text="Change", command=change)
         change_button.grid(row=3, column=0, columnspan=1)
@@ -583,17 +598,6 @@ def login_password():
 var = 0
 
 
-def testing(root, mainarea, username, hash_password):
-    root.title("Passwords")
-    emptyMenu = Menu(root)
-    root.geometry('1000x500')
-    mainarea.config(bg="white")
-    root.config(menu=emptyMenu)
-
-    list = mainarea.pack_slaves()
-    for l in list:
-        l.destroy()
-    gameloop(username, hash_password, mainarea)
 
 
 def window_after(username, hash_password):
@@ -609,10 +613,25 @@ def window_after(username, hash_password):
     sidebar.pack(expand=False, fill="both", side="left")
     file = None
 
+    def testing(root, mainarea, username, hash_password):
+        button['state'] = DISABLED
+        b['state'] = NORMAL
+        root.title("Passwords")
+        emptyMenu = Menu(root)
+        root.geometry('1000x500')
+        mainarea.config(bg="white")
+        root.config(menu=emptyMenu)
+
+        list = mainarea.pack_slaves()
+        for l in list:
+            l.destroy()
+        gameloop(username, hash_password, mainarea)
     def ap():
         global status_name
         global password
         global var
+        b['state'] = DISABLED
+        button['state'] = NORMAL
         try:
             list = mainarea.pack_slaves()
             for i in list:
@@ -1400,7 +1419,7 @@ def gameloop(username, hashed_password, window):
                     password_label_widget.place(x = 30+i*250,y=130)
 
                 elif i>=3 and i <6:
-                    dd = int(i%3) 
+                    dd = int(i%3)
                     print(dd)
                     username_label_widget.grid( row=2 +1, column=0 + dd)
                     password_label_widget.grid(row=3 + 1, column=0 + dd)
@@ -1412,7 +1431,7 @@ def gameloop(username, hashed_password, window):
                     social_media_label.place(x=30+dd*250,y=230)
                     password_label_widget.place(x = 30+dd*250,y=270)
                 elif 6 <= i < 9:
-                    dd = int(i%6 ) 
+                    dd = int(i%6 )
                     print('how many')
                     username_label_widget.grid( row=2 +1, column=0 + dd)
                     password_label_widget.grid(row=3 + 1, column=0 + dd)
@@ -1439,63 +1458,82 @@ def gameloop(username, hashed_password, window):
         add_button.grid(row=10,column=10)
         add_button_text.grid(row=11, column=10)
 
-        add_button.place(x=750, y=400)
-        add_button_text.place(x=750, y=480)
-        
-    else:
-        image_add = tk_image.PhotoImage(image.open('add-button.png'))
-        add_button_text = Label(window, text='Add Account')
-        add_button = Button(
-            window,  image=image_add, border="0", compound='top', command=addaccount
-        )
-        add_button.config(state = DISABLED)
-        add_button.photo = image_add
-        d = int(add%4)
-        add_button.grid(row=10,column=10)
-        add_button_text.grid(row=11, column=10)
-        add_button.place(x=750, y=400)
-        add_button_text.place(x=750, y=480)
+        add_button.place(x=719, y=410)
+        add_button_text.place(x=710, y=480)
+
 
     # except:
     #     pass
+def get(window,name):
+    global l
+    for i in l:
+        for a in i:
+            if a == name:
+                d = tk_image.PhotoImage(image.open(i[a]),master=window)
+                return d
+def handle_focus_in(entry,index):
+        val = str(entry.get())
+        if val == 'Username' or val == 'Password':
+            entry.delete(0, END)
+            entry.config(fg='black')
+        if index==2:
+            entry.config(show="*")
 
-
-def login():
+def handle_focus_out(entry,val,index):
+        a = entry.get()
+        if  a == '' and index == 2:
+            entry.delete(0, END)
+            entry.config(fg='grey')
+            entry.config(show='')
+            entry.insert(0, val)
+        elif a== '':
+            entry.delete(0, END)
+            entry.config(fg='grey') 
+            entry.insert(0, val)
+def login(window):
     login_window = Tk()
-
+    try:
+        window.destroy()
+    except:
+        pass
     login_window.title('Login')
     width_window = 400
     height_window = 400
+    login_window.focus_set()
+    login_window.config(bg='black')
     screen_width = login_window.winfo_screenwidth()
     screen_height = login_window.winfo_screenheight()
     x = screen_width / 2 - width_window / 2
     y = screen_height / 2 - height_window / 2
     login_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-    input_entry = Entry(login_window, text="Username:")
-    login = Label(login_window, text="Username:")
-    pass1 = Label(login_window, text="Password:")
-    pass_entry = Entry(login_window, text="Password:", show="*")
-    forgot = Button(login_window, text="Forgot Password",
-                    command=login_password)
+    input_entry = Entry(login_window)
+    pass_entry = Entry(login_window, show="*")
+    forgot = Button(login_window, text="Forgot Password?",
+                    command=login_password,border='0',fg='white',bg='black',highlightcolor='black',activebackground='black',activeforeground='blue',relief=RAISED)
     register_button = Button(
-        login_window, text='Register', command= register)
+        login_window, text='Register', command= lambda:register(window),fg='white',bg='black',border='0',highlightcolor='black',activebackground='black',activeforeground='blue',relief=RAISED)
+
+    mod_label = Label(login_window, text="|",relief=SUNKEN,fg='white',bg='black',border='0')
+
 
     def password_sec(entry, show_both_1):
-        a = entry['show']
-        if a == "":
-            entry.config(show="*")
-            show_both_1['text'] = 'Hide'
-        elif a == '*':
-            entry.config(show="")
-            show_both_1['text'] = 'Show'
+        val = entry.get()
+        if val != 'Password':
+            a = entry['show']
+            if a == "":
+                entry.config(show="*")
+                show_both_1['text'] = 'Show'
+            elif a == '*':
+                entry.config(show="")
+                show_both_1['text'] = 'Hide'
 
     show_both_1 = Button(
         login_window,
         text="show",
-        command=lambda: password_sec(pass_entry, show_both_1),
+        command=lambda: password_sec(pass_entry, show_both_1),border='0',fg='white',bg='black',highlightcolor='black',activebackground='black',activeforeground='blue',relief=RAISED
     )
 
-    def login_checking_1():
+    def login_checking_1(*event):
         my_cursor.execute(
             "select email_id from data_input where username = (?)", (str(input_entry.get()),))
         val_list = my_cursor.fetchall()
@@ -1507,7 +1545,7 @@ def login():
             if check:
                 root = Tk()
                 root.withdraw()
-                messagebox.showinfo("Succes", "You have now logged in ")
+                messagebox.showinfo("Success", "You have now logged in ")
                 root.destroy()
                 login_window.destroy()
                 login.windows(main_password, login_window, my_cursor)
@@ -1515,32 +1553,52 @@ def login():
                 pass
 
     but = Button(login_window, text="Login", command=login_checking_1)
-    but.grid(row=7, column=3)
 
-    login.grid(row=2, column=2)
-    pass1.grid(row=6, column=2)
-    input_entry.grid(row=2, column=3)
+    va = get(login_window,'1')
+    my_label = Label(login_window, image=va,bg='black')
+    but.grid(row=7, column=3)
+    my_label.photo = va
+    login_window.bind('<Return>',login_checking_1)
+    input_entry.grid(row=2, column=3,ipady=40)
     pass_entry.grid(row=6, column=3)
-    root.destroy()
     login_window.resizable(False, False)
     register_button.grid(row=7, column=4)
     forgot.grid(row=7, column=2)
     show_both_1.grid(row=6, column=4)
 
+    input_entry.insert(0,'Username')
+    input_entry.config(fg='grey')
+    pass_entry.insert(0,'Password')
+    pass_entry.config(fg='grey')
+    pass_entry.config(show='')
 
-    login.place(x=50-20, y=100)
-    pass1.place(x=50-20,y=230-100)
-    input_entry.place(x = 150-20, y= 200-100)
-    pass_entry.place(x=150-20, y=230-100)
-    show_both_1.place(x=315-20,y=223-100)
-    register_button.place(x=280-20, y=270-100)
-    but.place(x=200-20,y=270-100)
-    forgot.place(x=50-20,y=270-100)
+    input_entry.place(x = 100, y= 200-50,height=30,width=200)
+    pass_entry.place(x=100, y=230-50,height=30,width=200)
 
+    show_both_1.place(x=300,y=230-40)
+    register_button.place(x=220+10, y=270)
+
+    but.place(x=100+80,y=220)
+
+    forgot.place(x=100+10+10,y=270)
+    mod_label.place(x=210+13,y=270)
+    my_label.grid(row=0, column=2)
+    my_label.place(x=135,y=10)
+    input_entry.bind('<FocusIn>',lambda event,val_val=input_entry,index=1:handle_focus_in(val_val,index))
+    input_entry.bind("<FocusOut>", lambda event,val_val=input_entry,val='Username',index=1:handle_focus_out(val_val,val,index))
+
+    pass_entry.bind('<FocusIn>',lambda event,val_val=pass_entry,index=2:handle_focus_in(val_val,index))
+    pass_entry.bind("<FocusOut>", lambda event,val_val=pass_entry,val='Password',index=2:handle_focus_out(val_val,val,index))
 
 def register(window):
     login_window1 = Tk()
-    window.destroy()
+    login_window1.config(bg='black')
+    login_window1.focus_set()
+    login_window1.grab_set()
+    try:
+        window.destroy()
+    except:
+        pass
     login_window1.resizable(False, False)
     login_window1.title("Register")
     width_window = 400
@@ -1551,10 +1609,10 @@ def register(window):
     y = screen_height / 2 - height_window / 2
 
     login_window1.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-    username = Label(login_window1, text="Username:")
-    password = Label(login_window1, text="password:")
-    email_id = Label(login_window1, text="Recovery Email :")
-    email_password = Label(login_window1, text="Recovery Email password")
+    username = Label(login_window1, text="Username:",fg='white',bg='black',highlightcolor='black',activebackground='black',activeforeground='blue')
+    password = Label(login_window1, text="password:",fg='white',bg='black',highlightcolor='black',activebackground='black',activeforeground='blue')
+    email_id = Label(login_window1, text="Recovery Email :",fg='white',bg='black',highlightcolor='black',activebackground='black',activeforeground='blue')
+    email_password = Label(login_window1, text="Recovery Email password",fg='white',bg='black',highlightcolor='black',activebackground='black',activeforeground='blue')
     username_entry = Entry(login_window1)
     password_entry = Entry(login_window1, show="*")
     email_id_entry = Entry(login_window1)
@@ -1565,6 +1623,20 @@ def register(window):
     len3=len(email_id['text'])
     len4=len(email_password['text'])
     # putting the buttons and entries
+
+
+    username_entry.insert(0,'Username')
+    username_entry.config(fg='grey')
+    password_entry.insert(0,'Password')
+    password_entry.config(fg='grey')
+    password_entry.config(show='')
+
+    username_entry.bind('<FocusIn>',lambda event,val_val=username_entry,index=1:handle_focus_in(val_val,index))
+    username_entry.bind("<FocusOut>", lambda event,val_val=username_entry,val='Username',index=1:handle_focus_out(val_val,val,index))
+
+    password_entry.bind('<FocusIn>',lambda event,val_val=password_entry,index=2:handle_focus_in(val_val,index))
+    password_entry.bind("<FocusOut>", lambda event,val_val=password_entry,val='Password',index=2:handle_focus_out(val_val,val,index))
+
     username.grid(row=2, column=0)
     password.grid(row=3, column=0)
     email_id.grid(row=4, column=0)
@@ -1573,6 +1645,8 @@ def register(window):
     password_entry.grid(row=3, column=1)
     email_id_entry.grid(row=4, column=1)
     email_password_entry.grid(row=5, column=1)
+
+
     username.place(x =0,y=150)
     password.place(x =0,y=180)
     email_id.place(x =0,y=250)
@@ -1581,8 +1655,6 @@ def register(window):
     password_entry.place(x=len4*10,y=180)
     email_id_entry.place(x=len4*10,y=250)
     email_password_entry.place(x=len4*10,y=280)
-    register_text= Label(login_window1,text='Register',font=('helvetica',30),underline=True)
-    register_text.place(x=120,y=50)
     def password_sec(entry, button):
         a = entry['show']
         if a == "":
@@ -1595,13 +1667,11 @@ def register(window):
     show_both_1 = Button(
         login_window1,
         text="show",
-        command=lambda: password_sec(password_entry, show_both_1),
-    )
+        command=lambda: password_sec(password_entry, show_both_1),fg='white',bg='black',highlightcolor='black',activebackground='black',activeforeground='white',relief=RAISED)
     show_both_12 = Button(
         login_window1,
         text="show",
-        command=lambda: password_sec(email_password_entry, show_both_12),
-    )
+        command=lambda: password_sec(email_password_entry, show_both_12),fg='white',bg='black',highlightcolor='black',activebackground='black',activeforeground='white',relief=RAISED)
     show_both_12.grid(row=5, column=2)
     show_both_1.grid(row=3, column=2)
     show_both_1.place(x=len4*10,y=210)
@@ -1612,43 +1682,52 @@ def register(window):
         password_register = str(password_entry.get())
         email_id_register = str(email_id_entry.get())
         email_password_register = str(email_password_entry.get())
-        register_user = Register(
-            username_register,
-            password_register,
-            email_id_register,
-            email_password_register,
-        )
-        checking = register_user.check_pass_length()
-        if checking:
-            registering = register_user.saving(my_cursor)
-            if registering:
-                root2 = Tk()
-                root.withdraw()
-                messagebox.showinfo(
-                    "Error", "Username and email already exists")
-                root2.destroy()
-
-            if not registering:
-                register_user.creation(login_window1)
-
+        if username_register=='Username' or password_register =='Password' :
+            messagebox.showerror('Error','Fields cannot be empty')
         else:
-                root2 = Tk()
-                root2.withdraw()
-                messagebox.showinfo(
-                    "Error", "Please provide password greater than 6 characters"
-                )
-                root2.destroy()
+            register_user = Register(
+                username_register,
+                password_register,
+                email_id_register,
+                email_password_register,
+            )
+            checking = register_user.check_pass_length()
+            if checking:
+                registering = register_user.saving(my_cursor)
+                if registering:
+                    root2 = Tk()
+                    root.withdraw()
+                    messagebox.showinfo(
+                        "Error", "Username and email already exists")
+                    root2.destroy()
+
+                if not registering:
+                    register_user.creation(login_window1)
+
+            else:
+                    root2 = Tk()
+                    root2.withdraw()
+                    messagebox.showinfo(
+                        "Error", "Please provide password greater than 6 characters"
+                    )
+                    root2.destroy()
     register_button = Button(
-        login_window1, text="Register", command=register_saving)
+        login_window1, text="Register", command=register_saving,fg='white',bg='black',highlightcolor='black',activebackground='black',activeforeground='white',relief=RAISED
+)
     register_button.grid(row=6, column=0)
     register_button.place(x=150,y=350)
+    va = get(login_window1,'1')
+    my_label = Label(login_window1, image=va,bg='black')
+    my_label.photo = va
+    my_label.place(x=120,y=10)
 
-main = Label(root, text="Welcome to ONE-PASS")
-login_text = Label(root, text="Login:")
+root.config(bg='black')
+main = Label(root, text="Welcome to ONE-PASS", font=('Verdana',12),fg='white',bg='black')
+login_text = Label(root, text="Login:",fg='white',bg='black', font=(' MS Sans Serif',12))
 register_text = Label(
-    root, text='Register: ')
-reg_button = Button(root, text="Register", command=lambda:register(root))
-login_button = Button(root, text="login", command=login  )# added login button
+    root, text='Register: ',fg='white',bg='black', font=('Verdana',12))
+reg_button = Button(root, text="Register", command=lambda:register(root), font=('Verdana',12),fg='white',bg='black',relief=RAISED)
+login_button = Button(root, text="login", command=lambda:login(root), font=('Verdana',12),fg='white',bg='black',relief=RAISED)
 
 main.grid(row=0, column=1, columnspan=2)
 login_button.grid(row=7, column=1, columnspan=2)
