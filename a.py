@@ -263,19 +263,21 @@ def delete_social_media_account(real_username, hashed_password):
         "Delete Account", "What is the name of the account to be deleted?", parent=application_window
     )
     application_window.destroy()
+    username_list = []
+
     with open(f'{real_username}decrypted.bin','rb') as f:
         values_verifying = pickle.load(f)
-        username_list = []
         for i in values_verifying:
             username_list.append(i[0])
-    if ask in username_list:
-        messagebox.showwarning('Error',"This account doesn't exist")
+
+    if ask not in username_list:
+        messagebox.showwarning('Error',"The account doesn't exist")
     else:
         if ask:
             result = messagebox.askyesno('Confirm', 'Are you sure that you want to delete your account')
             if result == True:
                 val = simpledialog.askstring('Delete account',
-                                            f'Please type {real_username}/{ask} to successfully delete your account')
+                                            f'Please type {real_username}/{ask} to  delete your account')
                 if val == f'{real_username}/{ask}':
                     with open(f'{real_username}decrypted.bin', 'rb') as f:
                         values = pickle.load(f)
@@ -343,7 +345,7 @@ def delete_main_account(username):
     else:
         quit()
 
-def change_window(real_username):
+def change_window(real_username,hashed_password):
         change_acccount = Toplevel()
         change_acccount.config(bg='#292A2D')
         change_acccount.resizable(False, False)
@@ -352,9 +354,13 @@ def change_window(real_username):
         # Adding combobox drop down list 
         tu=()
         with open(f'{real_username}decrypted.bin','rb') as selectfile:
-            ac = pickle.load(selectfile)
-            for i in ac:
-                tu+=(i[0],)
+            try:
+                ac = pickle.load(selectfile)
+                for i in ac:
+                    tu+=(i[0],)
+            except:
+                pass
+        print(tu)
         selectaccount['values'] = tu
 
         selectaccount.grid(column = 1, row = 5) 
@@ -411,13 +417,19 @@ def change_window(real_username):
         new_account_name.place(x = 200, y = 130)
 
 
-def change_sub_account(real_username, accounttobechanged,new_username,new_password,account_name):
+def change_sub_account(real_username, hashed_password,accounttobechanged,new_username,new_password,account_name):
     with open(f'{real_username}decrypted.bin','rb') as f:
         value1=pickle.load(f)
         old_path = ''
         for i in value1:
             if i[0] == accounttobechanged:
-                    pass
+                    i[0] = str(new_username)
+                    i[1] = str(new_password)
+                    i[2] = str(account_name)
+    with open(f'{real_username}decrypted.bin','wb') as f:
+        pickle.dump(value1,f)
+    os.remove(f'{real_username}.bin.fenc')
+    pyAesCrypt.encryptFile(f'{real_username}decrypted.bin',f'{real_username}.bin.fenc',hashed_password, bufferSize)
 
 def settings(real_username, hashed_password):
     settings_window = Tk()
@@ -442,7 +454,7 @@ def settings(real_username, hashed_password):
                                   command=lambda: delete_social_media_account(real_username, hashed_password),
                                   fg='white', bg='#292A2D')
     change_account_button = Button(
-        settings_window, text='Change account', command=lambda: change_window(real_username))
+        settings_window, text='Change account', command=lambda: change_window(real_username,hashed_password), fg='white', bg='#292A2D')
     Delete_account_button.grid(row=2, column=0)
     check_for_updates.grid(row=1, column=0)
     Delete_social_button.grid(row=3, column=0)
