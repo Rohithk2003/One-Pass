@@ -265,30 +265,40 @@ def delete_social_media_account(real_username, hashed_password):
     application_window.destroy()
     username_list = []
 
-    with open(f'{real_username}decrypted.bin','rb') as f:
-        values_verifying = pickle.load(f)
-        for i in values_verifying:
-            username_list.append(i[0])
+    n = StringVar() 
+    selectaccount = Combobox(change_acccount, width = 27, textvariable = n) 
+    # Adding combobox drop down list 
+    tu=()
+    with open(f'{real_username}decrypted.bin','rb') as selectfile:
+    try:
+        ac = pickle.load(selectfile)
+        for i in ac:
+            tu+=(i[0],)
+    except:
+        pass
+    print(tu)
+    selectaccount['values'] = tu
 
-    if ask not in username_list:
-        messagebox.showwarning('Error',"The account doesn't exist")
-    else:
+    selectaccount.grid(column = 1, row = 5) 
+    selectaccount.current()
+
+    def select_account_name(account_name):
         if ask:
             result = messagebox.askyesno('Confirm', 'Are you sure that you want to delete your account')
             if result == True:
                 val = simpledialog.askstring('Delete account',
-                                            f'Please type {real_username}/{ask} to  delete your account')
-                if val == f'{real_username}/{ask}':
+                                            f'Please type {real_username}/{account_name} to  delete your account')
+                if val == f'{real_username}/{account_name}':
                     with open(f'{real_username}decrypted.bin', 'rb') as f:
                         values = pickle.load(f)
                         for i in values:
-                            if i[2] == ask:
+                            if i[2] == account_name:
                                 inde = values.index(i)
                                 values.pop(inde)
 
                         f.close()
                     try:
-                        os.remove(f'{real_username}decrypted.bin')
+                        os.remove(f'{real_username}.bin.fenc')
                     except:
                         pass
                     with open(f'{real_username}decrypted.bin', 'wb') as f:
@@ -308,11 +318,7 @@ def delete_social_media_account(real_username, hashed_password):
                     a.withdraw()
                     messagebox.showinfo('Success', 'Your account has been successfully deleted')
                     a.destroy()
-                else:
-                    a = Tk()
-                    a.withdraw()
-                    messagebox.showinfo("The account doesn't exists")
-                    a.destroy()
+
 
             else:
                 a = Tk()
