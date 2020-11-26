@@ -5,11 +5,14 @@ import hashlib
 import os
 import os.path
 import pickle
+import pyAesCrypt
 import random
 import smtplib
 import sqlite3
 
 # tkinter modules
+from PIL import Image as image
+from PIL import ImageTk as tk_image
 from tkinter import colorchooser
 from tkinter import filedialog as fd
 from tkinter import messagebox
@@ -17,15 +20,14 @@ from tkinter import simpledialog
 from tkinter.ttk import *
 from tkinter import *
 
-from PIL import Image as image
-from PIL import ImageTk as tk_image
 # for encryption and decryption
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from passlib.hash import pbkdf2_sha256
-import pyAesCrypt
+
+# for updating the file
 from update_check import isUpToDate
 from update_check import update
 
@@ -270,12 +272,12 @@ def delete_social_media_account(real_username, hashed_password):
     # Adding combobox drop down list 
     tu=()
     with open(f'{real_username}decrypted.bin','rb') as selectfile:
-    try:
-        ac = pickle.load(selectfile)
-        for i in ac:
-            tu+=(i[0],)
-    except:
-        pass
+        try:
+            ac = pickle.load(selectfile)
+            for i in ac:
+                tu+=(i[0],)
+        except:
+            pass
     print(tu)
     selectaccount['values'] = tu
 
@@ -410,7 +412,7 @@ def change_window(real_username,hashed_password):
         new_password.grid(row = 3, column = 1)
         new_username_label.grid(row = 2, column = 1)
         new_username.grid(row = 2, column = 0)
-        change = Button(change_acccount, text='Change', bg='#292A2D', fg='white', command=change_sub_account(real_username, str(selectaccount.get()),  str(new_username.get()), str(new_password.get()), str(new_account_name.get())))
+        change = Button(change_acccount, text='Change', bg='#292A2D', fg='white', command=change_sub_account(real_username,hashed_password, str(selectaccount.get()),  str(new_username.get()), str(new_password.get()), str(new_account_name.get())))
 
         change.grid(row=5, column=1)
         main_label.place(x=50,y=40)
@@ -439,7 +441,7 @@ def change_sub_account(real_username, hashed_password,accounttobechanged,new_use
 
 def settings(real_username, hashed_password):
     settings_window = Tk()
-    settings_window.resizable(False,False)
+    settings_window.resizable(False, False)
     
     width_window = 300
     height_window = 300
@@ -494,12 +496,12 @@ def retreive_key(password, byte, de):
 def login_password():
     window = Tk()
     window.config(bg='#292A2D')
-    window.resizable(False,False)
+    window.resizable(False, False)
 
     window.title("Forgot Password")
     text = "Please provide the recovery email  and recovery email password \n that you provided while creating an " \
            "account "
-    text_label = Label(window, text=text, fg='white',bg='#292A2D')
+    text_label = Label(window, text=text, fg='white', bg='#292A2D')
     width_window = 400
     height_window = 200
     screen_width = window.winfo_screenwidth()
@@ -508,9 +510,9 @@ def login_password():
     y = screen_height / 2 - height_window / 2
     window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 
-    username_forgot = Label(window, text="Username", fg='white',bg='#292A2D')
-    recover_email = Label(window, text="Email", fg='white',bg='#292A2D')
-    recover_password = Label(window, text="Password", fg='white',bg='#292A2D')
+    username_forgot = Label(window, text="Username", fg='white', bg='#292A2D')
+    recover_email = Label(window, text="Email", fg='white', bg='#292A2D')
+    recover_password = Label(window, text="Password", fg='white', bg='#292A2D')
     recover_email_entry = Entry(window)
     recover_password_entry = Entry(window)
     username_forgot_entry = Entry(window)
@@ -523,13 +525,12 @@ def login_password():
     username_forgot_entry.grid(row=1, column=1)
     username_forgot.grid(row=1, column=0)
 
-
-    username_forgot.place(x=50,y=70)
-    recover_password.place(x=50,y=100)
-    recover_email.place(x=50,y=130)
-    username_forgot_entry.place(x=200,y=70)
-    recover_password_entry.place(x=200,y=100)
-    recover_email_entry.place(x=200,y=130)
+    username_forgot.place(x=50, y=70)
+    recover_password.place(x=50, y=100)
+    recover_email.place(x=50, y=130)
+    username_forgot_entry.place(x=200, y=70)
+    recover_password_entry.place(x=200, y=100)
+    recover_email_entry.place(x=200, y=130)
 
     key = ""
     l = "abcdefghijklmnopqrstuvwxyz"
@@ -557,8 +558,8 @@ def login_password():
         root.title("Change Password")
         root.geometry('300x300')
         root.config(bg='#292A2D')
-        new_username = Label(root, text="New Username", fg='white',bg='#292A2D')
-        new_password = Label(root, text="New Password", fg='white',bg='#292A2D')
+        new_username = Label(root, text="New Username", fg='white', bg='#292A2D')
+        new_password = Label(root, text="New Password", fg='white', bg='#292A2D')
         new_username_entry = Entry(root)
         new_password_entry = Entry(root, show="*")
         new_username.grid(row=1, column=0)
@@ -759,8 +760,8 @@ def login_password():
                 ), fg='white', bg='#292A2D'
             )
             otp_entry_button.grid(row=8, column=1)
-            otp_entry_button.place(x=50,y=200)
-            otp_entry.place(x=200,y=200)
+            otp_entry_button.place(x=50, y=200)
+            otp_entry.place(x=200, y=200)
             digits = "1234567890"
             OTP = ""
             for i in range(6):
@@ -780,16 +781,17 @@ def login_password():
             roo1.destroy()
 
     forgot_password_button = Button(
-        window, text="verify", command=lambda: main(key), bg='#292A2D',fg='white')
+        window, text="verify", command=lambda: main(key), bg='#292A2D', fg='white')
     forgot_password_button.grid(row=5, column=1)
-    forgot_password_button.place(x=250,y=170)
+    forgot_password_button.place(x=250, y=170)
     show_both_1 = Button(
         window,
         text="Show",
-        command=lambda: password_sec(recover_password_entry, show_both_1), fg='white', bg='#292A2D', highlightcolor='#292A2D',
+        command=lambda: password_sec(recover_password_entry, show_both_1), fg='white', bg='#292A2D',
+        highlightcolor='#292A2D',
         activebackground='#292A2D', activeforeground='white', relief=RAISED)
-    show_both_1.grid(row=0,column=0)
-    show_both_1.place(x=325,y=95)
+    show_both_1.grid(row=0, column=0)
+    show_both_1.place(x=325, y=95)
     username_forgot_entry.insert(0, 'Username')
     username_forgot_entry.config(fg='grey')
     recover_password_entry.insert(0, 'Password')
@@ -799,21 +801,26 @@ def login_password():
     recover_email_entry.config(fg='grey')
     recover_email_entry.insert(0, 'Email ID')
 
-
-    username_forgot_entry.bind('<FocusIn>', lambda event, val_val=username_forgot_entry, index=1: handle_focus_in(val_val, index))
+    username_forgot_entry.bind('<FocusIn>',
+                               lambda event, val_val=username_forgot_entry, index=1: handle_focus_in(val_val, index))
     username_forgot_entry.bind("<FocusOut>",
-                        lambda event, val_val=username_forgot_entry, val='Username', index=1: handle_focus_out(val_val, val,
-                                                                                                        index))
+                               lambda event, val_val=username_forgot_entry, val='Username', index=1: handle_focus_out(
+                                   val_val, val,
+                                   index))
 
-    recover_password_entry.bind('<FocusIn>', lambda event, val_val=recover_password_entry, index=2: handle_focus_in(val_val, index))
+    recover_password_entry.bind('<FocusIn>',
+                                lambda event, val_val=recover_password_entry, index=2: handle_focus_in(val_val, index))
     recover_password_entry.bind("<FocusOut>",
-                        lambda event, val_val=recover_password_entry, val='Password', index=2: handle_focus_out(val_val, val,
-                                                                                                        index))
+                                lambda event, val_val=recover_password_entry, val='Password', index=2: handle_focus_out(
+                                    val_val, val,
+                                    index))
 
-    recover_email_entry.bind('<FocusIn>', lambda event, val_val=recover_email_entry, index=3: handle_focus_in(val_val, index))
+    recover_email_entry.bind('<FocusIn>',
+                             lambda event, val_val=recover_email_entry, index=3: handle_focus_in(val_val, index))
     recover_email_entry.bind("<FocusOut>",
-                        lambda event, val_val=recover_email_entry, val='Email ID', index=3: handle_focus_out(val_val, val,
-                                                                                                        index))
+                             lambda event, val_val=recover_email_entry, val='Email ID', index=3: handle_focus_out(
+                                 val_val, val,
+                                 index))
 
 
 var = 0
@@ -823,7 +830,6 @@ def window_after(username, hash_password):
     # sidebar
     root = Tk()
     root.resizable(False, False)
-
 
     global var
     global file
@@ -1529,6 +1535,7 @@ def change_icon(button, usernam, users_username,hashed_password):
         button.config(image=new_tk)
         button.photo = new_tk
 
+# noinspection PyTypeChecker
 def gameloop(username, hashed_password, window):
     global image_path
     window.grid_propagate(0)
@@ -1681,13 +1688,13 @@ def gameloop(username, hashed_password, window):
     except:
         account_fetch = []
 
-    i = 0
+    no_of_accounts = 0
     try:
-        while i < 12:
-            social_username = account_fetch[i][0]
-            social_password = account_fetch[i][1]
-            social_media = account_fetch[i][2]
-            image_path_loc = account_fetch[i][3]
+        while no_of_accounts < 12:
+            social_username = account_fetch[no_of_accounts][0]
+            social_password = account_fetch[no_of_accounts][1]
+            social_media = account_fetch[no_of_accounts][2]
+            image_path_loc = account_fetch[no_of_accounts][3]
             username_label_widget = Label(
                 window, text=f'Username: {social_username}', fg='white', bg='#292A2D')
             password_label_widget = Label(
@@ -1695,6 +1702,7 @@ def gameloop(username, hashed_password, window):
             social_media_label = Label(
                 window, text=f'Account Name: {social_media}', fg='white', bg='#292A2D')
             if image_path_loc:
+                # noinspection PyBroadException
                 try:
                     tkimage = tk_image.PhotoImage(image.open(image_path_loc))
                 except:
@@ -1703,19 +1711,19 @@ def gameloop(username, hashed_password, window):
                 tkimage = tk_image.PhotoImage(image.open('photo.png'))
             default_image_button = Button(window, image=tkimage, borderwidth='0', bg='#292A2D',
                                           command=lambda: change_icon(default_image_button, social_username, username, hashed_password))
-            if i < 3:
-                username_label_widget.grid(row=2, column=0 + i, rowspan=1)
-                password_label_widget.grid(row=3, column=0 + i, rowspan=1)
-                social_media_label.grid(row=1, column=0 + i, rowspan=1)
+            if no_of_accounts < 3:
+                username_label_widget.grid(row=2, column=0 + no_of_accounts, rowspan=1)
+                password_label_widget.grid(row=3, column=0 + no_of_accounts, rowspan=1)
+                social_media_label.grid(row=1, column=0 + no_of_accounts, rowspan=1)
                 default_image_button.photo = tkimage
-                default_image_button.grid(row=0, column=0 + i, rowspan=1)
-                default_image_button.place(x=40 + i * 250, y=10)
-                username_label_widget.place(x=30 + i * 250, y=110)
-                social_media_label.place(x=30 + i * 250, y=90)
-                password_label_widget.place(x=30 + i * 250, y=130)
+                default_image_button.grid(row=0, column=0 + no_of_accounts, rowspan=1)
+                default_image_button.place(x=40 + no_of_accounts * 250, y=10)
+                username_label_widget.place(x=30 + no_of_accounts * 250, y=110)
+                social_media_label.place(x=30 + no_of_accounts * 250, y=90)
+                password_label_widget.place(x=30 + no_of_accounts * 250, y=130)
 
-            elif i >= 3 and i < 6:
-                dd = int(i % 3)
+            elif 3 <= no_of_accounts < 6:
+                dd = int(no_of_accounts % 3)
                 username_label_widget.grid(row=2 + 1, column=0 + dd)
                 password_label_widget.grid(row=3 + 1, column=0 + dd)
                 social_media_label.grid(row=1 + 1, column=0 + dd)
@@ -1725,8 +1733,8 @@ def gameloop(username, hashed_password, window):
                 username_label_widget.place(x=30 + dd * 250, y=250)
                 social_media_label.place(x=30 + dd * 250, y=230)
                 password_label_widget.place(x=30 + dd * 250, y=270)
-            elif 6 <= i < 9:
-                dd = int(i % 6)
+            elif 6 <= no_of_accounts < 9:
+                dd = int(no_of_accounts % 6)
                 username_label_widget.grid(row=2 + 1, column=0 + dd)
                 password_label_widget.grid(row=3 + 1, column=0 + dd)
                 social_media_label.grid(row=1 + 1, column=0 + dd)
@@ -1736,7 +1744,7 @@ def gameloop(username, hashed_password, window):
                 social_media_label.place(x=30 + dd * 250, y=380)
                 username_label_widget.place(x=30 + dd * 250, y=400)
                 password_label_widget.place(x=30 + dd * 250, y=420)
-            i = i + 1
+            no_of_accounts = no_of_accounts + 1
     except:
         pass
     image_add = tk_image.PhotoImage(image.open('add-button.png'))
@@ -1810,7 +1818,7 @@ def login(window):
         window.destroy()
     except:
         pass
-    login_window.resizable(False,False)
+    login_window.resizable(False, False)
     login_window.title('Login')
     width_window = 400
     height_window = 400
@@ -1846,7 +1854,7 @@ def login(window):
     show_both_1 = Button(
         login_window,
         text="Show",
-        command=lambda: password_sec(pass_entry, show_both_1),  fg='white', bg='#292A2D',
+        command=lambda: password_sec(pass_entry, show_both_1), fg='white', bg='#292A2D',
         highlightcolor='#292A2D', activebackground='#292A2D', activeforeground='white', relief=RAISED
     )
 
@@ -1911,16 +1919,18 @@ def login(window):
 
 
 def password_sec(entry, button):
-        a = entry['show']
-        if a == "":
-            entry.config(show="*")
-            button['text'] = 'Hide'
-        elif a == '*':
-            entry.config(show="")
-            button['text'] = 'Show'
+    a = entry['show']
+    if a == "":
+        entry.config(show="*")
+        button['text'] = 'Hide'
+    elif a == '*':
+        entry.config(show="")
+        button['text'] = 'Show'
+
+
 def register(window):
     login_window1 = Tk()
-    login_window1.resizable(False,False)
+    login_window1.resizable(False, False)
 
     login_window1.config(bg='#292A2D')
     login_window1.focus_set()
@@ -1952,6 +1962,7 @@ def register(window):
     email_id_entry = Entry(login_window1)
     email_password_entry = Entry(login_window1, show="*")
     width = login_window1.winfo_screenwidth()
+
     len1 = len(username['text'])
     len2 = len(password['text'])
     len3 = len(email_id['text'])
@@ -2006,7 +2017,6 @@ def register(window):
     password_entry.place(x=len4 * 10, y=180)
     email_id_entry.place(x=len4 * 10, y=250)
     email_password_entry.place(x=len4 * 10, y=280)
-
 
     show_both_1 = Button(
         login_window1,
