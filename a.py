@@ -1623,15 +1623,15 @@ def gameloop(username, hashed_password, window):
                     pyAesCrypt.encryptFile(
                         name_file, username + '.bin.fenc', hashed_password, bufferSize)
                     messagebox.showinfo('Success', 'Your account has been saved')
+                    root1.destroy()
                     my_cursor.execute(
                         'select no_of_accounts from data_input where username = (?)', (username,))
                     val = my_cursor.fetchall()
-                    to_append = 0
                     for i in val:
                         real_accounts = int(i[0])
-                        to_append = real_accounts + 1
+                    real_accounts +=  + 1
                     my_cursor.execute('update data_input set no_of_accounts =(?) where username =(?)',
-                                    (to_append, username))
+                                    (real_accounts, username))
                 elif not verifying:
                     messagebox.showerror(
                         'Error', 'Account with the username already exist')
@@ -1722,8 +1722,8 @@ def gameloop(username, hashed_password, window):
     except:
         pass
     image_add = tk_image.PhotoImage(image.open('add-button.png'))
-
-    if add < 9:
+    print(add)
+    if add <= 9:
         image_add = tk_image.PhotoImage(image.open('add-button.png'))
         add_button_text = Label(window, fg='white', text='Add Account', bg='#292A2D')
         add_button = Button(
@@ -1737,7 +1737,20 @@ def gameloop(username, hashed_password, window):
 
         add_button.place(x=719 + 50, y=410)
         add_button_text.place(x=710 + 50, y=480)
+    else:
+        image_add = tk_image.PhotoImage(image.open('add-button.png'))
+        add_button_text = Label(window, fg='white', text='Add Account', bg='#292A2D')
+        add_button = Button(
+            window, image=image_add, bg='#292A2D', activebackground='#292A2D', state=DISABLED,border="0", compound='top',
+            command=addaccount
+        )
+        add_button.photo = image_add
+        d = int(add % 4)
+        add_button.grid(row=10, column=10)
+        add_button_text.grid(row=11, column=10)
 
+        add_button.place(x=719 + 50, y=410)
+        add_button_text.place(x=710 + 50, y=480)
     # except:
     #     pass
 
