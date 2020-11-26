@@ -65,16 +65,16 @@ file = 0
 if os.path.exists('version.txt'):
     os.remove('version.txt')
     with open('version.txt', 'w') as f:
-        f.write('0.9.0')
+        f.write('1.0.0')
 else:
     with open('version.txt', 'w') as f:
-        f.write('0.6.0')  # used for check_for_updates
+        f.write('1.0.0')  # used for check_for_updates
 
-
+        #for comparing the version of the code with the github one 
 # for handling login
 
 
-class Login:  # login_clas
+class Login:  # login_class
     def __init__(self, username, password):
         self.username = str(username)
         self.password = str(password)
@@ -105,33 +105,33 @@ class Login:  # login_clas
             for_hashing_both = self.password + self.username
             main_password = hashlib.sha3_512(
                 for_hashing_both.encode()).hexdigest()
-
-            try:
-                # trying to decrypt the users file to check whether the password entered is valid
-                pyAesCrypt.decryptFile(
-                    self.username + ".bin.fenc",
-                    self.username + "decrypted.bin",
-                    main_password,
-                    bufferSize,
-                )
-            except OSError:  # if the file doesn't exist'
-                root_error = Tk()
-                root_error.withdraw()
-                messagebox.showerror(
-                    "Error",
-                    f"No user exist with  the username {self.username}, Please register or provide the correct username",
-                )
-                root_error.destroy()
-                return False, main_password
-            except ValueError:  # if the password is incorrect
-                root = Tk()
-                root.withdraw()
-                messagebox.showerror(
-                    "Error",
-                    f"Wrong password for {self.username}",
-                )
-                root.destroy()
-                return False, main_password
+            if os.path.exists(f'{self.username}.bin.fenc'):
+                try:
+                    # trying to decrypt the users file to check whether the password entered is valid
+                    pyAesCrypt.decryptFile(
+                        self.username + ".bin.fenc",
+                        self.username + "decrypted.bin",
+                        main_password,
+                        bufferSize,
+                    )
+                except ValueError:  # if the password is incorrect
+                    root = Tk()
+                    root.withdraw()
+                    messagebox.showerror(
+                        "Error",
+                        f"Wrong password for {self.username}",
+                    )
+                    root.destroy()
+                    return False, main_password
+            else:
+                    root_error = Tk()
+                    root_error.withdraw()
+                    messagebox.showerror(
+                        "Error",
+                        f"{self.username} doesn't exist, Please register or provide the correct username",
+                    )
+                    root_error.destroy()
+                    return False, main_password
             return True, main_password
 
     def windows(self, main_password, window, cursor):  # for calling the main function
@@ -263,55 +263,62 @@ def delete_social_media_account(real_username, hashed_password):
         "Delete Account", "What is the name of the account to be deleted?", parent=application_window
     )
     application_window.destroy()
+    with open(f'{real_username}decrypted.bin','rb') as f:
+        values_verifying = pickle.load(f)
+        username_list = []
+        for i in values_verifying:
+            username_list.append(i[0])
+    if ask in username_list:
+        messagebox.showwarning('Error',"This account doesn't exist")
+    else:
+        if ask:
+            result = messagebox.askyesno('Confirm', 'Are you sure that you want to delete your account')
+            if result == True:
+                val = simpledialog.askstring('Delete account',
+                                            f'Please type {real_username}/{ask} to successfully delete your account')
+                if val == f'{real_username}/{ask}':
+                    with open(f'{real_username}decrypted.bin', 'rb') as f:
+                        values = pickle.load(f)
+                        for i in values:
+                            if i[2] == ask:
+                                inde = values.index(i)
+                                values.pop(inde)
 
-    if ask:
-        result = messagebox.askyesno('Confirm', 'Are you sure that you want to delete your account')
-        if result == True:
-            val = simpledialog.askstring('Delete account',
-                                         f'Please type {real_username}/{ask} to successfully delete your account')
-            if val == f'{real_username}/{ask}':
-                with open(f'{real_username}decrypted.bin', 'rb') as f:
-                    values = pickle.load(f)
-                    for i in values:
-                        if i[2] == ask:
-                            inde = values.index(i)
-                            values.pop(inde)
-                            print(values)
-
-                    f.close()
-                try:
+                        f.close()
+                    try:
+                        os.remove(f'{real_username}decrypted.bin')
+                    except:
+                        pass
+                    with open(f'{real_username}decrypted.bin', 'wb') as f:
+                        pickle.dump(values, f)
+                        f.close()
+                    x = my_cursor.execute('select no_of_accounts from data_input where username=(?)', (real_username,))
+                    new_val = 0
+                    for i in x:
+                        new_val = i[0]
+                    new_val -= 1
+                    ogi_username = str(real_username)
+                    my_cursor.execute(f'update data_input set no_of_accounts = (?) where username=(?)',(new_val,ogi_username))
+                    pyAesCrypt.encryptFile(f'{real_username}decrypted.bin', f'{real_username}.bin.fenc', hashed_password,
+                                        bufferSize)
                     os.remove(f'{real_username}decrypted.bin')
-                except:
-                    pass
-                with open(f'{real_username}decrypted.bin', 'wb') as f:
-                    pickle.dump(values, f)
-                    f.close()
-                x = my_cursor.execute('select no_of_accounts from data_input where username=(?)', (real_username,))
-                new_val = 0
-                for i in x:
-                    new_val = i[0]
-                new_val -= 1
-                my_cursor.execute(f'update data_input set no_of_accounts = {new_val} where username={real_username}')
-                pyAesCrypt.encryptFile(f'{real_username}decrypted.bin', f'{real_username}.bin.fenc', hashed_password,
-                                       bufferSize)
-                os.remove(f'{real_username}decrypted.bin')
-                a = Tk()
-                a.withdraw()
-                messagebox.showinfo('Success', 'Your account has been successfully deleted')
-                a.destroy()
+                    a = Tk()
+                    a.withdraw()
+                    messagebox.showinfo('Success', 'Your account has been successfully deleted')
+                    a.destroy()
+                else:
+                    a = Tk()
+                    a.withdraw()
+                    messagebox.showinfo("The account doesn't exists")
+                    a.destroy()
+
             else:
                 a = Tk()
                 a.withdraw()
-                messagebox.showinfo("The account doesn't exists")
+                messagebox.showinfo('Error', 'Please try again')
                 a.destroy()
-
         else:
-            a = Tk()
-            a.withdraw()
-            messagebox.showinfo('Error', 'Please try again')
-            a.destroy()
-    else:
-        quit()
+            quit()
 
 
 # except:
@@ -336,11 +343,95 @@ def delete_main_account(username):
     else:
         quit()
 
+def change_window(real_username):
+        change_acccount = Toplevel()
+        change_acccount.config(bg='#292A2D')
+        change_acccount.resizable(False, False)
+        n = StringVar() 
+        selectaccount = Combobox(change_acccount, width = 27, textvariable = n) 
+        # Adding combobox drop down list 
+        tu=()
+        with open(f'{real_username}decrypted.bin','rb') as selectfile:
+            ac = pickle.load(selectfile)
+            for i in ac:
+                tu+=(i[0],)
+        selectaccount['values'] = tu
+
+        selectaccount.grid(column = 1, row = 5) 
+        selectaccount.current()
+        change_acccount.geometry('300x300')
+        main_label = Label(
+            change_acccount, text='Select the account you want to delete', bg='#292A2D', fg='white',)
+
+        change_acccount.title("Change Account")
+        text = "    Please provide the recovery email  and recovery email password \n that you provided while creating an " \
+            "account "
+        text_label = Label(change_acccount, text=text,
+                           fg='white', bg='#292A2D')
+        width_window = 400
+        height_window = 200
+        screen_width = change_acccount.winfo_screenwidth()
+        screen_height = change_acccount.winfo_screenheight()
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        change_acccount.geometry("%dx%d+%d+%d" %
+                                 (width_window, height_window, x, y))
+        new_path = tk_image.PhotoImage(image.open('image-file.png'))
+        new_path_label = Button(change_acccount,image=new_path,command=lambda:change_icon(new_path_label,))
+        new_path_label.photo = new_path
+        new_username_label = Label(
+            change_acccount, text="New Username:", fg='white', bg='#292A2D')
+        new_password_label = Label(
+            change_acccount, text="New Account Name:", fg='white', bg='#292A2D')
+        new_account_name_label = Label(
+            change_acccount, text="New Password:", fg='white', bg='#292A2D')
+        new_path_label = Button(change_acccount,image=new_path,command=lambda:change_icon(new_path_label))#start here fix account path image change
+        new_username = Entry(change_acccount)
+        new_password = Entry(change_acccount)
+        new_account_name = Entry(change_acccount)
+        main_label.grid(row=0,column=1)
+        text_label.grid(row=0, column=0, columnspan=2)
+        new_account_name_label.grid(row = 1, column = 0)
+        new_password.grid(row = 3, column = 0)
+        new_path_label.place(x=0,y=70)
+        new_account_name.grid(row = 1, column = 1)
+        new_password.grid(row = 3, column = 1)
+        new_username_label.grid(row = 2, column = 1)
+        new_username.grid(row = 2, column = 0)
+        change = Button(change_acccount, text='Change', bg='#292A2D', fg='white', command=change_sub_account(real_username, str(selectaccount.get()),  str(new_username.get()), str(new_password.get()), str(new_account_name.get())))
+
+        change.grid(row=5, column=1)
+        main_label.place(x=50,y=40)
+        change.place(x=200, y=40)
+        new_username_label.place(x = 50, y = 70)
+        new_password_label.place(x = 50, y = 100)
+        new_account_name_label.place(x = 50, y = 130)
+        new_username.place(x = 200, y = 70)
+        new_password.place(x = 200, y = 100)
+        new_account_name.place(x = 200, y = 130)
+
+
+def change_sub_account(real_username, accounttobechanged,new_username,new_password,account_name):
+    with open(f'{real_username}decrypted.bin','rb') as f:
+        value1=pickle.load(f)
+        old_path = ''
+        for i in value1:
+            if i[0] == accounttobechanged:
+                    pass
 
 def settings(real_username, hashed_password):
     settings_window = Tk()
     settings_window.resizable(False,False)
+    
+    width_window = 300
+    height_window = 300
+    screen_width = settings_window.winfo_screenwidth()
+    screen_height = settings_window.winfo_screenheight()
+    x = screen_width / 2 - width_window / 2
+    y = screen_height / 2 - height_window / 2
 
+    settings_window.geometry("%dx%d+%d+%d" %
+                             (width_window, height_window, x, y))
     settings_window.title('Settings')
     settings_window.config(bg='#292A2D')
     check_for_updates = Button(settings_window, text='Check for updates', command=checkforupdates, fg='white',
@@ -350,9 +441,16 @@ def settings(real_username, hashed_password):
     Delete_social_button = Button(settings_window, text='Delete sub  account',
                                   command=lambda: delete_social_media_account(real_username, hashed_password),
                                   fg='white', bg='#292A2D')
-    Delete_account_button.grid(row=2, column=3)
-    check_for_updates.grid(row=2, column=1)
-    Delete_social_button.grid(row=2, column=2)
+    change_account_button = Button(
+        settings_window, text='Change account', command=lambda: change_window(real_username))
+    Delete_account_button.grid(row=2, column=0)
+    check_for_updates.grid(row=1, column=0)
+    Delete_social_button.grid(row=3, column=0)
+    change_account_button.grid(row=4,column=0)
+    if os.stat(f'{real_username}decrypted.bin').st_size == 0:
+        Delete_social_button.config(state=DISABLED)
+    else:
+        Delete_social_button.config(state=NORMAL)
     settings_window.mainloop()
 
 
@@ -581,7 +679,6 @@ def login_password():
 
     def main(key):
         run = False
-        print('gd')
         global running
         username_verify = str(username_forgot_entry.get())
         recover_email_entry_verify = str(recover_email_entry.get())
@@ -610,7 +707,6 @@ def login_password():
             "select email_id from data_input where username = (?)",
             (username_verify,),
         )
-        print('hi')
         values_fetch = my_cursor.fetchall()
 
         try:
@@ -716,15 +812,14 @@ def window_after(username, hash_password):
     root.geometry('1000x500')
     status_name = False
     sidebar = Frame(
-        root, width=500, bg="#292A2D", height=500, relief="sunken", borderwidth=2
+        root, width=10, bg="#292A2D", height=500, relief="sunken", borderwidth=1
     )
     sidebar.pack(expand=False, fill="both", side="left")
     file = None
     root.title('ONE-PASS')
-
     def testing(root, mainarea, username, hash_password):
         button['state'] = DISABLED
-        b['state'] = NORMAL
+        notes_buttons['state'] = NORMAL
         root.title("Passwords")
         emptyMenu = Menu(root)
         root.geometry('1000x500')
@@ -740,7 +835,7 @@ def window_after(username, hash_password):
         global status_name
         global password
         global var
-        b['state'] = DISABLED
+        notes_buttons['state'] = DISABLED
         button['state'] = NORMAL
         try:
             list = mainarea.pack_slaves()
@@ -771,22 +866,25 @@ def window_after(username, hash_password):
                 )
                 if file != None:
                     if file.endswith('.bin.fenc'):
-                        password = str(simpledialog.askstring(title="Test",
+                        password = str(simpledialog.askstring(title="Password Required",
                                                               prompt="Please provide the password"))
-                        new_file = os.path.splitext(file)[0]
-                        b = os.path.basename(new_file)
-                        new_d = os.path.basename(b)
-                        filename = new_d + 'decrypted.txt'
-                        try:
-                            pyAesCrypt.decryptFile(
-                                file, filename, password, bufferSize)
-                            root.title(os.path.basename(file) + " - Notepad")
-                            TextArea.delete(1.0, END)
-                            with open(filename, "r") as f:
-                                TextArea.insert(1.0, f.read())
-                                f.close()
-                        except:
-                            messagebox.showerror('Error', 'Wrong password')
+                        if password=='':
+                            messagebox.showerror('Error','Password cannot be empty')
+                        else:
+                            new_file = os.path.splitext(file)[0]
+                            b = os.path.basename(new_file)
+                            new_d = os.path.basename(b)
+                            filename = new_d + 'decrypted.txt'
+                            try:
+                                pyAesCrypt.decryptFile(
+                                    file, filename, password, bufferSize)
+                                root.title(os.path.basename(file) + " - Notepad")
+                                TextArea.delete(1.0, END)
+                                with open(filename, "r") as f:
+                                    TextArea.insert(1.0, f.read())
+                                    f.close()
+                            except:
+                                messagebox.showerror('Error', 'Wrong password')
 
                 # check to if there is a file_name
                 global status_name
@@ -809,13 +907,11 @@ def window_after(username, hash_password):
                         "Input", "What is new file name?", parent=application_window
                     )
                     application_window.destroy()
-                    print(root.title())
                     if file != None or file != 0:
                         new_file, file_extension = os.path.splitext(file)
                         b = os.path.basename(new_file)
                         new_d = os.path.basename(b)
                         new_file_name = os.path.basename(b)
-                        print(file)
                         f = open(file, 'r')
                         dir = os.path.dirname(file)
                         values = f.read()
@@ -868,34 +964,37 @@ def window_after(username, hash_password):
                         a = simpledialog.askstring(
                             "Input", "What is  the password for the file?", parent=application_window
                         )
-                        application_window.destroy()
-                        file = fd.asksaveasfilename(
-                            initialfile="Untitled.txt",
-                            defaultextension=".txt",
-                            filetypes=[("Text Documents", "*.txt")],
-                        )
-                        gmm = str(file)
-                        password = "testing"
-                        status_name = file
-                        if file == "":
-                            file = None
-
+                        if a=='':
+                            messagebox.showerror('Error','Password cannot be empty')
                         else:
-                            # Save as a new file
-                            with open(file, "w") as f:
-                                f.write(TextArea.get(1.0, END))
-                                f.close()
-                            root.title(os.path.basename(file) + " - Notepad")
-                            file = file
-                        file_name = str(file)
-                        f_encrypt = file_name + ".aes"
-                        try:
-                            pyAesCrypt.encryptFile(
-                                file_name, f_encrypt, a, 64 * 1024
+                            application_window.destroy()
+                            file = fd.asksaveasfilename(
+                                initialfile="Untitled.txt",
+                                defaultextension=".txt",
+                                filetypes=[("Text Documents", "*.txt")],
                             )
-                            os.remove(file)
-                        except:
-                            pass
+                            gmm = str(file)
+                            password = "testing"
+                            status_name = file
+                            if file == "":
+                                file = None
+
+                            else:
+                                # Save as a new file
+                                with open(file, "w") as f:
+                                    f.write(TextArea.get(1.0, END))
+                                    f.close()
+                                root.title(os.path.basename(file) + " - Notepad")
+                                file = file
+                            file_name = str(file)
+                            f_encrypt = file_name + ".aes"
+                            try:
+                                pyAesCrypt.encryptFile(
+                                    file_name, f_encrypt, a, 64 * 1024
+                                )
+                                os.remove(file)
+                            except:
+                                pass
 
             def save_file():
                 global status_name
@@ -1335,23 +1434,82 @@ def window_after(username, hash_password):
             root.config(menu=MenuBar)
 
     # main content area
+    pass_img = tk_image.PhotoImage(image.open('password.png'))
+    notes_img = tk_image.PhotoImage(image.open('notes.png'))
     mainarea = Frame(root, bg="#292A2D", width=500, height=500)
     mainarea.pack(expand=True, fill="both", side="right")
-    button = Button(sidebar, text="Passwords", width=20, command=lambda: testing(
+    button = Button(sidebar, image=pass_img, text="Passwords", padx=12, compound='left', command=lambda: testing(
         root, mainarea, username, hash_password))
-    b = Button(sidebar, text="Notes", command=ap, width=20)
-    button.grid(row=0, column=1)
-    b.grid(row=1, column=1, columnspan=1)
+    notes_buttons = Button(sidebar,image=notes_img, text="Notes",padx=20, compound='left' ,command=ap )
+    button.grid(row=0,column=1)
+    notes_buttons.grid(row=1, column=1)
     settings_image = tk_image.PhotoImage(image.open('settings.png'))
     settings_button = Button(sidebar, text='Settings', compound='top', activebackground='#292A2D', image=settings_image,
                              bg="#292A2D", border='0', command=lambda: settings(username, hash_password), relief=FLAT,
                              highlightthickness=0, bd=0, borderwidth=0)
     settings_button.photo = settings_image
     settings_button.grid(row=10, column=1, columnspan=1)
-    settings_button.place(x=100, y=440)
+    settings_button.place(x=30, y=440)
 
     root.mainloop()
 
+
+def change_icon(button, usernam, users_username,hashed_password):
+    file_name = users_username + 'decrypted.bin'
+    l = [(32, 32), (16, 16)]
+    image_path = fd.askopenfilename(filetypes=[("image", "*.png"), ("image", "*.jpeg"), ("image", "*.jpg")],
+                                    title='Add icon')
+    f = open(file_name, 'rb')
+    pad = pickle.load(f)
+    f.close()
+    path = ''
+    for i in pad:
+        if i[0] == usernam:
+            path = i[3]
+    if path == '':
+        path_im = image.open('photo.png')
+    else:
+        path_im = image.open(path)
+
+    try:
+        im = image.open(image_path)
+        if im:
+            if im.size in l:
+                for i in pad:
+                    if i[0] == usernam:
+                        i[3] = image_path
+                f.close()
+                with open(file_name, 'wb') as f1:
+                    pickle.dump(pad, f1)
+                    f1.close()
+                os.remove(users_username + '.bin.fenc')
+                pyAesCrypt.encryptFile(
+                    file_name, users_username + '.bin.fenc', hashed_password, bufferSize)
+                new_tk = tk_image.PhotoImage(im)
+                button.config(image=new_tk)
+                button.photo = new_tk
+            else:
+                messagebox.showerror(
+                    'Error', 'Please provide icon size of 32x32 or 16x16')
+                im = image.open('photo.png')
+                new_tk = tk_image.PhotoImage(im)
+                button.config(image=new_tk)
+                button.photo = new_tk
+                image_path = fd.askopenfilename(
+                    filetypes=[("image", "*.png")], title='Add icon')
+
+                try:
+                    im = image.open(image_path)
+                except:
+                    im = image.open('photo.png')
+                    new_tk = tk_image.PhotoImage(im)
+                    button.config(image=new_tk)
+                    button.photo = new_tk
+
+    except:
+        new_tk = tk_image.PhotoImage(path_im)
+        button.config(image=new_tk)
+        button.photo = new_tk
 
 def gameloop(username, hashed_password, window):
     global image_path
@@ -1372,19 +1530,38 @@ def gameloop(username, hashed_password, window):
         root1.title('Add Account')
         root1.focus_set()
         root1.grab_set()
-        name_of_social = Label(root1, text="Name of the social media")
-        name_of_social.grid(row=0, column=1)
+        root1.resizable(False,False)
+        width_window = 400
+        height_window = 400
+        screen_width = root1.winfo_screenwidth()
+        screen_height = root1.winfo_screenheight()
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        root1.config(bg='#292A2D')
+        root1.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+        name_of_social = Label(
+            root1, text="Name of the account", fg='white', bg='#292A2D')
         name_of_social_entry = Entry(root1)
-        name_of_social_entry.grid(row=0, column=2)
-        username_window = Label(root1, text="Usename:")
-        username_window.grid(row=1, column=1)
-        password_window = Label(root1, text="Password:")
-        password_window.grid(row=2, column=1)
+        username_window = Label(root1, text="Usename:", fg='white', bg='#292A2D')
+        password_window = Label(root1, text="Password:",
+                                fg='white', bg='#292A2D')
         username_window_entry = Entry(root1)
-        username_window_entry.grid(row=1, column=2)
         password_entry = Entry(root1)
+
+
         password_entry.grid(row=2, column=2)
-        image_path = ''
+        username_window_entry.grid(row=1, column=2)
+        password_window.grid(row=2, column=1)
+        username_window.grid(row=1, column=1)
+        name_of_social_entry.grid(row=0, column=2)
+        name_of_social.grid(row=0, column=1)
+
+        username_window.place(x=50, y=70+100)
+        password_window.place(x=50, y=100+100)
+        name_of_social.place(x=50, y=130+100)
+        username_window_entry.place(x=200, y=70+100)
+        password_entry.place(x=200,y=100+100)
+        name_of_social_entry.place(x=200, y=130+100)
 
         def browsefunc():
             global image_path
@@ -1397,9 +1574,9 @@ def gameloop(username, hashed_password, window):
             except:
                 pass
 
-        new_id = tk_image.PhotoImage(image.open("photo.png"))
+        new_id = tk_image.PhotoImage(image.open("image-file.png"))
         add_icon_button = Button(
-            root1, image=new_id, borderwidth="0", command=browsefunc)
+            root1, image=new_id, borderwidth="0", command=browsefunc, border='0',highlightthickness='0',activebackground='#292A2D', bg='#292A2D')
         add_icon_button.photo = new_id
         add_icon_button.grid(row=0, column=0, rowspan=3)
 
@@ -1408,102 +1585,65 @@ def gameloop(username, hashed_password, window):
             global exist
             list_account = [str(username_window_entry.get()), str(
                 password_entry.get()), str(name_of_social_entry.get()), image_path]
+            if str(username_window_entry.get()) == '':
+                a = Tk()
+                a.withdraw()
+                messagebox.showwarning('Warning','Username cannot be empty')
+                a.destroy()
+            elif str(password_entry.get())=="":
+                a = Tk()
+                a.withdraw()
+                messagebox.showwarning('Warning','Password cannot be empty')
+                a.destroy()
+            elif str(name_of_social_entry.get()) == "":
+                a = Tk()
+                a.withdraw()
+                messagebox.showwarning('Warning', 'Name of the account cannot be empty')
+                a.destroy()
+            else:
+                verifying = verify(username_window_entry.get(),
+                                name_of_social_entry.get())
+                
+                if verifying:
+                    messagebox.showerror('Error', 'The account already exists')
 
-            verifying = verify(username_window_entry.get(),
-                               name_of_social_entry.get())
-            if verifying:
-                messagebox.showerror('Error', 'The account already exists')
+                elif not exist:
+                    name_file = username + "decrypted.bin"
+                    with open(name_file, "rb") as f:
+                        try:
+                            line = pickle.load(f)
+                        except:
+                            line = []
+                        line.append(list_account)
+                        f.close()
+                    with open(name_file, 'wb') as f1:
+                        pickle.dump(line, f1)
+                        f.close()
+                    os.remove(username + '.bin.fenc')
+                    pyAesCrypt.encryptFile(
+                        name_file, username + '.bin.fenc', hashed_password, bufferSize)
+                    messagebox.showinfo('Success', 'Your account has been saved')
+                    my_cursor.execute(
+                        'select no_of_accounts from data_input where username = (?)', (username,))
+                    val = my_cursor.fetchall()
+                    to_append = 0
+                    for i in val:
+                        real_accounts = int(i[0])
+                        to_append = real_accounts + 1
+                    my_cursor.execute('update data_input set no_of_accounts =(?) where username =(?)',
+                                    (to_append, username))
+                elif not verifying:
+                    messagebox.showerror(
+                        'Error', 'Account with the username already exist')
 
-            elif not exist:
-                name_file = username + "decrypted.bin"
-                with open(name_file, "rb") as f:
-                    try:
-                        line = pickle.load(f)
-                    except:
-                        line = []
-                    line.append(list_account)
-                    f.close()
-                with open(name_file, 'wb') as f1:
-                    pickle.dump(line, f1)
-                    f.close()
-                os.remove(username + '.bin.fenc')
-                pyAesCrypt.encryptFile(
-                    name_file, username + '.bin.fenc', hashed_password, bufferSize)
-                messagebox.showinfo('Success', 'Your account has been saved')
-                my_cursor.execute(
-                    'select no_of_accounts from data_input where username = (?)', (username,))
-                val = my_cursor.fetchall()
-                to_append = 0
-                for i in val:
-                    real_accounts = int(i[0])
-                    to_append = real_accounts + 1
-                my_cursor.execute('update data_input set no_of_accounts =(?) where username =(?)',
-                                  (to_append, username))
-            elif not verifying:
-                messagebox.showerror(
-                    'Error', 'Account with the username already exist')
-
-        save_button = Button(root1, text="Save", command=save)
+        save_button = Button(root1, text="Save",
+                             command=save, fg='white', bg='#292A2D')
         save_button.grid(row=4, column=1)
+        save_button.place(x=250, y=170+100)
+        add_icon_button.place(x=150,y=50)
         root1.mainloop()
 
-    def change_icon(button, usernam, users_username):
-        file_name = users_username + 'decrypted.bin'
-        l = [(32, 32), (16, 16)]
-        image_path = fd.askopenfilename(filetypes=[("image", "*.png"), ("image", "*.jpeg"), ("image", "*.jpg")],
-                                        title='Add icon')
-        f = open(file_name, 'rb')
-        pad = pickle.load(f)
-        path = ''
-        for i in pad:
-            if i[0] == usernam:
-                path = i[3]
-        if path == '':
-            path_im = image.open('photo.png')
-        else:
-            path_im = image.open(path)
-
-        try:
-            im = image.open(image_path)
-            if im:
-                if im.size in l:
-                    for i in pad:
-                        if i[0] == usernam:
-                            print(i[0])
-                            print(usernam)
-                            i[3] = image_path
-                    f.close()
-                    with open(file_name, 'wb') as f1:
-                        pickle.dump(pad, f1)
-                        f1.close()
-                    os.remove(users_username + '.bin.fenc')
-                    pyAesCrypt.encryptFile(
-                        file_name, users_username + '.bin.fenc', hashed_password, bufferSize)
-                    new_tk = tk_image.PhotoImage(im)
-                    button.config(image=new_tk)
-                    button.photo = new_tk
-                else:
-                    messagebox.showerror(
-                        'Error', 'Please provide icon size of 32x32 or 16x16')
-                    im = image.open('photo.png')
-                    new_tk = tk_image.PhotoImage(im)
-                    button.config(image=new_tk)
-                    button.photo = new_tk
-                    image_path = fd.askopenfilename(
-                        filetypes=[("image", "*.png")], title='Add icon')
-
-                    try:
-                        im = image.open(image_path)
-                    except:
-                        im = image.open('photo.png')
-                        new_tk = tk_image.PhotoImage(im)
-                        button.config(image=new_tk)
-                        button.photo = new_tk
-
-        except:
-            new_tk = tk_image.PhotoImage(path_im)
-            button.config(image=new_tk)
-            button.photo = new_tk
+    
 
     def verify(social_username, social_media):
         try:
@@ -1531,11 +1671,11 @@ def gameloop(username, hashed_password, window):
             social_media = account_fetch[i][2]
             image_path_loc = account_fetch[i][3]
             username_label_widget = Label(
-                window, text=f'Username: {social_username}', fg='white')
+                window, text=f'Username: {social_username}', fg='white', bg='#292A2D')
             password_label_widget = Label(
-                window, text=f'Password: {social_password}', fg='white')
+                window, text=f'Password: {social_password}', fg='white', bg='#292A2D')
             social_media_label = Label(
-                window, text=f'Account Name: {social_media}', fg='white')
+                window, text=f'Account Name: {social_media}', fg='white', bg='#292A2D')
             if image_path_loc:
                 try:
                     tkimage = tk_image.PhotoImage(image.open(image_path_loc))
@@ -1544,7 +1684,7 @@ def gameloop(username, hashed_password, window):
             else:
                 tkimage = tk_image.PhotoImage(image.open('photo.png'))
             default_image_button = Button(window, image=tkimage, borderwidth='0', bg='#292A2D',
-                                          command=lambda: change_icon(default_image_button, social_username, username))
+                                          command=lambda: change_icon(default_image_button, social_username, username, hashed_password))
             if i < 3:
                 username_label_widget.grid(row=2, column=0 + i, rowspan=1)
                 password_label_widget.grid(row=3, column=0 + i, rowspan=1)
@@ -1558,7 +1698,6 @@ def gameloop(username, hashed_password, window):
 
             elif i >= 3 and i < 6:
                 dd = int(i % 3)
-                print(dd)
                 username_label_widget.grid(row=2 + 1, column=0 + dd)
                 password_label_widget.grid(row=3 + 1, column=0 + dd)
                 social_media_label.grid(row=1 + 1, column=0 + dd)
@@ -1570,7 +1709,6 @@ def gameloop(username, hashed_password, window):
                 password_label_widget.place(x=30 + dd * 250, y=270)
             elif 6 <= i < 9:
                 dd = int(i % 6)
-                print('how many')
                 username_label_widget.grid(row=2 + 1, column=0 + dd)
                 password_label_widget.grid(row=3 + 1, column=0 + dd)
                 social_media_label.grid(row=1 + 1, column=0 + dd)
@@ -1615,7 +1753,6 @@ def get(window, name):
 
 def handle_focus_in(entry, index):
     val = str(entry.get())
-    print(val)
     if val == 'Username' or val == 'Password' or val == 'Email ID' or val == 'Email password':
         entry.delete(0, END)
         entry.config(fg='#292A2D')
