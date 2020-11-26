@@ -365,7 +365,7 @@ def change_window(real_username,hashed_password):
             try:
                 ac = pickle.load(selectfile)
                 for i in ac:
-                    tu+=(i[0],)
+                    tu+=(i[2],)
             except:
                 pass
         print(tu)
@@ -375,7 +375,7 @@ def change_window(real_username,hashed_password):
         selectaccount.current()
         change_acccount.geometry('300x300')
         main_label = Label(
-            change_acccount, text='Select the account you want to delete', bg='#292A2D', fg='white',)
+            change_acccount, text='Select the account to be deleted', bg='#292A2D', fg='white',)
 
         change_acccount.title("Change Account")
         text = "    Please provide the recovery email  and recovery email password \n that you provided while creating an " \
@@ -383,57 +383,69 @@ def change_window(real_username,hashed_password):
         text_label = Label(change_acccount, text=text,
                            fg='white', bg='#292A2D')
         width_window = 400
-        height_window = 200
+        height_window = 400
         screen_width = change_acccount.winfo_screenwidth()
         screen_height = change_acccount.winfo_screenheight()
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
         change_acccount.geometry("%dx%d+%d+%d" %
                                  (width_window, height_window, x, y))
-        new_path = tk_image.PhotoImage(image.open('image-file.png'))
-        new_path_label = Button(change_acccount,image=new_path,command=lambda:change_icon(new_path_label,))
-        new_path_label.photo = new_path
+
         new_username_label = Label(
             change_acccount, text="New Username:", fg='white', bg='#292A2D')
         new_password_label = Label(
-            change_acccount, text="New Account Name:", fg='white', bg='#292A2D')
-        new_account_name_label = Label(
             change_acccount, text="New Password:", fg='white', bg='#292A2D')
-        new_path_label = Button(change_acccount,image=new_path,command=lambda:change_icon(new_path_label))#start here fix account path image change
+        new_account_name_label = Label(
+            change_acccount, text="New Account Name:", fg='white', bg='#292A2D')
+
         new_username = Entry(change_acccount)
         new_password = Entry(change_acccount)
         new_account_name = Entry(change_acccount)
+
         main_label.grid(row=0,column=1)
         text_label.grid(row=0, column=0, columnspan=2)
+
         new_account_name_label.grid(row = 1, column = 0)
-        new_password.grid(row = 3, column = 0)
-        new_path_label.place(x=0,y=70)
         new_account_name.grid(row = 1, column = 1)
+
+        new_username_label.grid(row=2, column=1)
+        new_username.grid(row=2, column=0)
+
+        new_password_label.grid(row = 3, column = 0)
         new_password.grid(row = 3, column = 1)
-        new_username_label.grid(row = 2, column = 1)
-        new_username.grid(row = 2, column = 0)
-        change = Button(change_acccount, text='Change', bg='#292A2D', fg='white', command=change_sub_account(real_username,hashed_password, str(selectaccount.get()),  str(new_username.get()), str(new_password.get()), str(new_account_name.get())))
+
+        change = Button(change_acccount, text='Change', bg='#292A2D', fg='white', command=lambda:change_sub_account(real_username,hashed_password, str(selectaccount.get()),  str(new_username.get()), str(new_password.get()), str(new_account_name.get()),change_account))
 
         change.grid(row=5, column=1)
-        main_label.place(x=50,y=40)
-        change.place(x=200, y=40)
-        new_username_label.place(x = 50, y = 70)
-        new_password_label.place(x = 50, y = 100)
-        new_account_name_label.place(x = 50, y = 130)
-        new_username.place(x = 200, y = 70)
-        new_password.place(x = 200, y = 100)
-        new_account_name.place(x = 200, y = 130)
+        main_label.place(x=0,y=40)
+        change.place(x=200, y=200)
 
+        new_account_name_label.place(x = 50, y = 70)
+        new_username_label.place(x = 50, y = 100)
+        new_password_label.place(x=50, y=130)
+        
+        new_account_name.place(x = 200, y = 70)
+        new_username.place(x = 200, y = 100)
+        new_password.place(x=200, y=130)
+        
+        selectaccount.place(x=200,y=40)
 
-def change_sub_account(real_username, hashed_password,accounttobechanged,new_username,new_password,account_name):
+def change_sub_account(real_username, hashed_password,accounttobechanged,new_username,new_password,account_name,window):
     with open(f'{real_username}decrypted.bin','rb') as f:
         value1=pickle.load(f)
-        old_path = ''
+        print(value1)
         for i in value1:
-            if i[0] == accounttobechanged:
+            if i[2] == str(accounttobechanged):
+                    print('hi')
                     i[0] = str(new_username)
                     i[1] = str(new_password)
                     i[2] = str(account_name)
+                    p = Tk()
+                    p.config(bg='#292A2D')
+                    p.withdraw()
+                    messagebox.showinfo('Succes','The Account details has been changed')
+                    p.destroy()
+                    window.destroy()
     with open(f'{real_username}decrypted.bin','wb') as f:
         pickle.dump(value1,f)
     os.remove(f'{real_username}.bin.fenc')
@@ -1468,9 +1480,9 @@ def window_after(username, hash_password):
     button.grid(row=0,column=1)
     notes_buttons.grid(row=1, column=1)
     settings_image = tk_image.PhotoImage(image.open('settings.png'))
-    settings_button = Button(sidebar, text='Settings', compound='top', activebackground='#292A2D', image=settings_image,
+    settings_button = Button(sidebar, text='Settings', compound='top', activebackground='#292A2D', image=settings_image,fg='white',
                              bg="#292A2D", border='0', command=lambda: settings(username, hash_password), relief=FLAT,
-                             highlightthickness=0, bd=0, borderwidth=0)
+                             highlightthickness=0,activeforeground='white', bd=0, borderwidth=0)
     settings_button.photo = settings_image
     settings_button.grid(row=10, column=1, columnspan=1)
     settings_button.place(x=30, y=440)
@@ -2082,14 +2094,14 @@ def register(window):
 
 
 root.config(bg='#292A2D')
-main = Label(root, text="Welcome to ONE-PASS", font=('Verdana', 12), fg='white', bg='#292A2D')
-login_text = Label(root, text="Login:", fg='white', bg='#292A2D', font=(' MS Sans Serif', 12))
+main = Label(root, text="Welcome to ONE-PASS", font=('Comic Sans MS', 16), fg='white', bg='#292A2D')
+login_text = Label(root, text="Login   :", fg='white', bg='#292A2D', font=('Courier New', 12))
 register_text = Label(
-    root, text='Register: ', fg='white', bg='#292A2D', font=('Verdana', 12))
-reg_button = Button(root, text="Register", command=lambda: register(root), font=('Verdana', 12), fg='white',
+    root, text='Register: ', fg='white', bg='#292A2D', font=('Courier New', 12))
+reg_button = Button(root, text="Register", command=lambda: register(root), font=('Courier New', 12), fg='white',
                     bg='#292A2D',
                     relief=RAISED, highlightthickness=0)
-login_button = Button(root, text="login", command=lambda: login(root), font=('Verdana', 12), fg='white', bg='#292A2D',
+login_button = Button(root, text="login", command=lambda: login(root), font=('Courier New', 12), fg='white', bg='#292A2D',
                       relief=RAISED, highlightthickness=0)
 
 main.grid(row=0, column=1, columnspan=2)
@@ -2097,13 +2109,18 @@ login_button.grid(row=7, column=1, columnspan=2)
 login_text.grid(row=6, column=1, columnspan=2)
 register_text.grid(row=8, column=1, columnspan=2)
 reg_button.grid(row=9, column=1, columnspan=2)
-main.place(x=40, y=40)
-login_text.place(x=40, y=78)
-login_button.place(x=140, y=70)
-register_text.place(x=40, y=128)
-reg_button.place(x=140, y=120)
+
+main.place(x=30, y=20)
+
+login_text.place(x=40, y=110)
+login_button.place(x=140, y=102)
+
+register_text.place(x=40, y=200)
+reg_button.place(x=140, y=200-8)
+
 root.resizable(False, False)
 root.mainloop()
+
 ''' to remove all decrypted files
 the glob function returns a list of files ending with .decrypted.bin'''
 list_file = glob.glob("*decrypted.bin")
