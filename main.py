@@ -62,18 +62,10 @@ exist = False
 cutting_value = False
 file = 0
 
-# version file
-if os.path.exists('version.txt'):
-    os.remove('version.txt')
-    with open('version.txt', 'w') as f:
-        f.write('1.2.0')
-else:
-    with open('version.txt', 'w') as f:
-        f.write('1.0.0')  # used for check_for_updates
 
         # for comparing the version of the code with the github one
 # for handling login
-
+############################
 
 class Login:  # login_class
     def __init__(self, username, password):
@@ -138,11 +130,9 @@ class Login:  # login_class
     def windows(self, main_password, window, cursor):  # for calling the main function
         window_after(self.username, main_password)
 
-# checking for updates
 def checkforupdates():
     # isUpToDate check whether the file ie a.py and version.txt is same as the one present in my github repository and it returns true if same else false
-    if isUpToDate('main.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py') and isUpToDate('version.txt',
-                                                                                                     'https://raw.githubusercontent.com/Rohithk2003/One-Pass/master/version.txt'):
+    if isUpToDate('main.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py') :
         result = messagebox.askyesno(
             'Update Available', 'Do you want to update the app?')
         if result == True:
