@@ -53,7 +53,6 @@ my_cursor.execute(
 )
 # for image loading
 l = [{'1': 'member.png'}]
-
 # global values
 catch_error = True
 social_media_user_text = ""
@@ -258,17 +257,13 @@ def create_key(password, message):
 
 
 # deleting sub account
-def delete_social_media_account(real_username, hashed_password):
-    application_window = Tk()
-    application_window.withdraw()
-    ask = simpledialog.askstring(
-        "Delete Account", "What is the name of the account to be deleted?", parent=application_window
-    )
-    application_window.destroy()
+def delete_social_media_account(real_username, hashed_password,window):
     username_list = []
-
+    delete_med_account = Tk()
+    delete_med_account.config(bg='#292A2D')
+    delete_med_account.title('Delete Account')
     n = StringVar() 
-    selectaccount = Combobox(change_acccount, width = 27, textvariable = n) 
+    selectaccount = Combobox(delete_med_account, width = 27, textvariable = n,state='#292A2D') 
     # Adding combobox drop down list 
     tu=()
     with open(f'{real_username}decrypted.bin','rb') as selectfile:
@@ -278,14 +273,15 @@ def delete_social_media_account(real_username, hashed_password):
                 tu+=(i[0],)
         except:
             pass
-    print(tu)
+    delete = Button(delete_med_account,text='Delete',fg='white',bg='#292A2D',command=lambda:select_account_name(str(selectaccount.get())))
     selectaccount['values'] = tu
-
-    selectaccount.grid(column = 1, row = 5) 
+    change_account_label = Label(delete_med_account ,fg='white',bg='#292A2D', text='Select account to be deleted')
+    selectaccount.grid(column = 1, row = 0) 
+    change_account_label.grid(column=0,row=0)
+    delete.grid(row=1,column=1)
     selectaccount.current()
 
     def select_account_name(account_name):
-        if ask:
             result = messagebox.askyesno('Confirm', 'Are you sure that you want to delete your account')
             if result == True:
                 val = simpledialog.askstring('Delete account',
@@ -315,11 +311,15 @@ def delete_social_media_account(real_username, hashed_password):
                     my_cursor.execute(f'update data_input set no_of_accounts = (?) where username=(?)',(new_val,ogi_username))
                     pyAesCrypt.encryptFile(f'{real_username}decrypted.bin', f'{real_username}.bin.fenc', hashed_password,
                                         bufferSize)
-                    os.remove(f'{real_username}decrypted.bin')
                     a = Tk()
                     a.withdraw()
                     messagebox.showinfo('Success', 'Your account has been successfully deleted')
                     a.destroy()
+                    with open(f'{real_username}decrypted.bin', 'rb') as f:
+                        values = pickle.load(f)
+                        for i in values:
+                            print(i[0])
+                    add_account_window(real_username,window,hashed_password)
 
 
             else:
@@ -327,13 +327,8 @@ def delete_social_media_account(real_username, hashed_password):
                 a.withdraw()
                 messagebox.showinfo('Error', 'Please try again')
                 a.destroy()
-        else:
-            quit()
 
 
-# except:
-#     messagebox.showerror('Error','You have not  created a account please create one')
-# delete main account
 def delete_main_account(username):
     answer = messagebox.askyesno('Delete Account', 'Are you sure you want to delete you account')
     if answer == True:
@@ -451,12 +446,12 @@ def change_sub_account(real_username, hashed_password,accounttobechanged,new_use
     os.remove(f'{real_username}.bin.fenc')
     pyAesCrypt.encryptFile(f'{real_username}decrypted.bin',f'{real_username}.bin.fenc',hashed_password, bufferSize)
 
-def settings(real_username, hashed_password):
+def settings(real_username, hashed_password,window):
     settings_window = Tk()
     settings_window.resizable(False, False)
     
-    width_window = 300
-    height_window = 300
+    width_window = 150
+    height_window = 105
     screen_width = settings_window.winfo_screenwidth()
     screen_height = settings_window.winfo_screenheight()
     x = screen_width / 2 - width_window / 2
@@ -464,21 +459,23 @@ def settings(real_username, hashed_password):
 
     settings_window.geometry("%dx%d+%d+%d" %
                              (width_window, height_window, x, y))
+
     settings_window.title('Settings')
     settings_window.config(bg='#292A2D')
-    check_for_updates = Button(settings_window, text='Check for updates', command=checkforupdates, fg='white',
-                               bg='#292A2D')
-    Delete_account_button = Button(settings_window, text='Delete main account',
+
+    check_for_updates = Button(settings_window, text='Check for updates', command=checkforupdates, fg='white',bg='#292A2D',width=20)
+    Delete_account_button = Button(settings_window, text='Delete main account',width=20,
                                    command=lambda: delete_main_account(real_username), fg='white', bg='#292A2D')
-    Delete_social_button = Button(settings_window, text='Delete sub  account',
-                                  command=lambda: delete_social_media_account(real_username, hashed_password),
-                                  fg='white', bg='#292A2D')
+    Delete_social_button = Button(settings_window, text='Delete sub  account',width=20,
+        command=lambda: delete_social_media_account(real_username, hashed_password,window),fg='white', bg='#292A2D')
     change_account_button = Button(
-        settings_window, text='Change account', command=lambda: change_window(real_username,hashed_password), fg='white', bg='#292A2D')
-    Delete_account_button.grid(row=2, column=0)
-    check_for_updates.grid(row=1, column=0)
-    Delete_social_button.grid(row=3, column=0)
-    change_account_button.grid(row=4,column=0)
+        settings_window, text='Change account',width=20, command=lambda: change_window(real_username,hashed_password), fg='white', bg='#292A2D')
+
+    Delete_account_button.grid(row=1,column= 1,columnspan=  2)
+    check_for_updates.grid(row=2,column= 1,columnspan=  2)
+    Delete_social_button.grid(row=3,column= 1,columnspan=  2)
+    change_account_button.grid(row=4,column= 1,columnspan=  2)
+
     if os.stat(f'{real_username}decrypted.bin').st_size == 0:
         Delete_social_button.config(state=DISABLED)
     else:
@@ -515,7 +512,7 @@ def login_password():
            "account "
     text_label = Label(window, text=text, fg='white', bg='#292A2D')
     width_window = 400
-    height_window = 200
+    height_window = 400
     screen_width = window.winfo_screenwidth()
     screen_height = window.winfo_screenheight()
     x = screen_width / 2 - width_window / 2
@@ -555,11 +552,17 @@ def login_password():
         pyAesCrypt.encryptFile(file, "otp.bin.fenc", key, bufferSize)
         os.unlink(file)
         messagebox.showinfo(
-            "OTP", f"An OTP has been sent to your {recover_email_entry}")
+            "OTP", f"An OTP has been sent to  {str(recover_email_entry.get())}")
 
     def change_password(email, password1, username12):
-        root = Tk()
+        root = Toplevel()
+        new_img = tk_image.PhotoImage(image.open('user.png'))
+        new_img_label = Label(root,image=new_img, bg='#292A2D')
+        new_img_label.photo = new_img
         root.resizable(False, False)
+
+        file_name_reentry = username12 + ".bin.fenc"
+
         width_window = 400
         height_window = 200
         screen_width = window.winfo_screenwidth()
@@ -570,15 +573,44 @@ def login_password():
         root.title("Change Password")
         root.geometry('300x300')
         root.config(bg='#292A2D')
+
         new_username = Label(root, text="New Username", fg='white', bg='#292A2D')
         new_password = Label(root, text="New Password", fg='white', bg='#292A2D')
+
         new_username_entry = Entry(root)
         new_password_entry = Entry(root, show="*")
+
+        new_img_label.grid(row=0,column=1)
         new_username.grid(row=1, column=0)
         new_password.grid(row=2, column=0)
-        file_name_reentry = username12 + ".bin.fenc"
         new_username_entry.grid(row=1, column=1)
         new_password_entry.grid(row=2, column=1)
+
+        new_img_label.place(x=110,y=50)
+        new_username.place(x=10, y=70+50)
+        new_password.place(x=10, y=100+50)
+        new_username_entry.place(x=150-40, y=70+50)
+        new_password_entry.place(x=150-40, y=100+50)
+
+        new_username_entry.bind('<FocusIn>',
+                               lambda event, val_val=new_username_entry, index=1: handle_focus_in(val_val, index))
+        new_username_entry.bind("<FocusOut>",
+                               lambda event, val_val=new_username_entry, val='Username', index=1: handle_focus_out(
+                                   val_val, val,
+                                   index))
+
+        new_password_entry.bind('<FocusIn>',
+                                    lambda event, val_val=new_password_entry, index=2: handle_focus_in(val_val, index))
+        new_password_entry.bind("<FocusOut>",
+                                    lambda event, val_val=new_password_entry, val='Password', index=2: handle_focus_out(
+                                        val_val, val,
+                                        index))
+        show_both_12 = Button(root,
+            text="show",
+            command=lambda: password_sec(new_password_entry, show_both_12), fg='white', bg='#292A2D',
+            highlightcolor='#292A2D', activebackground='#292A2D', activeforeground='white', relief=RAISED)
+        show_both_12.grid(row=0,column=5)
+        show_both_12.place(x=250-15,y=100+50-5)
         my_cursor.execute(
             "select password,salt from data_input where email_id = (?)", (
                 email,)
@@ -593,6 +625,7 @@ def login_password():
                 else:
                     password_decrypt += i
         new_val = password_decrypt[::-1]
+
         main_pass = f'{new_val}/{password1}'
         has = None
         salt = None
@@ -608,8 +641,8 @@ def login_password():
             else:
                 decrypted_string += i
         value = decrypted_string + username12
-        # messagebox.showinfo("Error", "Wrong Recovery email password")
-        re_hash = hashlib.sha512(value.encode()).hexdigest()
+
+        re_hash = hashlib.sha3_512(value.encode()).hexdigest()
 
         def change():
             pyAesCrypt.decryptFile(
@@ -632,9 +665,10 @@ def login_password():
             my_cursor.execute(
                 "delete from data_input where username = (?)", (username12,)
             )
-            new_salt = str(new_password_entry.get()) + "@" + password_decrypt
-            re_hash_new = pbkdf2_sha256.hash(str(new_password_entry.get()))
-            re_encrypt, new_salt = create_key(password_decrypt, re_hash_new)
+            re_hash_text = str(new_password_entry.get()) + str(new_username_entry.get())
+            new_salt = str(new_password_entry.get()) + "@" + main_pass
+            re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
+            re_encrypt, new_salt = create_key(main_pass, new_salt)
             pyAesCrypt.encryptFile(
                 username12 + ".bin",
                 str(new_username_entry.get()) + ".bin.fenc",
@@ -661,7 +695,7 @@ def login_password():
 
         change_button = Button(root, text="Change", command=change)
         change_button.grid(row=3, column=0, columnspan=1)
-
+        change_button.place(x=130, y=100+80)
     def Verification(password, otp_entry, email, email_password, username12):
         ot = str(otp_entry)
         if ot != "":
@@ -715,82 +749,93 @@ def login_password():
         recover_email_entry_verify = str(recover_email_entry.get())
         recover_password_entry_verify = str(recover_password_entry.get())
         if (
-                username_verify == ""
-                and recover_email_entry_verify == ""
-                and recover_password_entry_verify == ""
+                username_verify == "Username"
+                and recover_email_entry_verify == "Email ID"
+                and recover_password_entry_verify == "Password"
         ):
             roo21 = Tk()
             roo21.withdraw()
             messagebox.showinfo(
                 "Error",
-                "please provide required information to \n change your password",
+                "Please provide the details",
             )
             roo21.destroy()
-        verify_password = ""
 
-        for i in recover_email_entry_verify:
-            if i == "@":
-                break
-            else:
-                verify_password += i
-        verify_password += recover_password_entry_verify
-        my_cursor.execute(
-            "select email_id from data_input where username = (?)",
-            (username_verify,),
-        )
-        values_fetch = my_cursor.fetchall()
+        elif username_verify == 'Username':
+            a= Tk()
+            a.withdraw()
+            messagebox.showwarning('Warning',f'Username cannot be blank')
+            a.destroy()
 
-        try:
-            for i in values_fetch:
+        elif recover_password_entry_verify == 'Password':
+            a= Tk()
+            a.withdraw()
+            messagebox.showwarning('Warning',f'Password cannot be blank')
+            a.destroy()
+        elif not os.path.exists(username_verify+'.bin.fenc'):
+            a= Tk()
+            a.withdraw()
+            messagebox.showwarning('Warning',f'Cannot find user {username_verify}')
+            a.destroy()
 
-                if i[0] == recover_email_entry_verify:
-                    run = True
-                else:
-                    run = False
-                    roo1 = Tk()
-                    roo1.withdraw()
-                    messagebox.showerror("Error", "Wrong Recovey email")
-                    roo1.destroy()
-        except:
-            roo1 = Tk()
-            roo1.withdraw()
-            messagebox.showerror(
-                "Error", "No user exist with the provided username")
-            roo1.destroy()
-        if run:
-            otp_entry = Entry(window)
-            otp_entry.grid(row=6, column=1)
-            otp_entry_button = Button(
-                window,
-                text="verify otp",
-                command=lambda: Verification(
-                    key,
-                    otp_entry.get(),
-                    recover_email_entry_verify,
-                    recover_password_entry_verify,
-                    username_verify,
-                ), fg='white', bg='#292A2D'
-            )
-            otp_entry_button.grid(row=8, column=1)
-            otp_entry_button.place(x=50, y=200)
-            otp_entry.place(x=200, y=200)
-            digits = "1234567890"
-            OTP = ""
-            for i in range(6):
-                OTP += random.choice(digits)
-            OTP_secure = hashlib.sha512(OTP.encode()).hexdigest()
-            l = list(OTP_secure)
-            with open("otp.bin", "wb") as f:
-                pickle.dump(l, f)
-                f.close()
-            generate_key1("otp.bin")
-            forgot_password(OTP, recover_email_entry_verify, username_verify)
+
         else:
-            roo1 = Tk()
-            roo1.withdraw()
-            messagebox.showerror(
-                "Error", "No user exist with the provided username")
-            roo1.destroy()
+            verify_password = ""
+
+            for i in recover_email_entry_verify:
+                if i == "@":
+                    break
+                else:
+                    verify_password += i
+            verify_password += recover_password_entry_verify
+            my_cursor.execute(
+                "select email_id from data_input where username = (?)",
+                (username_verify,),
+            )
+            values_fetch = my_cursor.fetchall()
+            try:
+                for i in values_fetch:
+
+                        if i[0] == recover_email_entry_verify:
+                            run = True
+                        else:
+                            run = False
+                            roo1 = Tk()
+                            roo1.withdraw()
+                            messagebox.showerror("Error", "Wrong Recovey email")
+                            roo1.destroy()
+            except:
+                pass
+
+            if run:
+                otp_entry = Entry(window)
+                otp_entry.grid(row=6, column=1)
+                otp_entry_button = Button(
+                    window,
+                    text="verify otp",
+                    command=lambda: Verification(
+                        key,
+                        otp_entry.get(),
+                        recover_email_entry_verify,
+                        recover_password_entry_verify,
+                        username_verify,
+                    ), fg='white', bg='#292A2D'
+                )
+                otp_entry_button.grid(row=8, column=1)
+                otp_entry_button.place(x=50, y=200)
+                otp_entry.place(x=200, y=200)
+                digits = "1234567890"
+                OTP = ""
+                for i in range(6):
+                    OTP += random.choice(digits)
+                OTP_secure = hashlib.sha512(OTP.encode()).hexdigest()
+                l = list(OTP_secure)
+                with open("otp.bin", "wb") as f:
+                    pickle.dump(l, f)
+                    f.close()
+                generate_key1("otp.bin")
+                forgot_password(OTP, recover_email_entry_verify, username_verify)
+
 
     forgot_password_button = Button(
         window, text="verify", command=lambda: main(key), bg='#292A2D', fg='white')
@@ -802,6 +847,7 @@ def login_password():
         command=lambda: password_sec(recover_password_entry, show_both_1), fg='white', bg='#292A2D',
         highlightcolor='#292A2D',
         activebackground='#292A2D', activeforeground='white', relief=RAISED)
+
     show_both_1.grid(row=0, column=0)
     show_both_1.place(x=325, y=95)
     username_forgot_entry.insert(0, 'Username')
@@ -837,6 +883,114 @@ def login_password():
 
 var = 0
 
+def add_account_window(username,window,hashed_password):
+                    d = window.winfo_children()
+                    try:
+                        for i in d:
+                            i.destroy()
+                    except:
+                        print('e')
+                    try:
+                        with open(username + 'decrypted.bin', 'rb') as f:
+                            account_fetch = pickle.load(f)
+                    except:
+                        account_fetch = []
+
+                    no_of_accounts = 0
+                    try:
+                        while no_of_accounts < 12:
+                            social_username = account_fetch[no_of_accounts][0]
+                            social_password = account_fetch[no_of_accounts][1]
+                            social_media = account_fetch[no_of_accounts][2]
+                            image_path_loc = account_fetch[no_of_accounts][3]
+                            username_label_widget = Label(
+                                window, text=f'Username: {social_username}', fg='white', bg='#292A2D')
+                            password_label_widget = Label(
+                                window, text=f'Password: {social_password}', fg='white', bg='#292A2D')
+                            social_media_label = Label(
+                                window, text=f'Account Name: {social_media}', fg='white', bg='#292A2D')
+                            if image_path_loc:
+                                # noinspection PyBroadException
+                                try:
+                                    tkimage = tk_image.PhotoImage(image.open(image_path_loc))
+                                except:
+                                    tkimage = tk_image.PhotoImage(image.open('photo.png'))
+                            else:
+                                tkimage = tk_image.PhotoImage(image.open('photo.png'))
+                            default_image_button = Button(window, image=tkimage, borderwidth='0', bg='#292A2D',
+                                                          command=lambda: change_icon(default_image_button, social_username, username, hashed_password))
+                            if no_of_accounts < 3:
+                                username_label_widget.grid(row=2, column=0 + no_of_accounts, rowspan=1)
+                                password_label_widget.grid(row=3, column=0 + no_of_accounts, rowspan=1)
+                                social_media_label.grid(row=1, column=0 + no_of_accounts, rowspan=1)
+                                default_image_button.photo = tkimage
+                                default_image_button.grid(row=0, column=0 + no_of_accounts, rowspan=1)
+                                default_image_button.place(x=40 + no_of_accounts * 250, y=10)
+                                username_label_widget.place(x=30 + no_of_accounts * 250, y=110)
+                                social_media_label.place(x=30 + no_of_accounts * 250, y=90)
+                                password_label_widget.place(x=30 + no_of_accounts * 250, y=130)
+
+                            elif 3 <= no_of_accounts < 6:
+                                dd = int(no_of_accounts % 3)
+                                username_label_widget.grid(row=2 + 1, column=0 + dd)
+                                password_label_widget.grid(row=3 + 1, column=0 + dd)
+                                social_media_label.grid(row=1 + 1, column=0 + dd)
+                                default_image_button.photo = tkimage
+                                default_image_button.grid(row=0 + 1, column=0 + dd)
+                                default_image_button.place(x=40 + dd * 250, y=170)
+                                username_label_widget.place(x=30 + dd * 250, y=250)
+                                social_media_label.place(x=30 + dd * 250, y=230)
+                                password_label_widget.place(x=30 + dd * 250, y=270)
+                            elif 6 <= no_of_accounts < 9:
+                                dd = int(no_of_accounts % 6)
+                                username_label_widget.grid(row=2 + 1, column=0 + dd)
+                                password_label_widget.grid(row=3 + 1, column=0 + dd)
+                                social_media_label.grid(row=1 + 1, column=0 + dd)
+                                default_image_button.photo = tkimage
+                                default_image_button.grid(row=0 + 1, column=0 + dd)
+                                default_image_button.place(x=40 + dd * 250, y=300)
+                                social_media_label.place(x=30 + dd * 250, y=380)
+                                username_label_widget.place(x=30 + dd * 250, y=400)
+                                password_label_widget.place(x=30 + dd * 250, y=420)
+                            no_of_accounts = no_of_accounts + 1
+                    except:
+                            pass
+                    try:
+                        my_cursor.execute("select no_of_accounts from data_input where username=(?)",(username,))
+                        values1 = my_cursor.fetchall()
+                        no_accounts = 0
+                        for i in values1:
+                            no_accounts = i[0]
+                    except :
+                        no_accounts = 0
+
+                    image_add = tk_image.PhotoImage(image.open('add-button.png'))
+                    if no_accounts <= 9:
+                        image_add = tk_image.PhotoImage(image.open('add-button.png'))
+                        add_button_text = Label(window, fg='white', text='Add Account', bg='#292A2D')
+                        add_button = Button(
+                            window, image=image_add, bg='#292A2D', activebackground='#292A2D', border="0", compound='top',
+                            command=lambda:addaccount(username,hashed_password,window)
+                        )
+                        add_button.photo = image_add
+                        d = int(no_accounts % 4)
+                        add_button.grid(row=10, column=10)
+                        add_button_text.grid(row=11, column=10)
+
+                        add_button.place(x=719 + 50, y=410)
+                        add_button_text.place(x=710 + 50, y=480)
+                    else:
+                        image_add = tk_image.PhotoImage(image.open('add-button.png'))
+                        add_button_text = Label(window, fg='white', text='Add Account', bg='#292A2D')
+                        add_button = Button(
+                            window, image=image_add, bg='#292A2D', activebackground='#292A2D', state=DISABLED,border="0", compound='top')
+                        add_button.photo = image_add
+                        d = int(no_accounts % 4)
+                        add_button.grid(row=10, column=10)
+                        add_button_text.grid(row=11, column=10)
+
+                        add_button.place(x=719 + 50, y=410)
+                        add_button_text.place(x=710 + 50, y=480)
 
 def window_after(username, hash_password):
     # sidebar
@@ -867,7 +1021,7 @@ def window_after(username, hash_password):
             l.destroy()
         gameloop(username, hash_password, mainarea)
 
-    def ap():
+    def note_pad_sec():
         global status_name
         global password
         global var
@@ -1100,16 +1254,22 @@ def window_after(username, hash_password):
 
             def cut(*event):
                 global cutting_value
-                if TextArea.selection_get():
-                    # grabbing selected text from text area
-                    cutting_value = TextArea.selection_get()
-                    TextArea.delete("sel.first", 'sel.last')
+                try:
+                    if TextArea.selection_get():
+                        # grabbing selected text from text area
+                        cutting_value = TextArea.selection_get()
+                        TextArea.delete("sel.first", 'sel.last')
+                except:
+                    cutting_value = ''
 
             def copy(*event):
                 global cutting_value
-                if TextArea.selection_get():
-                    # grabbing selected text from text area
-                    cutting_value = TextArea.selection_get()
+                try:
+                    if TextArea.selection_get():
+                        # grabbing selected text from text area
+                        cutting_value = TextArea.selection_get()
+                except:
+                    cutting_value = ''
 
             def paste(*event):
                 if cutting_value:
@@ -1474,14 +1634,14 @@ def window_after(username, hash_password):
     notes_img = tk_image.PhotoImage(image.open('notes.png'))
     mainarea = Frame(root, bg="#292A2D", width=500, height=500)
     mainarea.pack(expand=True, fill="both", side="right")
-    button = Button(sidebar, image=pass_img, text="Passwords", padx=12, compound='left', command=lambda: testing(
+    button = Button(sidebar, image=pass_img, text="Passwords", padx=14, compound='left', command=lambda: testing(
         root, mainarea, username, hash_password))
-    notes_buttons = Button(sidebar,image=notes_img, text="Notes",padx=20, compound='left' ,command=ap )
+    notes_buttons = Button(sidebar,image=notes_img, text="Notes",padx=20, compound='left' ,command=note_pad_sec )
     button.grid(row=0,column=1)
     notes_buttons.grid(row=1, column=1)
     settings_image = tk_image.PhotoImage(image.open('settings.png'))
     settings_button = Button(sidebar, text='Settings', compound='top', activebackground='#292A2D', image=settings_image,fg='white',
-                             bg="#292A2D", border='0', command=lambda: settings(username, hash_password), relief=FLAT,
+                             bg="#292A2D", border='0', command=lambda: settings(username, hash_password,mainarea), relief=FLAT,
                              highlightthickness=0,activeforeground='white', bd=0, borderwidth=0)
     settings_button.photo = settings_image
     settings_button.grid(row=10, column=1, columnspan=1)
@@ -1546,22 +1706,7 @@ def change_icon(button, usernam, users_username,hashed_password):
         new_tk = tk_image.PhotoImage(path_im)
         button.config(image=new_tk)
         button.photo = new_tk
-
-# noinspection PyTypeChecker
-def gameloop(username, hashed_password, window):
-    global image_path
-    window.grid_propagate(0)
-
-    file_name = username + 'decrypted.bin'
-    my_cursor.execute(
-        'select no_of_accounts from data_input where username = (?)', (username,))
-    no_accounts = my_cursor.fetchall()
-    add = 0
-    for i in no_accounts:
-        add = int(i[0])
-    exist = False
-
-    def addaccount():
+def addaccount(username,hashed_password,window):
         root1 = Toplevel()
         root1.geometry('400x300')
         root1.title('Add Account')
@@ -1579,7 +1724,7 @@ def gameloop(username, hashed_password, window):
         name_of_social = Label(
             root1, text="Name of the account", fg='white', bg='#292A2D')
         name_of_social_entry = Entry(root1)
-        username_window = Label(root1, text="Usename:", fg='white', bg='#292A2D')
+        username_window = Label(root1, text="Username:", fg='white', bg='#292A2D')
         password_window = Label(root1, text="Password:",
                                 fg='white', bg='#292A2D')
         username_window_entry = Entry(root1)
@@ -1593,12 +1738,12 @@ def gameloop(username, hashed_password, window):
         name_of_social_entry.grid(row=0, column=2)
         name_of_social.grid(row=0, column=1)
 
-        username_window.place(x=50, y=70+100)
-        password_window.place(x=50, y=100+100)
-        name_of_social.place(x=50, y=130+100)
-        username_window_entry.place(x=200, y=70+100)
-        password_entry.place(x=200,y=100+100)
-        name_of_social_entry.place(x=200, y=130+100)
+        username_window.place(x=50, y=100+100)
+        password_window.place(x=50, y=130+100)
+        name_of_social.place(x=50, y=70+100)
+        username_window_entry.place(x=200, y=100+100)
+        password_entry.place(x=200,y=130+100)
+        name_of_social_entry.place(x=200, y=70+100)
 
         def browsefunc():
             global image_path
@@ -1610,13 +1755,17 @@ def gameloop(username, hashed_password, window):
                 add_icon_button.photo = tkimage
             except:
                 pass
+        # new_label = Label(root1,text='       Add Account',font=('Arial',15),fg='white',bg='#292A2D')
+        # new_label.config(underline=1)
+        # new_label.grid(row=0, column=0, rowspan=3)
 
-        new_id = tk_image.PhotoImage(image.open("image-file.png"))
+
+        new_id = tk_image.PhotoImage(image.open("photo.png"))
         add_icon_button = Button(
             root1, image=new_id, borderwidth="0", command=browsefunc, border='0',highlightthickness='0',activebackground='#292A2D', bg='#292A2D')
         add_icon_button.photo = new_id
-        add_icon_button.grid(row=0, column=0, rowspan=3)
-
+        add_icon_button.grid(row=3,column=0)
+        add_icon_button.place(x=125,y=200)
         def save():
             global image_path
             global exist
@@ -1639,7 +1788,7 @@ def gameloop(username, hashed_password, window):
                 a.destroy()
             else:
                 verifying = verify(username_window_entry.get(),
-                                name_of_social_entry.get())
+                                name_of_social_entry.get(),username)
                 
                 if verifying:
                     messagebox.showerror('Error', 'The account already exists')
@@ -1664,11 +1813,14 @@ def gameloop(username, hashed_password, window):
                     my_cursor.execute(
                         'select no_of_accounts from data_input where username = (?)', (username,))
                     val = my_cursor.fetchall()
+                    real_accounts = 0
                     for i in val:
                         real_accounts = int(i[0])
                     real_accounts +=  + 1
                     my_cursor.execute('update data_input set no_of_accounts =(?) where username =(?)',
                                     (real_accounts, username))
+                    add_account_window(username,window,hashed_password)
+
                 elif not verifying:
                     messagebox.showerror(
                         'Error', 'Account with the username already exist')
@@ -1680,9 +1832,10 @@ def gameloop(username, hashed_password, window):
         add_icon_button.place(x=150,y=50)
         root1.mainloop()
 
-    
 
-    def verify(social_username, social_media):
+
+def verify(social_username, social_media,real_username):
+        file_name =  f'{real_username}decrypted.bin'
         try:
             with open(file_name, 'r') as f:
                 test_values = pickle.load(f)
@@ -1691,106 +1844,16 @@ def gameloop(username, hashed_password, window):
                         return True
         except:
             return False
+# noinspection PyTypeChecker
+def gameloop(username, hashed_password, window):
+    global image_path
+    window.grid_propagate(0)
 
-    for num in no_accounts:
-        add = int(num[0])
-    try:
-        with open(username + 'decrypted.bin', 'rb') as f:
-            account_fetch = pickle.load(f)
-    except:
-        account_fetch = []
 
-    no_of_accounts = 0
-    try:
-        while no_of_accounts < 12:
-            social_username = account_fetch[no_of_accounts][0]
-            social_password = account_fetch[no_of_accounts][1]
-            social_media = account_fetch[no_of_accounts][2]
-            image_path_loc = account_fetch[no_of_accounts][3]
-            username_label_widget = Label(
-                window, text=f'Username: {social_username}', fg='white', bg='#292A2D')
-            password_label_widget = Label(
-                window, text=f'Password: {social_password}', fg='white', bg='#292A2D')
-            social_media_label = Label(
-                window, text=f'Account Name: {social_media}', fg='white', bg='#292A2D')
-            if image_path_loc:
-                # noinspection PyBroadException
-                try:
-                    tkimage = tk_image.PhotoImage(image.open(image_path_loc))
-                except:
-                    tkimage = tk_image.PhotoImage(image.open('photo.png'))
-            else:
-                tkimage = tk_image.PhotoImage(image.open('photo.png'))
-            default_image_button = Button(window, image=tkimage, borderwidth='0', bg='#292A2D',
-                                          command=lambda: change_icon(default_image_button, social_username, username, hashed_password))
-            if no_of_accounts < 3:
-                username_label_widget.grid(row=2, column=0 + no_of_accounts, rowspan=1)
-                password_label_widget.grid(row=3, column=0 + no_of_accounts, rowspan=1)
-                social_media_label.grid(row=1, column=0 + no_of_accounts, rowspan=1)
-                default_image_button.photo = tkimage
-                default_image_button.grid(row=0, column=0 + no_of_accounts, rowspan=1)
-                default_image_button.place(x=40 + no_of_accounts * 250, y=10)
-                username_label_widget.place(x=30 + no_of_accounts * 250, y=110)
-                social_media_label.place(x=30 + no_of_accounts * 250, y=90)
-                password_label_widget.place(x=30 + no_of_accounts * 250, y=130)
+    exist = False
+    add_account_window(username,window,hashed_password)
 
-            elif 3 <= no_of_accounts < 6:
-                dd = int(no_of_accounts % 3)
-                username_label_widget.grid(row=2 + 1, column=0 + dd)
-                password_label_widget.grid(row=3 + 1, column=0 + dd)
-                social_media_label.grid(row=1 + 1, column=0 + dd)
-                default_image_button.photo = tkimage
-                default_image_button.grid(row=0 + 1, column=0 + dd)
-                default_image_button.place(x=40 + dd * 250, y=170)
-                username_label_widget.place(x=30 + dd * 250, y=250)
-                social_media_label.place(x=30 + dd * 250, y=230)
-                password_label_widget.place(x=30 + dd * 250, y=270)
-            elif 6 <= no_of_accounts < 9:
-                dd = int(no_of_accounts % 6)
-                username_label_widget.grid(row=2 + 1, column=0 + dd)
-                password_label_widget.grid(row=3 + 1, column=0 + dd)
-                social_media_label.grid(row=1 + 1, column=0 + dd)
-                default_image_button.photo = tkimage
-                default_image_button.grid(row=0 + 1, column=0 + dd)
-                default_image_button.place(x=40 + dd * 250, y=300)
-                social_media_label.place(x=30 + dd * 250, y=380)
-                username_label_widget.place(x=30 + dd * 250, y=400)
-                password_label_widget.place(x=30 + dd * 250, y=420)
-            no_of_accounts = no_of_accounts + 1
-    except:
-        pass
-    image_add = tk_image.PhotoImage(image.open('add-button.png'))
-    print(add)
-    if add <= 9:
-        image_add = tk_image.PhotoImage(image.open('add-button.png'))
-        add_button_text = Label(window, fg='white', text='Add Account', bg='#292A2D')
-        add_button = Button(
-            window, image=image_add, bg='#292A2D', activebackground='#292A2D', border="0", compound='top',
-            command=addaccount
-        )
-        add_button.photo = image_add
-        d = int(add % 4)
-        add_button.grid(row=10, column=10)
-        add_button_text.grid(row=11, column=10)
 
-        add_button.place(x=719 + 50, y=410)
-        add_button_text.place(x=710 + 50, y=480)
-    else:
-        image_add = tk_image.PhotoImage(image.open('add-button.png'))
-        add_button_text = Label(window, fg='white', text='Add Account', bg='#292A2D')
-        add_button = Button(
-            window, image=image_add, bg='#292A2D', activebackground='#292A2D', state=DISABLED,border="0", compound='top',
-            command=addaccount
-        )
-        add_button.photo = image_add
-        d = int(add % 4)
-        add_button.grid(row=10, column=10)
-        add_button_text.grid(row=11, column=10)
-
-        add_button.place(x=719 + 50, y=410)
-        add_button_text.place(x=710 + 50, y=480)
-    # except:
-    #     pass
 
 
 def get(window, name):
@@ -1845,10 +1908,10 @@ def login(window):
     pass_entry = Entry(login_window, show="*")
     forgot = Button(login_window, text="Forgot Password?",
                     command=login_password, border='0', fg='white', bg='#292A2D', highlightcolor='#292A2D',
-                    activebackground='#292A2D', activeforeground='#292A2D', relief=RAISED)
+                    activebackground='#292A2D', activeforeground='white', relief=RAISED)
     register_button = Button(
         login_window, text='Register', command=lambda: register(window), fg='white', bg='#292A2D', border='0',
-        highlightcolor='#292A2D', activebackground='#292A2D', activeforeground='#292A2D', relief=RAISED)
+        highlightcolor='#292A2D', activebackground='#292A2D', activeforeground='white', relief=RAISED)
 
     mod_label = Label(login_window, text="|", relief=SUNKEN, fg='white', bg='#292A2D', border='0')
 
@@ -1934,10 +1997,10 @@ def password_sec(entry, button):
     a = entry['show']
     if a == "":
         entry.config(show="*")
-        button['text'] = 'Hide'
+        button['text'] = 'Show'
     elif a == '*':
         entry.config(show="")
-        button['text'] = 'Show'
+        button['text'] = 'Hide'
 
 
 def register(window):
@@ -1962,13 +2025,13 @@ def register(window):
 
     login_window1.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
     username = Label(login_window1, text="Username:", fg='white', bg='#292A2D', highlightcolor='#292A2D',
-                     activebackground='#292A2D', activeforeground='#292A2D')
+                     activebackground='#292A2D')
     password = Label(login_window1, text="password:", fg='white', bg='#292A2D', highlightcolor='#292A2D',
-                     activebackground='#292A2D', activeforeground='#292A2D')
+                     activebackground='#292A2D')
     email_id = Label(login_window1, text="Recovery Email :", fg='white', bg='#292A2D', highlightcolor='#292A2D',
-                     activebackground='#292A2D', activeforeground='#292A2D')
+                     activebackground='#292A2D')
     email_password = Label(login_window1, text="Recovery Email password", fg='white', bg='#292A2D',
-                           highlightcolor='#292A2D', activebackground='#292A2D', activeforeground='#292A2D')
+                           highlightcolor='#292A2D', activebackground='#292A2D')
     username_entry = Entry(login_window1)
     password_entry = Entry(login_window1, show="*")
     email_id_entry = Entry(login_window1)
