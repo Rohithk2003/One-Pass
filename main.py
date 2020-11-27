@@ -235,8 +235,8 @@ class Register:
         pyAesCrypt.decryptFile(
             file_name + ".fenc", f'{self.username}decrypted.bin', hash_pass, bufferSize)
         window_after(self.username, hash_pass)
-    def verifying_email(self,email):
 
+#testing update
 # for hashing-encryting and decrypting password and for (forgot_password)
 def create_key(password, message):
     password_key = password.encode()  # convert string to bytes
