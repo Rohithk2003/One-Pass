@@ -61,7 +61,7 @@ image_path = ''
 exist = False
 cutting_value = False
 file = 0
-
+#
 # version file
 if os.path.exists('version.txt'):
     os.remove('version.txt')
