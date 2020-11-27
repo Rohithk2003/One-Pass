@@ -65,7 +65,6 @@ file = 0
 
         # for comparing the version of the code with the github one
 # for handling login
-############################
 
 class Login:  # login_class
     def __init__(self, username, password):
@@ -132,7 +131,7 @@ class Login:  # login_class
 
 def checkforupdates():
     # isUpToDate check whether the file ie a.py and version.txt is same as the one present in my github repository and it returns true if same else false
-    if isUpToDate('main.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py') :
+    if isUpToDate('main.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/main.py') :
         result = messagebox.askyesno(
             'Update Available', 'Do you want to update the app?')
         if result == True:
@@ -141,7 +140,7 @@ def checkforupdates():
                     "Updating", 'Please wait while the software is being updated')
                 # used for updating the file
                 update(
-                    'main.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py')
+                    'main.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/main.py')
                 messagebox.showinfo(
                     "Updated", 'The software has been updated please restart to take effect')
             except:
