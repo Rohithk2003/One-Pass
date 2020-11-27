@@ -138,11 +138,11 @@ class Login:  # login_class
     def windows(self, main_password, window, cursor):  # for calling the main function
         window_after(self.username, main_password)
 
-
+#checking updates
 # checking for updates
 def checkforupdates():
     # isUpToDate check whether the file ie a.py and version.txt is same as the one present in my github repository and it returns true if same else false
-    if isUpToDate('a.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py') and isUpToDate('version.txt',
+    if isUpToDate('main.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py') and isUpToDate('version.txt',
                                                                                                      'https://raw.githubusercontent.com/Rohithk2003/One-Pass/master/version.txt'):
         result = messagebox.askyesno(
             'Update Available', 'Do you want to update the app?')
@@ -152,7 +152,7 @@ def checkforupdates():
                     "Updating", 'Please wait while the software is being updated')
                 # used for updating the file
                 update(
-                    'a.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py')
+                    'main.py', 'https://github.com/Rohithk2003/One-Pass/blob/master/a.py')
                 messagebox.showinfo(
                     "Updated", 'The software has been updated please restart to take effect')
             except:
@@ -236,7 +236,6 @@ class Register:
             file_name + ".fenc", f'{self.username}decrypted.bin', hash_pass, bufferSize)
         window_after(self.username, hash_pass)
 
-#testing update
 # for hashing-encryting and decrypting password and for (forgot_password)
 def create_key(password, message):
     password_key = password.encode()  # convert string to bytes
@@ -1035,7 +1034,6 @@ def window_after(username, hash_password):
 
     global var
     global file
-    root.geometry('1000x500')
     status_name = False
     sidebar = Frame(
         root, width=10, bg="#292A2D", height=500, relief="sunken", borderwidth=1
@@ -1043,7 +1041,14 @@ def window_after(username, hash_password):
     sidebar.pack(expand=False, fill="both", side="left")
     file = None
     root.title('ONE-PASS')
+    width_window = 1000
+    height_window = 500
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x = screen_width / 2 - width_window / 2
+    y = screen_height / 2 - height_window / 2
 
+    root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
     def testing(root, mainarea, username, hash_password):
         button['state'] = DISABLED
         notes_buttons['state'] = NORMAL
