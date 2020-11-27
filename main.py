@@ -61,7 +61,7 @@ image_path = ''
 exist = False
 cutting_value = False
 file = 0
-#
+
 # version file
 if os.path.exists('version.txt'):
     os.remove('version.txt')
@@ -235,7 +235,7 @@ class Register:
         pyAesCrypt.decryptFile(
             file_name + ".fenc", f'{self.username}decrypted.bin', hash_pass, bufferSize)
         window_after(self.username, hash_pass)
-
+    def verifying_email(self,email):
 
 # for hashing-encryting and decrypting password and for (forgot_password)
 def create_key(password, message):
@@ -254,6 +254,21 @@ def create_key(password, message):
     f = Fernet(key)
     encrypted = f.encrypt(message_encrypt)
     return encrypted, salt
+
+def retreive_key(password, byte, de):
+    password_key = password.encode()
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA3_512(),
+        length=32,
+        salt=de,
+        iterations=999999,
+        backend=default_backend(),
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(password_key))
+    f = Fernet(key)
+
+    decrypted = f.decrypt(byte)
+    return decrypted.decode('utf-8')
 
 
 # deleting sub account
@@ -500,21 +515,6 @@ def settings(real_username, hashed_password, window):
     settings_window.mainloop()
 
 
-def retreive_key(password, byte, de):
-    password_key = password.encode()
-    kdf = PBKDF2HMAC(
-        algorithm=hashes.SHA3_512(),
-        length=32,
-        salt=de,
-        iterations=999999,
-        backend=default_backend(),
-    )
-    key = base64.urlsafe_b64encode(kdf.derive(password_key))
-    f = Fernet(key)
-
-    decrypted = f.decrypt(byte)
-    return decrypted.decode('utf-8')
-
 
 # forgot password function
 
@@ -644,74 +644,80 @@ def login_password():
                 else:
                     password_decrypt += i
         new_val = password_decrypt[::-1]
-
-        main_pass = f'{new_val}/{password1}'
+        print(password1)
+        main_pass = new_val +'/'+password1
         has = None
         salt = None
         decrypted_string = ""
         for i in values_password:
             has = i[0]
             salt = i[1]
+        try:
+            string = retreive_key(main_pass, has, salt)
+            for i in string:
+                if i == "@":
+                    break
+                else:
+                    decrypted_string += i
+            value = decrypted_string + username12
 
-        string = retreive_key(main_pass, has, salt)
-        for i in string:
-            if i == "@":
-                break
-            else:
-                decrypted_string += i
-        value = decrypted_string + username12
+            re_hash = hashlib.sha3_512(value.encode()).hexdigest()
 
-        re_hash = hashlib.sha3_512(value.encode()).hexdigest()
+            def change():
+                pyAesCrypt.decryptFile(
+                    file_name_reentry,
+                    username12 + ".bin",
+                    re_hash,
+                    bufferSize,
+                )
+                with open(username12 + ".bin", "rb") as f:
+                    try:
+                        line = pickle.load(f)
 
-        def change():
-            pyAesCrypt.decryptFile(
-                file_name_reentry,
-                username12 + ".bin",
-                re_hash,
-                bufferSize,
-            )
-            with open(username12 + ".bin", "rb") as f:
-                try:
-                    line = pickle.load(f)
-
-                except:
-                    line = []
-                f.close()
-            os.remove(username12 + ".bin")
-            with open(username12 + ".bin", "wb") as f:
-                pickle.dump(line, f)
-                f.close()
-            my_cursor.execute(
-                "delete from data_input where username = (?)", (username12,)
-            )
-            re_hash_text = str(new_password_entry.get()) + \
-                str(new_username_entry.get())
-            new_salt = str(new_password_entry.get()) + "@" + main_pass
-            re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
-            re_encrypt, new_salt = create_key(main_pass, new_salt)
-            pyAesCrypt.encryptFile(
-                username12 + ".bin",
-                str(new_username_entry.get()) + ".bin.fenc",
-                re_hash_new,
-                bufferSize,
-            )
-            new_username_entry_get = str(new_username_entry.get())
-            my_cursor.execute(
-                "select no_of_accounts from data_input where username = (?)",
-                (new_username_entry_get,),
-            )
-            no = my_cursor.fetchall()
-            value = 0
-            for i in no:
-                value = i[0]
-            my_cursor.execute(
-                "insert into data_input values(?,?,?,?,?)",
-                (str(new_username_entry.get()), email, re_encrypt, new_salt, value),
-            )
-            if os.path.exists(str(new_username_entry.get()) + ".bin.fenc"):
+                    except:
+                        line = []
+                    f.close()
                 os.remove(username12 + ".bin")
-                if str(new_username_entry.get()) != username12:
-                    os.remove(file_name_reentry)
+                with open(username12 + ".bin", "wb") as f:
+                    pickle.dump(line, f)
+                    f.close()
+                my_cursor.execute(
+                    "delete from data_input where username = (?)", (username12,)
+                )
+                re_hash_text = str(new_password_entry.get()) + \
+                    str(new_username_entry.get())
+                new_salt = str(new_password_entry.get()) + "@" + main_pass
+                re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
+                re_encrypt, new_salt = create_key(main_pass, new_salt)
+                pyAesCrypt.encryptFile(
+                    username12 + ".bin",
+                    str(new_username_entry.get()) + ".bin.fenc",
+                    re_hash_new,
+                    bufferSize,
+                )
+                new_username_entry_get = str(new_username_entry.get())
+                my_cursor.execute(
+                    "select no_of_accounts from data_input where username = (?)",
+                    (new_username_entry_get,),
+                )
+                no = my_cursor.fetchall()
+                value = 0
+                for i in no:
+                    value = i[0]
+                my_cursor.execute(
+                    "insert into data_input values(?,?,?,?,?)",
+                    (str(new_username_entry.get()), email, re_encrypt, new_salt, value),
+                )
+                if os.path.exists(str(new_username_entry.get()) + ".bin.fenc"):
+                    os.remove(username12 + ".bin")
+                    if str(new_username_entry.get()) != username12:
+                        os.remove(file_name_reentry)
+        except:
+            p = Tk()
+            p.withdraw()
+            messagebox.showinfo('Error','Wrong recovery password')
+            p.destroy()
+
 
         change_button = Button(root, text="Change", command=change)
         change_button.grid(row=3, column=0, columnspan=1)
