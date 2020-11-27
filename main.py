@@ -66,7 +66,7 @@ file = 0
 if os.path.exists('version.txt'):
     os.remove('version.txt')
     with open('version.txt', 'w') as f:
-        f.write('1.0.0')
+        f.write('1.2.0')
 else:
     with open('version.txt', 'w') as f:
         f.write('1.0.0')  # used for check_for_updates
@@ -138,7 +138,6 @@ class Login:  # login_class
     def windows(self, main_password, window, cursor):  # for calling the main function
         window_after(self.username, main_password)
 
-#checking updates
 # checking for updates
 def checkforupdates():
     # isUpToDate check whether the file ie a.py and version.txt is same as the one present in my github repository and it returns true if same else false
