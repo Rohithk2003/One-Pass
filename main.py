@@ -63,7 +63,6 @@ cutting_value = False
 file = 0
 
 
-# for handling login
 
 class Login:  # login_class
     def __init__(self, username, password):
@@ -129,7 +128,7 @@ class Login:  # login_class
         window_after(self.username, main_password)
 
 def checkforupdates():
-    # isUpToDate check whether the file ie a.py and version.txt is same as the one present in my github repository and it returns true if same else false
+    # isUpToDate check whether the file ie main.py  is same as the one present in my github repository and it returns true if same else false
     if isUpToDate('main.py', 'https://raw.githubusercontent.com/Rohithk2003/One-Pass/develop/main.py') :
         result = messagebox.askyesno(
             'Update Available', 'Do you want to update the app?')
