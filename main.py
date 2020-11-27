@@ -271,7 +271,7 @@ def delete_social_media_account(real_username, hashed_password, window):
         try:
             ac = pickle.load(selectfile)
             for i in ac:
-                tu += (i[0],)
+                tu += (i[2],)
         except:
             pass
     delete = Button(delete_med_account, text='Delete', fg='white', bg='#292A2D',
@@ -288,9 +288,6 @@ def delete_social_media_account(real_username, hashed_password, window):
         result = messagebox.askyesno(
             'Confirm', 'Are you sure that you want to delete your account')
         if result == True:
-            val = simpledialog.askstring('Delete account',
-                                         f'Please type {real_username}/{account_name} to  delete your account')
-            if val == f'{real_username}/{account_name}':
                 with open(f'{real_username}decrypted.bin', 'rb') as f:
                     values = pickle.load(f)
                     for i in values:
@@ -320,13 +317,14 @@ def delete_social_media_account(real_username, hashed_password, window):
                 a = Tk()
                 a.withdraw()
                 messagebox.showinfo(
-                    'Success', 'Your account has been successfully deleted')
+                    'Success', f'{account_name} account has been  deleted')
                 a.destroy()
                 with open(f'{real_username}decrypted.bin', 'rb') as f:
-                    values = pickle.load(f)
+                    values = pickle.load(f) 
                     for i in values:
                         print(i[0])
                 add_account_window(real_username, window, hashed_password)
+
 
         else:
             a = Tk()
@@ -931,7 +929,7 @@ def add_account_window(username, window, hashed_password):
             else:
                 tkimage = tk_image.PhotoImage(image.open('photo.png'))
             default_image_button = Button(window, image=tkimage, borderwidth='0', bg='#292A2D',
-                                          command=lambda: change_icon(default_image_button, social_username, username, hashed_password))
+                                          command=lambda: change_icon(default_image_button, social_username, username, hashed_password,window))
             if no_of_accounts < 3:
                 username_label_widget.grid(
                     row=2, column=0 + no_of_accounts, rowspan=1)
@@ -1018,6 +1016,8 @@ def window_after(username, hash_password):
     root = Tk()
     root.resizable(False, False)
 
+
+    root.focus_set()
     global var
     global file
     status_name = False
@@ -1689,17 +1689,17 @@ def window_after(username, hash_password):
     button.grid(row=0, column=1)
     notes_buttons.grid(row=1, column=1)
     settings_image = tk_image.PhotoImage(image.open('settings.png'))
-    settings_button = Button(sidebar, text='Settings', compound='top', activebackground='#292A2D', image=settings_image, fg='white',
+    settings_button = Button(sidebar,  activebackground='#292A2D', image=settings_image, fg='white',
                              bg="#292A2D", border='0', command=lambda: settings(username, hash_password, mainarea), relief=FLAT,
                              highlightthickness=0, activeforeground='white', bd=0, borderwidth=0)
     settings_button.photo = settings_image
     settings_button.grid(row=10, column=1, columnspan=1)
-    settings_button.place(x=30, y=440)
+    settings_button.place(x=30+50, y=440+20)
 
     root.mainloop()
 
 
-def change_icon(button, usernam, users_username, hashed_password):
+def change_icon(button, usernam, users_username, hashed_password,window):
     file_name = users_username + 'decrypted.bin'
     l = [(32, 32), (16, 16)]
     image_path = fd.askopenfilename(filetypes=[("image", "*.png"), ("image", "*.jpeg"), ("image", "*.jpg")],
@@ -1733,6 +1733,7 @@ def change_icon(button, usernam, users_username, hashed_password):
                 new_tk = tk_image.PhotoImage(im)
                 button.config(image=new_tk)
                 button.photo = new_tk
+                add_account_window(users_username, window, hashed_password)
             else:
                 messagebox.showerror(
                     'Error', 'Please provide icon size of 32x32 or 16x16')
