@@ -25,7 +25,6 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from passlib.hash import pbkdf2_sha256
 
 # for updating the file
 from update_check import isUpToDate
@@ -126,6 +125,7 @@ class Login:  # login_class
 
     def windows(self, main_password, window, cursor):  # for calling the main function
         window_after(self.username, main_password)
+
 
 def checkforupdates():
     # isUpToDate check whether the file ie main.py  is same as the one present in my github repository and it returns true if same else false
@@ -421,7 +421,7 @@ def change_window(real_username, hashed_password):
     new_password.grid(row=3, column=1)
 
     change = Button(change_acccount, text='Change', bg='#292A2D', fg='white', command=lambda: change_sub_account(real_username, hashed_password, str(
-        selectaccount.get()),  str(new_username.get()), str(new_password.get()), str(new_account_name.get()), change_account))
+        selectaccount.get()),  str(new_username.get()), str(new_password.get()), str(new_account_name.get())))
 
     change.grid(row=5, column=1)
     main_label.place(x=0, y=40)
@@ -741,7 +741,7 @@ def login_password():
         try:
             global running
             running = True
-            SUBJECT = "OTP verification for ONE-PASS-MANAGER"
+            SUBJECT = "EMAIL verification for ONE-PASS-MANAGER"
             otp = f"Hey {username}! Your OTP for your ONE-PASS manager is {OTP}.Please use this to verify your email"
             msg = "Subject: {}\n\n{}".format(SUBJECT, otp)
             s = smtplib.SMTP("smtp.gmail.com", 587)
@@ -2095,7 +2095,7 @@ def register(window):
                      activebackground='#292A2D')
     email_id = Label(login_window1, text="Recovery Email :", fg='white', bg='#292A2D', highlightcolor='#292A2D',
                      activebackground='#292A2D')
-    email_password = Label(login_window1, text="Recovery Email password", fg='white', bg='#292A2D',
+    email_password = Label(login_window1, text="Recovery Email password", fg='whi-te', bg='#292A2D',
                            highlightcolor='#292A2D', activebackground='#292A2D')
     username_entry = Entry(login_window1)
     password_entry = Entry(login_window1, show="*")
