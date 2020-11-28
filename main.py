@@ -25,7 +25,7 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-
+import cryptocode
 # for updating the file
 from update_check import isUpToDate
 from update_check import update
@@ -48,7 +48,7 @@ my_cursor = connection.cursor()
 
 my_cursor.execute(
     "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,"
-    "salt blob,no_of_accounts int(120) default 0) "
+    "salt blob,no_of_accounts int(120) default 0, recovery_password varchar(100)) "
 )
 # for image loading
 l = [{'1': 'member.png'}]
@@ -123,33 +123,8 @@ class Login:  # login_class
                 return False, main_password
             return True, main_password
 
-    def windows(self, main_password, window, cursor):  # for calling the main function
-        window_after(self.username, main_password)
-
-
-def checkforupdates():
-    # isUpToDate check whether the file ie main.py  is same as the one present in my github repository and it returns true if same else false
-    if isUpToDate('main.py', 'https://raw.githubusercontent.com/Rohithk2003/One-Pass/develop/main.py') :
-        result = messagebox.askyesno(
-            'Update Available', 'Do you want to update the app?')
-        if result == True:
-            try:
-                messagebox.showinfo(
-                    "Updating", 'Please wait while the software is being updated')
-                # used for updating the file
-                update(
-                    'main.py', 'https://raw.githubusercontent.com/Rohithk2003/One-Pass/develop/main.py')
-                messagebox.showinfo(
-                    "Updated", 'The software has been updated please restart to take effect')
-            except:
-                messagebox.showerror(
-                    'No internet Available', 'Please connect to the internet')
-
-        else:
-            quit()
-    else:
-        messagebox.showinfo('Update', 'No update is currently available')
-
+    def windows(self, main_password, window, cursor, another_self):  # for calling the main function
+        another_self.window_after(self.username, main_password)
 
 # for handling registrations
 class Register:
@@ -187,10 +162,11 @@ class Register:
         cipher_text, salt_for_decryption = create_key(
             main_password, static_salt_password
         )
-        # incase the user wants to change his/her password
+
+
         try:
             object.execute(
-                "insert into data_input values (?,?,?,?, 0)",
+                "insert into data_input values (?,?,?,?, 0,0)",
                 (self.username, self.email_id, cipher_text, salt_for_decryption),
             )
         except:
@@ -199,7 +175,7 @@ class Register:
         return False
 
     # adding the account
-    def creation(self, window):
+    def creation(self, window,another_self):
         try:
             window.destroy()
         except:
@@ -207,6 +183,11 @@ class Register:
         for_hashing = self.password + self.username
         '''for encrypting the file'''
         hash_pass = hashlib.sha3_512(for_hashing.encode()).hexdigest()
+        password_recovery_email = self.email_id + hash_pass
+        # to save recovery password so that in case he forgets his email he can reset it 
+        recovery_password_encrypt =  cryptocode.encrypt(self.email_password, password_recovery_email)
+        my_cursor.execute(f"update data_input set recovery_password={recovery_password_encrypt} where username = {self.username}")
+
         file_name = self.username + ".bin"
         with open(file_name, "wb") as f:
             pyAesCrypt.encryptFile(file_name, file_name +
@@ -220,9 +201,229 @@ class Register:
         # for opening the main section where he can store his passwords and use notepad so the file has to be decrypted
         pyAesCrypt.decryptFile(
             file_name + ".fenc", f'{self.username}decrypted.bin', hash_pass, bufferSize)
-        window_after(self.username, hash_pass)
+        another_self.window_after(self.username, hash_pass)
 
 # for hashing-encryting and decrypting password and for (forgot_password)
+
+
+class Deletion:
+    def __init__(self, real_username, hashed_password, window):
+        self.real_username = real_username
+        self.hased_password = hashed_password
+        self.window = window
+
+    def delete_social_media_account(self):
+        delete_med_account = Tk()
+        delete_med_account.config(bg='#292A2D')
+        delete_med_account.title('Delete Account')
+        n = StringVar()
+        selectaccount = Combobox(delete_med_account, width=27,
+                                 textvariable=n, state='#292A2D')
+        # Adding combobox drop down list
+        tu = ()
+        with open(f'{self.real_username}decrypted.bin', 'rb') as selectfile:
+            try:
+                ac = pickle.load(selectfile)
+                for i in ac:
+                    tu += (i[2],)
+            except:
+                pass
+        delete = Button(delete_med_account, text='Delete', fg='white', bg='#292A2D',
+                        command=lambda: self.change_account_name(self, str(selectaccount.get())))
+        selectaccount['values'] = tu
+        change_account_label = Label(
+            delete_med_account, fg='white', bg='#292A2D', text='Select account to be deleted')
+        selectaccount.grid(column=1, row=0)
+        change_account_label.grid(column=0, row=0)
+        delete.grid(row=1, column=1)
+        selectaccount.current()
+
+    def change_account_name(self, account_name, another_self):
+            result = messagebox.askyesno(
+                'Confirm', 'Are you sure that you want to delete your account')
+            if result == True:
+                    with open(f'{self.real_username}decrypted.bin', 'rb') as f:
+                        values = pickle.load(f)
+                        for i in values:
+                            if i[2] == account_name:
+                                inde = values.index(i)
+                                values.pop(inde)
+
+                        f.close()
+                    try:
+                        os.remove(f'{self.real_username}.bin.fenc')
+                    except:
+                        pass
+                    with open(f'{self.real_username}decrypted.bin', 'wb') as f:
+                        pickle.dump(values, f)
+                        f.close()
+                    x = my_cursor.execute(
+                        'select no_of_accounts from data_input where username=(?)', (self.real_username,))
+                    new_val = 0
+                    for i in x:
+                        new_val = i[0]
+                    new_val -= 1
+                    my_cursor.execute(
+                        f'update data_input set no_of_accounts = (?) where username=(?)', (new_val, self.real_username))
+                    pyAesCrypt.encryptFile(f'{self.real_username}decrypted.bin', f'{self.real_username}.bin.fenc', self.hashed_password,
+                                           bufferSize)
+                    a = Tk()
+                    a.withdraw()
+                    messagebox.showinfo(
+                        'Success', f'{account_name} account has been  deleted')
+                    a.destroy()
+                    with open(f'{self.real_username}decrypted.bin', 'rb') as f:
+                        values = pickle.load(f)
+                        for i in values:
+                            print(i[0])
+                    another_self.add_account_window(self.real_username,
+                                       self.window, self.hashed_password)
+            else:
+                a = Tk()
+                a.withdraw()
+                messagebox.showinfo('Error', 'Please try again')
+                a.destroy()
+
+    def delete_social_media_account(self):
+            answer = messagebox.askyesno('Delete Account', 'Are you sure you want to delete you account')
+            if answer == True:
+                result = simpledialog.askstring(
+                    'Delete Account', f'Please type {self.real_username}-CONFIRM to delete your account')
+                if result == f'{self.real_username}-CONFIRM':
+                    try:
+                        os.remove(self.real_username + 'decrypted.bin')
+                        os.remove(self.real_username + '.bin.fenc')
+
+                        my_cursor.execute(
+                            'delete from data_input where username = (?)', (self.real_username,))
+                        messagebox.showinfo(
+                            'Account deletion', 'Success your account has been deleted. See you!!')
+                        quit()
+                    except:
+                        pass
+                else:
+                    quit()
+            else:
+                quit()
+
+# deleting sub account
+
+class Change_details:
+    def __init__(self, real_username, hashed_password, window):
+        self.real_username = real_username
+        self.hashed_password = hashed_password
+        self.window = window
+
+    def change_window_creation(self):
+        change_acccount = Toplevel()
+        change_acccount.config(bg='#292A2D')
+        change_acccount.resizable(False, False)
+        n = StringVar()
+        selectaccount = Combobox(change_acccount, width=27, textvariable=n)
+        # Adding combobox drop down list
+        tu = ()
+        with open(f'{self.real_username}decrypted.bin', 'rb') as selectfile:
+            try:
+                ac = pickle.load(selectfile)
+                for i in ac:
+                    tu += (i[2],)
+            except:
+                pass
+        print(tu)
+        selectaccount['values'] = tu
+
+        selectaccount.grid(column=1, row=5)
+        selectaccount.current()
+        change_acccount.geometry('300x300')
+        main_label = Label(
+            change_acccount, text='Select the account to be deleted', bg='#292A2D', fg='white',)
+
+        change_acccount.title("Change Account")
+        text = "    Please provide the recovery email  and recovery email password \n that you provided while creating an " \
+            "account "
+        text_label = Label(change_acccount, text=text,
+                           fg='white', bg='#292A2D')
+        width_window = 400
+        height_window = 400
+        screen_width = change_acccount.winfo_screenwidth()
+        screen_height = change_acccount.winfo_screenheight()
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        change_acccount.geometry("%dx%d+%d+%d" %
+                                 (width_window, height_window, x, y))
+
+        new_username_label = Label(
+            change_acccount, text="New Username:", fg='white', bg='#292A2D')
+        new_password_label = Label(
+            change_acccount, text="New Password:", fg='white', bg='#292A2D')
+        new_account_name_label = Label(
+            change_acccount, text="New Account Name:", fg='white', bg='#292A2D')
+
+        new_username = Entry(change_acccount)
+        new_password = Entry(change_acccount)
+        new_account_name = Entry(change_acccount)
+
+        main_label.grid(row=0, column=1)
+        text_label.grid(row=0, column=0, columnspan=2)
+
+        new_account_name_label.grid(row=1, column=0)
+        new_account_name.grid(row=1, column=1)
+
+        new_username_label.grid(row=2, column=1)
+        new_username.grid(row=2, column=0)
+
+        new_password_label.grid(row=3, column=0)
+        new_password.grid(row=3, column=1)
+
+        change = Button(change_acccount, text='Change', bg='#292A2D', fg='white', command=lambda: self.change_sub_account(self, str(
+            selectaccount.get()),  str(new_username.get()), str(new_password.get()), str(new_account_name.get())))
+
+        change.grid(row=5, column=1)
+        main_label.place(x=0, y=40)
+        change.place(x=200, y=200)
+
+        new_account_name_label.place(x=50, y=70)
+        new_username_label.place(x=50, y=100)
+        new_password_label.place(x=50, y=130)
+
+        new_account_name.place(x=200, y=70)
+        new_username.place(x=200, y=100)
+        new_password.place(x=200, y=130)
+
+        selectaccount.place(x=200, y=40)
+
+
+    def change_sub_account(self, accounttobechanged, new_username, new_password, account_name):
+        with open(f'{self.real_username}decrypted.bin', 'rb') as f:
+            value1 = pickle.load(f)
+            print(value1)
+            for i in value1:
+                if i[2] == str(accounttobechanged):
+                    print('hi')
+                    i[0] = str(new_username)
+                    i[1] = str(new_password)
+                    i[2] = str(account_name)
+                    p = Tk()
+                    p.config(bg='#292A2D')
+                    p.withdraw()
+                    messagebox.showinfo(
+                        'Succes', 'The Account details has been changed')
+                    p.destroy()
+                    self.window.destroy()
+        with open(f'{self.real_username}decrypted.bin', 'wb') as f:
+            pickle.dump(value1, f)
+        os.remove(f'{self.real_username}.bin.fenc')
+        pyAesCrypt.encryptFile(f'{self.real_username}decrypted.bin',
+                               f'{self.real_username}.bin.fenc', self.hashed_password, bufferSize)
+
+    def change_email(self):
+        my_cursor.execute(f'select recovery_password,email from data_input where username = {self.username}')
+        recovery_password = my_cursor.fetchall()
+        for i in recovery_password:
+                password = i[1] + self.hashed_password
+                recovery_password = cryptocode.encrypt(i[0],password)
+                new_window = Tk()
+                
 def create_key(password, message):
     password_key = password.encode()  # convert string to bytes
     salt = os.urandom(64)  # create a random 64 bit byte
@@ -256,209 +457,29 @@ def retreive_key(password, byte, de):
     return decrypted.decode('utf-8')
 
 
-# deleting sub account
-def delete_social_media_account(real_username, hashed_password, window):
-    username_list = []
-    delete_med_account = Tk()
-    delete_med_account.config(bg='#292A2D')
-    delete_med_account.title('Delete Account')
-    n = StringVar()
-    selectaccount = Combobox(delete_med_account, width=27,
-                             textvariable=n, state='#292A2D')
-    # Adding combobox drop down list
-    tu = ()
-    with open(f'{real_username}decrypted.bin', 'rb') as selectfile:
-        try:
-            ac = pickle.load(selectfile)
-            for i in ac:
-                tu += (i[2],)
-        except:
-            pass
-    delete = Button(delete_med_account, text='Delete', fg='white', bg='#292A2D',
-                    command=lambda: select_account_name(str(selectaccount.get())))
-    selectaccount['values'] = tu
-    change_account_label = Label(
-        delete_med_account, fg='white', bg='#292A2D', text='Select account to be deleted')
-    selectaccount.grid(column=1, row=0)
-    change_account_label.grid(column=0, row=0)
-    delete.grid(row=1, column=1)
-    selectaccount.current()
 
-    def select_account_name(account_name):
+def checkforupdates():
+    # isUpToDate check whether the file ie main.py  is same as the one present in my github repository and it returns true if same else false
+    if isUpToDate('main.py', 'https://raw.githubusercontent.com/Rohithk2003/One-Pass/develop/main.py'):
         result = messagebox.askyesno(
-            'Confirm', 'Are you sure that you want to delete your account')
+            'Update Available', 'Do you want to update the app?')
         if result == True:
-                with open(f'{real_username}decrypted.bin', 'rb') as f:
-                    values = pickle.load(f)
-                    for i in values:
-                        if i[2] == account_name:
-                            inde = values.index(i)
-                            values.pop(inde)
-
-                    f.close()
-                try:
-                    os.remove(f'{real_username}.bin.fenc')
-                except:
-                    pass
-                with open(f'{real_username}decrypted.bin', 'wb') as f:
-                    pickle.dump(values, f)
-                    f.close()
-                x = my_cursor.execute(
-                    'select no_of_accounts from data_input where username=(?)', (real_username,))
-                new_val = 0
-                for i in x:
-                    new_val = i[0]
-                new_val -= 1
-                ogi_username = str(real_username)
-                my_cursor.execute(
-                    f'update data_input set no_of_accounts = (?) where username=(?)', (new_val, ogi_username))
-                pyAesCrypt.encryptFile(f'{real_username}decrypted.bin', f'{real_username}.bin.fenc', hashed_password,
-                                       bufferSize)
-                a = Tk()
-                a.withdraw()
-                messagebox.showinfo(
-                    'Success', f'{account_name} account has been  deleted')
-                a.destroy()
-                with open(f'{real_username}decrypted.bin', 'rb') as f:
-                    values = pickle.load(f) 
-                    for i in values:
-                        print(i[0])
-                add_account_window(real_username, window, hashed_password)
-
-
-        else:
-            a = Tk()
-            a.withdraw()
-            messagebox.showinfo('Error', 'Please try again')
-            a.destroy()
-
-
-def delete_main_account(username):
-    answer = messagebox.askyesno(
-        'Delete Account', 'Are you sure you want to delete you account')
-    if answer == True:
-        result = simpledialog.askstring(
-            'Delete Account', f'Please type {username}-CONFIRM to delete your account')
-        if result == f'{username}-CONFIRM':
             try:
-                os.remove(username + 'decrypted.bin')
-                os.remove(username + '.bin.fenc')
-
-                my_cursor.execute(
-                    'delete from data_input where username = (?)', (username,))
                 messagebox.showinfo(
-                    'Account deletion', 'Success your account has been deleted. See you!!')
-                quit()
+                    "Updating", 'Please wait while the software is being updated')
+                # used for updating the file
+                update(
+                    'main.py', 'https://raw.githubusercontent.com/Rohithk2003/One-Pass/develop/main.py')
+                messagebox.showinfo(
+                    "Updated", 'The software has been updated please restart to take effect')
             except:
-                pass
+                messagebox.showerror(
+                    'No internet Available', 'Please connect to the internet')
+
         else:
             quit()
     else:
-        quit()
-
-
-def change_window(real_username, hashed_password):
-    change_acccount = Toplevel()
-    change_acccount.config(bg='#292A2D')
-    change_acccount.resizable(False, False)
-    n = StringVar()
-    selectaccount = Combobox(change_acccount, width=27, textvariable=n)
-    # Adding combobox drop down list
-    tu = ()
-    with open(f'{real_username}decrypted.bin', 'rb') as selectfile:
-        try:
-            ac = pickle.load(selectfile)
-            for i in ac:
-                tu += (i[2],)
-        except:
-            pass
-    print(tu)
-    selectaccount['values'] = tu
-
-    selectaccount.grid(column=1, row=5)
-    selectaccount.current()
-    change_acccount.geometry('300x300')
-    main_label = Label(
-        change_acccount, text='Select the account to be deleted', bg='#292A2D', fg='white',)
-
-    change_acccount.title("Change Account")
-    text = "    Please provide the recovery email  and recovery email password \n that you provided while creating an " \
-        "account "
-    text_label = Label(change_acccount, text=text,
-                       fg='white', bg='#292A2D')
-    width_window = 400
-    height_window = 400
-    screen_width = change_acccount.winfo_screenwidth()
-    screen_height = change_acccount.winfo_screenheight()
-    x = screen_width / 2 - width_window / 2
-    y = screen_height / 2 - height_window / 2
-    change_acccount.geometry("%dx%d+%d+%d" %
-                             (width_window, height_window, x, y))
-
-    new_username_label = Label(
-        change_acccount, text="New Username:", fg='white', bg='#292A2D')
-    new_password_label = Label(
-        change_acccount, text="New Password:", fg='white', bg='#292A2D')
-    new_account_name_label = Label(
-        change_acccount, text="New Account Name:", fg='white', bg='#292A2D')
-
-    new_username = Entry(change_acccount)
-    new_password = Entry(change_acccount)
-    new_account_name = Entry(change_acccount)
-
-    main_label.grid(row=0, column=1)
-    text_label.grid(row=0, column=0, columnspan=2)
-
-    new_account_name_label.grid(row=1, column=0)
-    new_account_name.grid(row=1, column=1)
-
-    new_username_label.grid(row=2, column=1)
-    new_username.grid(row=2, column=0)
-
-    new_password_label.grid(row=3, column=0)
-    new_password.grid(row=3, column=1)
-
-    change = Button(change_acccount, text='Change', bg='#292A2D', fg='white', command=lambda: change_sub_account(real_username, hashed_password, str(
-        selectaccount.get()),  str(new_username.get()), str(new_password.get()), str(new_account_name.get())))
-
-    change.grid(row=5, column=1)
-    main_label.place(x=0, y=40)
-    change.place(x=200, y=200)
-
-    new_account_name_label.place(x=50, y=70)
-    new_username_label.place(x=50, y=100)
-    new_password_label.place(x=50, y=130)
-
-    new_account_name.place(x=200, y=70)
-    new_username.place(x=200, y=100)
-    new_password.place(x=200, y=130)
-
-    selectaccount.place(x=200, y=40)
-
-
-def change_sub_account(real_username, hashed_password, accounttobechanged, new_username, new_password, account_name, window):
-    with open(f'{real_username}decrypted.bin', 'rb') as f:
-        value1 = pickle.load(f)
-        print(value1)
-        for i in value1:
-            if i[2] == str(accounttobechanged):
-                print('hi')
-                i[0] = str(new_username)
-                i[1] = str(new_password)
-                i[2] = str(account_name)
-                p = Tk()
-                p.config(bg='#292A2D')
-                p.withdraw()
-                messagebox.showinfo(
-                    'Succes', 'The Account details has been changed')
-                p.destroy()
-                window.destroy()
-    with open(f'{real_username}decrypted.bin', 'wb') as f:
-        pickle.dump(value1, f)
-    os.remove(f'{real_username}.bin.fenc')
-    pyAesCrypt.encryptFile(f'{real_username}decrypted.bin',
-                           f'{real_username}.bin.fenc', hashed_password, bufferSize)
-
+        messagebox.showinfo('Update', 'No update is currently available')
 
 def settings(real_username, hashed_password, window):
     settings_window = Tk()
