@@ -62,7 +62,6 @@ cutting_value = False
 file = 0
 
 
-
 class Login:  # login_class
     def __init__(self, username, password):
         self.username = str(username)
@@ -126,6 +125,7 @@ class Login:  # login_class
     def windows(self, main_password, window, cursor, another_self):  # for calling the main function
         another_self.window_after(self.username, main_password)
 
+
 # for handling registrations
 class Register:
     def __init__(self, username, password, email_id, email_password):
@@ -163,7 +163,6 @@ class Register:
             main_password, static_salt_password
         )
 
-
         try:
             object.execute(
                 "insert into data_input values (?,?,?,?, 0,0)",
@@ -175,7 +174,7 @@ class Register:
         return False
 
     # adding the account
-    def creation(self, window,another_self):
+    def creation(self, window, another_self):
         try:
             window.destroy()
         except:
@@ -185,8 +184,9 @@ class Register:
         hash_pass = hashlib.sha3_512(for_hashing.encode()).hexdigest()
         password_recovery_email = self.email_id + hash_pass
         # to save recovery password so that in case he forgets his email he can reset it 
-        recovery_password_encrypt =  cryptocode.encrypt(self.email_password, password_recovery_email)
-        my_cursor.execute(f"update data_input set recovery_password={recovery_password_encrypt} where username = {self.username}")
+        recovery_password_encrypt = cryptocode.encrypt(self.email_password, password_recovery_email)
+        my_cursor.execute(
+            f"update data_input set recovery_password={recovery_password_encrypt} where username = {self.username}")
 
         file_name = self.username + ".bin"
         with open(file_name, "wb") as f:
@@ -202,6 +202,7 @@ class Register:
         pyAesCrypt.decryptFile(
             file_name + ".fenc", f'{self.username}decrypted.bin', hash_pass, bufferSize)
         another_self.window_after(self.username, hash_pass)
+
 
 # for hashing-encryting and decrypting password and for (forgot_password)
 
@@ -239,72 +240,74 @@ class Deletion:
         selectaccount.current()
 
     def change_account_name(self, account_name, another_self):
-            result = messagebox.askyesno(
-                'Confirm', 'Are you sure that you want to delete your account')
-            if result == True:
-                    with open(f'{self.real_username}decrypted.bin', 'rb') as f:
-                        values = pickle.load(f)
-                        for i in values:
-                            if i[2] == account_name:
-                                inde = values.index(i)
-                                values.pop(inde)
+        result = messagebox.askyesno(
+            'Confirm', 'Are you sure that you want to delete your account')
+        if result == True:
+            with open(f'{self.real_username}decrypted.bin', 'rb') as f:
+                values = pickle.load(f)
+                for i in values:
+                    if i[2] == account_name:
+                        inde = values.index(i)
+                        values.pop(inde)
 
-                        f.close()
-                    try:
-                        os.remove(f'{self.real_username}.bin.fenc')
-                    except:
-                        pass
-                    with open(f'{self.real_username}decrypted.bin', 'wb') as f:
-                        pickle.dump(values, f)
-                        f.close()
-                    x = my_cursor.execute(
-                        'select no_of_accounts from data_input where username=(?)', (self.real_username,))
-                    new_val = 0
-                    for i in x:
-                        new_val = i[0]
-                    new_val -= 1
-                    my_cursor.execute(
-                        f'update data_input set no_of_accounts = (?) where username=(?)', (new_val, self.real_username))
-                    pyAesCrypt.encryptFile(f'{self.real_username}decrypted.bin', f'{self.real_username}.bin.fenc', self.hashed_password,
-                                           bufferSize)
-                    a = Tk()
-                    a.withdraw()
-                    messagebox.showinfo(
-                        'Success', f'{account_name} account has been  deleted')
-                    a.destroy()
-                    with open(f'{self.real_username}decrypted.bin', 'rb') as f:
-                        values = pickle.load(f)
-                        for i in values:
-                            print(i[0])
-                    another_self.add_account_window(self.real_username,
-                                       self.window, self.hashed_password)
-            else:
-                a = Tk()
-                a.withdraw()
-                messagebox.showinfo('Error', 'Please try again')
-                a.destroy()
+                f.close()
+            try:
+                os.remove(f'{self.real_username}.bin.fenc')
+            except:
+                pass
+            with open(f'{self.real_username}decrypted.bin', 'wb') as f:
+                pickle.dump(values, f)
+                f.close()
+            x = my_cursor.execute(
+                'select no_of_accounts from data_input where username=(?)', (self.real_username,))
+            new_val = 0
+            for i in x:
+                new_val = i[0]
+            new_val -= 1
+            my_cursor.execute(
+                f'update data_input set no_of_accounts = (?) where username=(?)', (new_val, self.real_username))
+            pyAesCrypt.encryptFile(f'{self.real_username}decrypted.bin', f'{self.real_username}.bin.fenc',
+                                   self.hashed_password,
+                                   bufferSize)
+            a = Tk()
+            a.withdraw()
+            messagebox.showinfo(
+                'Success', f'{account_name} account has been  deleted')
+            a.destroy()
+            with open(f'{self.real_username}decrypted.bin', 'rb') as f:
+                values = pickle.load(f)
+                for i in values:
+                    print(i[0])
+            another_self.add_account_window(self.real_username,
+                                            self.window, self.hashed_password)
+        else:
+            a = Tk()
+            a.withdraw()
+            messagebox.showinfo('Error', 'Please try again')
+            a.destroy()
 
     def delete_social_media_account(self):
-            answer = messagebox.askyesno('Delete Account', 'Are you sure you want to delete you account')
-            if answer == True:
-                result = simpledialog.askstring(
-                    'Delete Account', f'Please type {self.real_username}-CONFIRM to delete your account')
-                if result == f'{self.real_username}-CONFIRM':
-                    try:
-                        os.remove(self.real_username + 'decrypted.bin')
-                        os.remove(self.real_username + '.bin.fenc')
+        answer = messagebox.askyesno('Delete Account', 'Are you sure you want to delete you account')
+        if answer == True:
+            result = simpledialog.askstring(
+                'Delete Account', f'Please type {self.real_username}-CONFIRM to delete your account')
+            if result == f'{self.real_username}-CONFIRM':
+                try:
+                    os.remove(self.real_username + 'decrypted.bin')
+                    os.remove(self.real_username + '.bin.fenc')
 
-                        my_cursor.execute(
-                            'delete from data_input where username = (?)', (self.real_username,))
-                        messagebox.showinfo(
-                            'Account deletion', 'Success your account has been deleted. See you!!')
-                        quit()
-                    except:
-                        pass
-                else:
+                    my_cursor.execute(
+                        'delete from data_input where username = (?)', (self.real_username,))
+                    messagebox.showinfo(
+                        'Account deletion', 'Success your account has been deleted. See you!!')
                     quit()
+                except:
+                    pass
             else:
                 quit()
+        else:
+            quit()
+
 
 # deleting sub account
 
@@ -336,11 +339,11 @@ class Change_details:
         selectaccount.current()
         change_acccount.geometry('300x300')
         main_label = Label(
-            change_acccount, text='Select the account to be deleted', bg='#292A2D', fg='white',)
+            change_acccount, text='Select the account to be deleted', bg='#292A2D', fg='white', )
 
         change_acccount.title("Change Account")
         text = "    Please provide the recovery email  and recovery email password \n that you provided while creating an " \
-            "account "
+               "account "
         text_label = Label(change_acccount, text=text,
                            fg='white', bg='#292A2D')
         width_window = 400
@@ -375,8 +378,10 @@ class Change_details:
         new_password_label.grid(row=3, column=0)
         new_password.grid(row=3, column=1)
 
-        change = Button(change_acccount, text='Change', bg='#292A2D', fg='white', command=lambda: self.change_sub_account(self, str(
-            selectaccount.get()),  str(new_username.get()), str(new_password.get()), str(new_account_name.get())))
+        change = Button(change_acccount, text='Change', bg='#292A2D', fg='white',
+                        command=lambda: self.change_sub_account(self, str(
+                            selectaccount.get()), str(new_username.get()), str(new_password.get()),
+                                                                str(new_account_name.get())))
 
         change.grid(row=5, column=1)
         main_label.place(x=0, y=40)
@@ -391,7 +396,6 @@ class Change_details:
         new_password.place(x=200, y=130)
 
         selectaccount.place(x=200, y=40)
-
 
     def change_sub_account(self, accounttobechanged, new_username, new_password, account_name):
         with open(f'{self.real_username}decrypted.bin', 'rb') as f:
@@ -420,10 +424,11 @@ class Change_details:
         my_cursor.execute(f'select recovery_password,email from data_input where username = {self.username}')
         recovery_password = my_cursor.fetchall()
         for i in recovery_password:
-                password = i[1] + self.hashed_password
-                recovery_password = cryptocode.encrypt(i[0],password)
-                new_window = Tk()
-                
+            password = i[1] + self.hashed_password
+            recovery_password = cryptocode.encrypt(i[0], password)
+            new_window = Tk()
+
+
 def create_key(password, message):
     password_key = password.encode()  # convert string to bytes
     salt = os.urandom(64)  # create a random 64 bit byte
@@ -441,6 +446,7 @@ def create_key(password, message):
     encrypted = f.encrypt(message_encrypt)
     return encrypted, salt
 
+
 def retreive_key(password, byte, de):
     password_key = password.encode()
     kdf = PBKDF2HMAC(
@@ -455,7 +461,6 @@ def retreive_key(password, byte, de):
 
     decrypted = f.decrypt(byte)
     return decrypted.decode('utf-8')
-
 
 
 def checkforupdates():
@@ -481,6 +486,7 @@ def checkforupdates():
     else:
         messagebox.showinfo('Update', 'No update is currently available')
 
+
 def settings(real_username, hashed_password, window):
     settings_window = Tk()
     settings_window.resizable(False, False)
@@ -503,9 +509,11 @@ def settings(real_username, hashed_password, window):
     Delete_account_button = Button(settings_window, text='Delete main account', width=20,
                                    command=lambda: delete_main_account(real_username), fg='white', bg='#292A2D')
     Delete_social_button = Button(settings_window, text='Delete sub  account', width=20,
-                                  command=lambda: delete_social_media_account(real_username, hashed_password, window), fg='white', bg='#292A2D')
+                                  command=lambda: delete_social_media_account(real_username, hashed_password, window),
+                                  fg='white', bg='#292A2D')
     change_account_button = Button(
-        settings_window, text='Change account', width=20, command=lambda: change_window(real_username, hashed_password), fg='white', bg='#292A2D')
+        settings_window, text='Change account', width=20, command=lambda: change_window(real_username, hashed_password),
+        fg='white', bg='#292A2D')
 
     Delete_account_button.grid(row=1, column=1, columnspan=2)
     check_for_updates.grid(row=2, column=1, columnspan=2)
@@ -517,7 +525,6 @@ def settings(real_username, hashed_password, window):
     else:
         Delete_social_button.config(state=NORMAL)
     settings_window.mainloop()
-
 
 
 # forgot password function
@@ -631,7 +638,8 @@ def login_password():
         show_both_12 = Button(root,
                               text="show",
                               command=lambda: password_sec(new_password_entry, show_both_12), fg='white', bg='#292A2D',
-                              highlightcolor='#292A2D', activebackground='#292A2D', activeforeground='white', relief=RAISED)
+                              highlightcolor='#292A2D', activebackground='#292A2D', activeforeground='white',
+                              relief=RAISED)
         show_both_12.grid(row=0, column=5)
         show_both_12.place(x=250 - 15, y=100 + 50 - 5)
         my_cursor.execute(
@@ -649,7 +657,7 @@ def login_password():
                     password_decrypt += i
         new_val = password_decrypt[::-1]
         print(password1)
-        main_pass = new_val +'/'+password1
+        main_pass = new_val + '/' + password1
         has = None
         salt = None
         decrypted_string = ""
@@ -689,7 +697,7 @@ def login_password():
                     "delete from data_input where username = (?)", (username12,)
                 )
                 re_hash_text = str(new_password_entry.get()) + \
-                    str(new_username_entry.get())
+                               str(new_username_entry.get())
                 new_salt = str(new_password_entry.get()) + "@" + main_pass
                 re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
                 re_encrypt, new_salt = create_key(main_pass, new_salt)
@@ -719,9 +727,8 @@ def login_password():
         except:
             p = Tk()
             p.withdraw()
-            messagebox.showinfo('Error','Wrong recovery password')
+            messagebox.showinfo('Error', 'Wrong recovery password')
             p.destroy()
-
 
         change_button = Button(root, text="Change", command=change)
         change_button.grid(row=3, column=0, columnspan=1)
@@ -950,7 +957,8 @@ def add_account_window(username, window, hashed_password):
             else:
                 tkimage = tk_image.PhotoImage(image.open('photo.png'))
             default_image_button = Button(window, image=tkimage, borderwidth='0', bg='#292A2D',
-                                          command=lambda: change_icon(default_image_button, social_username, username, hashed_password,window))
+                                          command=lambda: change_icon(default_image_button, social_username, username,
+                                                                      hashed_password, window))
             if no_of_accounts < 3:
                 username_label_widget.grid(
                     row=2, column=0 + no_of_accounts, rowspan=1)
@@ -1022,7 +1030,8 @@ def add_account_window(username, window, hashed_password):
         add_button_text = Label(
             window, fg='white', text='Add Account', bg='#292A2D')
         add_button = Button(
-            window, image=image_add, bg='#292A2D', activebackground='#292A2D', state=DISABLED, border="0", compound='top')
+            window, image=image_add, bg='#292A2D', activebackground='#292A2D', state=DISABLED, border="0",
+            compound='top')
         add_button.photo = image_add
         d = int(no_accounts % 4)
         add_button.grid(row=10, column=10)
@@ -1036,7 +1045,6 @@ def window_after(username, hash_password):
     # sidebar
     root = Tk()
     root.resizable(False, False)
-
 
     root.focus_set()
     global var
@@ -1056,6 +1064,7 @@ def window_after(username, hash_password):
     y = screen_height / 2 - height_window / 2
 
     root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+
     def testing(root, mainarea, username, hash_password):
         button['state'] = DISABLED
         notes_buttons['state'] = NORMAL
@@ -1710,17 +1719,18 @@ def window_after(username, hash_password):
     button.grid(row=0, column=1)
     notes_buttons.grid(row=1, column=1)
     settings_image = tk_image.PhotoImage(image.open('settings.png'))
-    settings_button = Button(sidebar,  activebackground='#292A2D', image=settings_image, fg='white',
-                             bg="#292A2D", border='0', command=lambda: settings(username, hash_password, mainarea), relief=FLAT,
+    settings_button = Button(sidebar, activebackground='#292A2D', image=settings_image, fg='white',
+                             bg="#292A2D", border='0', command=lambda: settings(username, hash_password, mainarea),
+                             relief=FLAT,
                              highlightthickness=0, activeforeground='white', bd=0, borderwidth=0)
     settings_button.photo = settings_image
     settings_button.grid(row=10, column=1, columnspan=1)
-    settings_button.place(x=30+50, y=440+20)
+    settings_button.place(x=30 + 50, y=440 + 20)
 
     root.mainloop()
 
 
-def change_icon(button, usernam, users_username, hashed_password,window):
+def change_icon(button, usernam, users_username, hashed_password, window):
     file_name = users_username + 'decrypted.bin'
     l = [(32, 32), (16, 16)]
     image_path = fd.askopenfilename(filetypes=[("image", "*.png"), ("image", "*.jpeg"), ("image", "*.jpg")],
@@ -1827,13 +1837,15 @@ def addaccount(username, hashed_password, window):
             add_icon_button.photo = tkimage
         except:
             pass
+
     # new_label = Label(root1,text='       Add Account',font=('Arial',15),fg='white',bg='#292A2D')
     # new_label.config(underline=1)
     # new_label.grid(row=0, column=0, rowspan=3)
 
     new_id = tk_image.PhotoImage(image.open("photo.png"))
     add_icon_button = Button(
-        root1, image=new_id, borderwidth="0", command=browsefunc, border='0', highlightthickness='0', activebackground='#292A2D', bg='#292A2D')
+        root1, image=new_id, borderwidth="0", command=browsefunc, border='0', highlightthickness='0',
+        activebackground='#292A2D', bg='#292A2D')
     add_icon_button.photo = new_id
     add_icon_button.grid(row=3, column=0)
     add_icon_button.place(x=125, y=200)
@@ -1916,6 +1928,8 @@ def verify(social_username, social_media, real_username):
                     return True
     except:
         return False
+
+
 # noinspection PyTypeChecker
 
 
@@ -2080,12 +2094,12 @@ def login(window):
     my_label.grid(row=0, column=2)
     my_label.place(x=135, y=10)
     input_entry.bind('<FocusIn>', lambda event, val_val=input_entry,
-                     index=1: handle_focus_in(val_val, index))
+                                         index=1: handle_focus_in(val_val, index))
     input_entry.bind("<FocusOut>",
                      lambda event, val_val=input_entry, val='Username', index=1: handle_focus_out(val_val, val, index))
 
     pass_entry.bind('<FocusIn>', lambda event, val_val=pass_entry,
-                    index=2: handle_focus_in(val_val, index))
+                                        index=2: handle_focus_in(val_val, index))
     pass_entry.bind("<FocusOut>",
                     lambda event, val_val=pass_entry, val='Password', index=2: handle_focus_out(val_val, val, index))
 
@@ -2143,19 +2157,19 @@ def register(window):
     email_password_entry.config(fg='grey')
     email_password_entry.insert(0, 'Email password')
     username_entry.bind('<FocusIn>', lambda event, val_val=username_entry,
-                        index=1: handle_focus_in(val_val, index))
+                                            index=1: handle_focus_in(val_val, index))
     username_entry.bind("<FocusOut>",
                         lambda event, val_val=username_entry, val='Username', index=1: handle_focus_out(val_val, val,
                                                                                                         index))
 
     password_entry.bind('<FocusIn>', lambda event, val_val=password_entry,
-                        index=2: handle_focus_in(val_val, index))
+                                            index=2: handle_focus_in(val_val, index))
     password_entry.bind("<FocusOut>",
                         lambda event, val_val=password_entry, val='Password', index=2: handle_focus_out(val_val, val,
                                                                                                         index))
 
     email_id_entry.bind('<FocusIn>', lambda event, val_val=email_id_entry,
-                        index=3: handle_focus_in(val_val, index))
+                                            index=3: handle_focus_in(val_val, index))
     email_id_entry.bind("<FocusOut>",
                         lambda event, val_val=email_id_entry, val='Email ID', index=3: handle_focus_out(val_val, val,
                                                                                                         index))
@@ -2163,7 +2177,7 @@ def register(window):
     email_password_entry.bind('<FocusIn>',
                               lambda event, val_val=email_password_entry, index=4: handle_focus_in(val_val, index))
     email_password_entry.bind("<FocusOut>", lambda event, val_val=email_password_entry, val='Email password',
-                              index=4: handle_focus_out(val_val, val, index))
+                                                   index=4: handle_focus_out(val_val, val, index))
 
     username.grid(row=2, column=0)
     password.grid(row=3, column=0)
@@ -2256,7 +2270,8 @@ register_text = Label(
 reg_button = Button(root, text="Register", command=lambda: register(root), font=('Courier New', 12), fg='white',
                     bg='#292A2D',
                     relief=RAISED, highlightthickness=0)
-login_button = Button(root, text="login", command=lambda: login(root), font=('Courier New', 12), fg='white', bg='#292A2D',
+login_button = Button(root, text="login", command=lambda: login(root), font=('Courier New', 12), fg='white',
+                      bg='#292A2D',
                       relief=RAISED, highlightthickness=0)
 
 main.grid(row=0, column=1, columnspan=2)
