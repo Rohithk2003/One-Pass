@@ -170,9 +170,9 @@ class Register:
             main_password, static_salt_password
         )
         object.execute(
-                "insert into data_input values (?,?,?,?, 0,0)",
-                (self.username, self.email_id, cipher_text, salt_for_decryption),
-            )
+            "insert into data_input values (?,?,?,?, 0,0)",
+            (self.username, self.email_id, cipher_text, salt_for_decryption),
+        )
 
         # so inserting the users details into database
         return False
@@ -493,11 +493,14 @@ class Change_details:
                 else:
                     email_split += i
         val = email_split[::-1]
+        print(recovery_password)
+        print(val)
         main_password = val + "/" + recovery_password  # static salt
         print(recovery_password)
         print(main_password)
         my_cursor.execute(
-            "select salt,password from data_input where username =(?)", (self.real_username,)
+            "select salt,password from data_input where username =(?)",
+            (self.real_username,),
         )
         a = my_cursor.fetchall()
         decrypted_string = ""
@@ -505,13 +508,17 @@ class Change_details:
             try:
                 string = retreive_key(main_password, i[1], i[0])
             except:
-                messagebox.showinfo('Error','Some unknown error please try again later')
+                messagebox.showinfo(
+                    "Error", "Some unknown error please try again later"
+                )
                 break
+            
             for i in string:
-                if i == "@":
-                    break
-                else:
-                    decrypted_string += i
+                    if i == "@":
+                        break
+                    else:
+                        decrypted_string += i
+        print(decrypted_string)
         value = decrypted_string + self.real_username
         email_split = ""
         word = new_email.split()
@@ -531,24 +538,25 @@ class Change_details:
             bufferSize,
         )
 
-        re_hash_text = decrypted_string + self.real_username
-        new_salt = decrypted_string + "@" + main_password
-        re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
-        re_encrypt, new_salt = create_key(main_password, new_salt)
+        re_hash_text1 = decrypted_string + self.real_username
+        new_salt1 = decrypted_string + "@" + main_password
+        re_hash_new1 = hashlib.sha3_512(re_hash_text1.encode()).hexdigest()
+        re_encrypt, new_salt = create_key(main_password, new_salt1)
         my_cursor.execute(
             "update data_input set password = (?) where username = (?)",
             (re_encrypt, self.real_username),
         )
-        password_recovery_email = new_email + re_hash_new
+        password_recovery_email = new_email + re_hash_new1
         # to save recovery password so that in case he forgets his email he can reset it
         recovery_password_encrypt = cryptocode.encrypt(
-            new_recovery_password, re_hash_new
+            new_recovery_password, password_recovery_email
         )
         os.remove(f"{self.real_username}.bin.fenc")
         my_cursor.execute(
             "update data_input set email_id = (?) where username = (?)",
             (new_email, self.real_username),
         )
+        my_cursor.execute('update data_input set salt = (?) where username = (?)',(new_salt, self.real_username))
         my_cursor.execute(
             "update data_input set recovery_password = (?) where username = (?)",
             (recovery_password_encrypt, self.real_username),
@@ -556,13 +564,15 @@ class Change_details:
         pyAesCrypt.encryptFile(
             self.real_username + "decrypted.bin",
             self.real_username + ".bin.fenc",
-            re_hash_new,
+            re_hash_new1,
             bufferSize,
         )
         ad = Toplevel()
         ad.withdraw()
-        messagebox.showinfo('Success','Your email and password has been changed')
+        messagebox.showinfo("Success", "Your email and password has been changed")
         ad.destroy()
+        self.window.destroy()
+
     def change_email(self):
         my_cursor.execute(
             "select recovery_password,email_id from data_input where username = (?)",
@@ -571,20 +581,20 @@ class Change_details:
         recovery_password_a = my_cursor.fetchall()
         print(recovery_password_a)
         for i in recovery_password_a:
-            print(i[1])
+            print(i[0])
             password = i[1] + self.hashed_password
             recovery_password = cryptocode.decrypt(i[0], password)
+            print(recovery_password)
             new_window = Toplevel()
 
             new_email_entry = Entry(new_window)
-
 
             new_recovery_password_entry = Entry(new_window)
 
             save = Button(
                 new_window,
                 text="Save",
-                command=lambda:self.save_email(
+                command=lambda: self.save_email(
                     str(new_email_entry.get()),
                     i[1],
                     recovery_password,
@@ -629,19 +639,17 @@ class Change_details:
             new_email_password.place(x=10, y=100 + 50)
             new_email_entry.place(x=150 - 40, y=70 + 50)
             new_email_password_entry.place(x=150 - 40, y=100 + 50)
-            save.place(x=60, y=200)
+            save.place(x=150 - 40, y=200)
 
             new_email_password_entry.config(show="")
 
             new_email_password_entry.config(fg="grey")
             new_email_password_entry.insert(0, "New Email password")
 
-
             new_email_entry.config(fg="grey")
             new_email_entry.insert(0, "New Email")
 
             new_email_entry.bind(
-
                 "<FocusIn>",
                 lambda event, val_val=new_email_entry, index=1: handle_focus_in(
                     val_val, index
@@ -804,7 +812,9 @@ def settings(real_username, hashed_password, window):
         settings_window,
         text="Change recovery email",
         command=lambda: change_object.change_email(),
-    )
+        fg="white",
+        bg="#292A2D",
+        width=20)
 
     Delete_account_button.grid(row=1, column=1, columnspan=2)
     check_for_updates.grid(row=2, column=1, columnspan=2)
@@ -830,7 +840,7 @@ def login_password():
     text = (
         "Please provide the recovery email  and recovery email password \n that you provided while creating an "
         "account "
-    )   
+    )
     text_label = Label(window, text=text, fg="white", bg="#292A2D")
     width_window = 400
     height_window = 400
@@ -2562,14 +2572,21 @@ def get(window, name):
 
 def handle_focus_in(entry, index):
     val = str(entry.get())
-    if val == "Username" or val == "Email ID" or val == 'New Email':
+    if val == "Username" or val == "Email ID" or val == "New Email":
         entry.delete(0, END)
         entry.config(fg="#292A2D")
-    if val == "Password" or val == "Email password" or val == 'New Email password':
+    if val == "Password" or val == "Email password" or val == "New Email password":
         entry.delete(0, END)
         entry.config(fg="#292A2D")
         entry.config(show="*")
-    elif index == 2 and val == "Password" or index == 4 and val == "Email password" or index == 2 and val == 'New Email password':
+    elif (
+        index == 2
+        and val == "Password"
+        or index == 4
+        and val == "Email password"
+        or index == 2
+        and val == "New Email password"
+    ):
         entry.config(fg="#292A2D")
         state_entry = entry["show"]
         entry.config(show=state_entry)
@@ -3026,8 +3043,8 @@ reg_button.place(x=140, y=200 - 8)
 root.resizable(False, False)
 root.mainloop()
 
-''' to remove all decrypted files
-the glob function returns a list of files ending with .decrypted.bin'''
+""" to remove all decrypted files
+the glob function returns a list of files ending with .decrypted.bin"""
 list_file = glob.glob("*decrypted.bin")
 for i in list_file:
     converting_str = str(i)
