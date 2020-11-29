@@ -9,6 +9,8 @@ import pyAesCrypt
 import random
 import smtplib
 import sqlite3
+import sys
+
 
 # tkinter modules
 from PIL import Image as image
@@ -62,9 +64,7 @@ image_path = ''
 exist = False
 cutting_value = False
 file = 0
-with open('rohithdecrypted.bin','rb') as f:
-    c = pickle.load(f)
-    print(c)
+
 class Login:  # login_class
     def __init__(self, username, password):
         self.username = str(username)
@@ -304,7 +304,6 @@ class Deletion:
                         'delete from data_input where username = (?)', (self.real_username,))
                     messagebox.showinfo(
                         'Account deletion', 'Success your account has been deleted. See you!!')
-                    quit()
                     sys.exit()
                 except:
                     pass
@@ -424,19 +423,146 @@ class Change_details:
         os.remove(f'{self.real_username}.bin.fenc')
         pyAesCrypt.encryptFile(f'{self.real_username}decrypted.bin',
                                f'{self.real_username}.bin.fenc', self.hashed_password, bufferSize)
+    def save_email(self, new_email, old_email, recovery_password, new_recovery_password):
+        email_split = ""
+        word = old_email.split()
+        for i in word:
+            for a in i:
+                if i == "@":
+                    break
+                else:
+                    email_split += i
+        val = email_split[::-1]
+        main_password = val + '/' + recovery_password  # static salt
+        my_cursor.execute("select salt from data_input where username =(?)",(self.real_username,))        
+        a = my_cursor.fetchall()
+        decrypted_string = ""
+        my_cursor.execute("select password from data_input where username = (?)",(self.real_username,))
+        for i in my_cursor.fetchall():
+
+            salt = None
+            for i in a:
+                salt = i[0]
+            string = retreive_key(main_password, i[0], salt)
+            for i in string:
+                if i == "@":
+                    break
+                else:
+                    decrypted_string += i
+        value = decrypted_string + self.real_username
+        email_split = ""
+        word = new_email.split()
+        for i in word:
+            for a in i:
+                if i == "@":
+                    break
+                else:
+                    email_split += i
+        val = email_split[::-1]
+        main_password = val + '/' + new_recovery_password
+        re_hash = hashlib.sha3_512(value.encode()).hexdigest()
+        pyAesCrypt.decryptFile(f'{self.real_username}.bin.fenc',
+                self.real_username + "decrypted.bin",
+                re_hash,
+                bufferSize,
+            )
+        password_recovery_email = new_email + self.hashed_password
+        # to save recovery password so that in case he forgets his email he can reset it
+        recovery_password_encrypt = cryptocode.encrypt(
+            new_recovery_password, password_recovery_email)
+        os.remove(f'{self.real_username}.bin.fenc')
+        my_cursor.execute('update data_input set email_id = (?) where username = (?)',(new_email, self.real_username))
+        my_cursor.execute('update data_input set recovery_password = (?) where username = (?)',(recovery_password_encrypt, self.real_username))
+        re_hash_text = decrypted_string +  self.real_username
+        new_salt = decrypted_string + "@" + main_password
+        re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
+        re_encrypt, new_salt = create_key(main_password, new_salt)
+        my_cursor.execute(
+                    "update data_input set password = (?) where username = (?)", (
+                        re_encrypt, self.real_username)
+                )
+        pyAesCrypt.encryptFile(
+                    self.real_username + "decrypted.bin",
+                    self.real_username + ".bin.fenc",
+                    re_hash_new,
+                    bufferSize,
+                )
 
     def change_email(self):
-        my_cursor.execute(f'select recovery_password,email from data_input where username = {self.username}')
+        my_cursor.execute('select recovery_password,email_id from data_input where username = (?)',(self.real_username,))
         recovery_password = my_cursor.fetchall()
         for i in recovery_password:
             password = i[1] + self.hashed_password
             recovery_password = cryptocode.encrypt(i[0], password)
             new_window = Tk()
+
             new_email = Label(new_window, text='New email')
             new_email_entry = Entry(new_window)
-            save = Button(new_window, text='Save', command=save_email)
-    def save_email(self, new_email):
-        pass
+
+            new_recovery_password_label = Label(new_window, text='New recovery password')
+            new_recovery_password_entry = Entry(new_window)
+
+            save = Button(new_window, text='Save', command=self.save_email(str(new_email_entry.get()),i[1],recovery_password, str(new_recovery_password_entry.get())))
+
+            new_img = tk_image.PhotoImage(image.open('user.png'))
+            new_img_label = Label(new_window, image=new_img, bg='#292A2D')
+            new_img_label.photo = new_img
+
+            file_name_reentry = self.real_username + ".bin.fenc"
+
+            width_window = 400
+            height_window = 200
+            screen_width = new_window.winfo_screenwidth()
+            screen_height = new_window.winfo_screenheight()
+            x = screen_width / 2 - width_window / 2
+            y = screen_height / 2 - height_window / 2
+            new_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+            new_window.title("Change Recovery email or password")
+            new_window.geometry('300x300')
+            new_window.config(bg='#292A2D')
+
+            new_email = Label(new_window, text="New Email",
+                                 fg='white', bg='#292A2D')
+            new_email_password= Label(new_window, text="New Password",
+                                 fg='white', bg='#292A2D')
+
+            new_email_entry = Entry(new_window)
+            new_email_password_entry = Entry(new_window, show="*")
+
+            new_img_label.grid(row=0, column=1)
+            new_email.grid(row=1, column=0)
+            new_email_password.grid(row=2, column=0)
+            new_email_entry.grid(row=1, column=1)
+            new_email_password_entry.grid(row=2, column=1)
+            save.grid(row=3,column=0)
+
+            new_img_label.place(x=110, y=50)
+            new_email.place(x=10, y=70 + 50)
+            new_email_password.place(x=10, y=100 + 50)
+            new_email_entry.place(x=150 - 40, y=70 + 50)
+            new_email_password_entry.place(x=150 - 40, y=100 + 50)
+            save.place(x=60, y=200)
+
+            new_email_entry.bind('<FocusIn>',
+                                    lambda event, val_val=new_email_entry, index=1: handle_focus_in(val_val, index))
+            new_email_entry.bind("<FocusOut>",
+                                    lambda event, val_val=new_email_entry, val='Email', index=1: handle_focus_out(
+                                        val_val, val,
+                                        index))
+
+            new_email_password_entry.bind('<FocusIn>',
+                                    lambda event, val_val=new_email_password_entry, index=2: handle_focus_in(val_val, index))
+            new_email_password_entry.bind("<FocusOut>",
+                                    lambda event, val_val=new_email_password_entry, val='Password', index=2: handle_focus_out(
+                                        val_val, val,
+                                        index))
+            show_both_12 = Button(new_window,
+                                  text="show",
+                                  command=lambda: password_sec(new_email_password_entry, show_both_12), fg='white', bg='#292A2D',
+                                  highlightcolor='#292A2D', activebackground='#292A2D', activeforeground='white',
+                                  relief=RAISED)
+            show_both_12.grid(row=0, column=5)
+            show_both_12.place(x=250 - 15, y=100 + 50 - 5)
 
 def create_key(password, message):
     password_key = password.encode()  # convert string to bytes
@@ -502,7 +628,7 @@ def settings(real_username, hashed_password, window):
     settings_window.resizable(False, False)
 
     width_window = 150
-    height_window = 105
+    height_window = 130
     screen_width = settings_window.winfo_screenwidth()
     screen_height = settings_window.winfo_screenheight()
     x = screen_width / 2 - width_window / 2
@@ -527,12 +653,13 @@ def settings(real_username, hashed_password, window):
     change_account_button = Button(
         settings_window, text='Change account', width=20, command=lambda: change_object.change_window_creation(),
         fg='white', bg='#292A2D')
+    change_email_button = Button(settings_window , text='Change recovery email', command = lambda: change_object.change_email())
 
     Delete_account_button.grid(row=1, column=1, columnspan=2)
     check_for_updates.grid(row=2, column=1, columnspan=2)
     Delete_social_button.grid(row=3, column=1, columnspan=2)
     change_account_button.grid(row=4, column=1, columnspan=2)
-
+    change_email_button.grid(row=5,column=1, columnspan=2)
     if os.stat(f'{real_username}decrypted.bin').st_size == 0:
         Delete_social_button.config(state=DISABLED)
     else:
@@ -669,7 +796,6 @@ def login_password():
                 else:
                     password_decrypt += i
         new_val = password_decrypt[::-1]
-        print(password1)
         main_pass = new_val + '/' + password1
         has = None
         salt = None
@@ -691,52 +817,31 @@ def login_password():
             def change():
                 pyAesCrypt.decryptFile(
                     file_name_reentry,
-                    username12 + ".bin",
+                    username12 + "decrypted.bin",
                     re_hash,
                     bufferSize,
                 )
-                with open(username12 + ".bin", "rb") as f:
-                    try:
-                        line = pickle.load(f)
 
-                    except:
-                        line = []
-                    f.close()
-                os.remove(username12 + ".bin")
-                with open(username12 + ".bin", "wb") as f:
-                    pickle.dump(line, f)
-                    f.close()
-                my_cursor.execute(
-                    "delete from data_input where username = (?)", (username12,)
-                )
                 re_hash_text = str(new_password_entry.get()) + \
                                str(new_username_entry.get())
                 new_salt = str(new_password_entry.get()) + "@" + main_pass
                 re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
                 re_encrypt, new_salt = create_key(main_pass, new_salt)
                 pyAesCrypt.encryptFile(
-                    username12 + ".bin",
+                    username12 + "decrypted.bin",
                     str(new_username_entry.get()) + ".bin.fenc",
                     re_hash_new,
                     bufferSize,
                 )
-                new_username_entry_get = str(new_username_entry.get())
+
                 my_cursor.execute(
-                    "select no_of_accounts from data_input where username = (?)",
-                    (new_username_entry_get,),
+                    "update data_input set username = (?) where username = (?)",(str(new_username_entry.get()), username12)
                 )
-                no = my_cursor.fetchall()
-                value = 0
-                for i in no:
-                    value = i[0]
                 my_cursor.execute(
-                    "insert into data_input values(?,?,?,?,?)",
-                    (str(new_username_entry.get()), email, re_encrypt, new_salt, value),
+                    "update data_input set password = (?) where username = (?)", (
+                        re_encrypt, username12)
                 )
-                if os.path.exists(str(new_username_entry.get()) + ".bin.fenc"):
-                    os.remove(username12 + ".bin")
-                    if str(new_username_entry.get()) != username12:
-                        os.remove(file_name_reentry)
+
         except:
             p = Tk()
             p.withdraw()
