@@ -163,12 +163,12 @@ class Register:
                     email_split += i
         val = email_split[::-1]
         main_password = val + "/" + self.email_password  # static salt
+        print(main_password)
         static_salt_password = self.password + "@" + main_password
         # hashing/encrypting the password and store the dynamic salt created during creat_key() fn is called along with the encrypted password in database
         cipher_text, salt_for_decryption = create_key(
             main_password, static_salt_password
         )
-        print(self.email_id)
         object.execute(
                 "insert into data_input values (?,?,?,?, 0,0)",
                 (self.username, self.email_id, cipher_text, salt_for_decryption),
@@ -494,6 +494,7 @@ class Change_details:
                     email_split += i
         val = email_split[::-1]
         main_password = val + "/" + recovery_password  # static salt
+        print(recovery_password)
         print(main_password)
         my_cursor.execute(
             "select salt,password from data_input where username =(?)", (self.real_username,)
@@ -501,7 +502,11 @@ class Change_details:
         a = my_cursor.fetchall()
         decrypted_string = ""
         for i in a:
-            string = retreive_key(main_password, i[1], i[0])
+            try:
+                string = retreive_key(main_password, i[1], i[0])
+            except:
+                messagebox.showinfo('Error','Some unknown error please try again later')
+                break
             for i in string:
                 if i == "@":
                     break
@@ -525,20 +530,7 @@ class Change_details:
             re_hash,
             bufferSize,
         )
-        password_recovery_email = new_email + self.hashed_password
-        # to save recovery password so that in case he forgets his email he can reset it
-        recovery_password_encrypt = cryptocode.encrypt(
-            new_recovery_password, password_recovery_email
-        )
-        os.remove(f"{self.real_username}.bin.fenc")
-        my_cursor.execute(
-             "update data_input set email_id = (?) where username = (?)",
-            (new_email, self.real_username),
-        )
-        my_cursor.execute(
-            "update data_input set recovery_password = (?) where username = (?)",
-            (recovery_password_encrypt, self.real_username),
-        )
+
         re_hash_text = decrypted_string + self.real_username
         new_salt = decrypted_string + "@" + main_password
         re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
@@ -547,13 +539,30 @@ class Change_details:
             "update data_input set password = (?) where username = (?)",
             (re_encrypt, self.real_username),
         )
+        password_recovery_email = new_email + re_hash_new
+        # to save recovery password so that in case he forgets his email he can reset it
+        recovery_password_encrypt = cryptocode.encrypt(
+            new_recovery_password, re_hash_new
+        )
+        os.remove(f"{self.real_username}.bin.fenc")
+        my_cursor.execute(
+            "update data_input set email_id = (?) where username = (?)",
+            (new_email, self.real_username),
+        )
+        my_cursor.execute(
+            "update data_input set recovery_password = (?) where username = (?)",
+            (recovery_password_encrypt, self.real_username),
+        )
         pyAesCrypt.encryptFile(
             self.real_username + "decrypted.bin",
             self.real_username + ".bin.fenc",
             re_hash_new,
             bufferSize,
         )
-
+        ad = Toplevel()
+        ad.withdraw()
+        messagebox.showinfo('Success','Your email and password has been changed')
+        ad.destroy()
     def change_email(self):
         my_cursor.execute(
             "select recovery_password,email_id from data_input where username = (?)",
@@ -567,12 +576,9 @@ class Change_details:
             recovery_password = cryptocode.decrypt(i[0], password)
             new_window = Toplevel()
 
-            new_email = Label(new_window, text="New email")
             new_email_entry = Entry(new_window)
 
-            new_recovery_password_label = Label(
-                new_window, text="New recovery password"
-            )
+
             new_recovery_password_entry = Entry(new_window)
 
             save = Button(
@@ -599,7 +605,7 @@ class Change_details:
             x = screen_width / 2 - width_window / 2
             y = screen_height / 2 - height_window / 2
             new_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-            new_window.title("Change Recovery email or password")
+            new_window.title("Change Recovery details")
             new_window.geometry("300x300")
             new_window.config(bg="#292A2D")
 
@@ -625,7 +631,17 @@ class Change_details:
             new_email_password_entry.place(x=150 - 40, y=100 + 50)
             save.place(x=60, y=200)
 
+            new_email_password_entry.config(show="")
+
+            new_email_password_entry.config(fg="grey")
+            new_email_password_entry.insert(0, "New Email password")
+
+
+            new_email_entry.config(fg="grey")
+            new_email_entry.insert(0, "New Email")
+
             new_email_entry.bind(
+
                 "<FocusIn>",
                 lambda event, val_val=new_email_entry, index=1: handle_focus_in(
                     val_val, index
@@ -646,7 +662,7 @@ class Change_details:
             )
             new_email_password_entry.bind(
                 "<FocusOut>",
-                lambda event, val_val=new_email_password_entry, val="Password", index=2: handle_focus_out(
+                lambda event, val_val=new_email_password_entry, val="New Email password", index=2: handle_focus_out(
                     val_val, val, index
                 ),
             )
@@ -2546,14 +2562,14 @@ def get(window, name):
 
 def handle_focus_in(entry, index):
     val = str(entry.get())
-    if val == "Username" or val == "Email ID":
+    if val == "Username" or val == "Email ID" or val == 'New Email':
         entry.delete(0, END)
         entry.config(fg="#292A2D")
-    if val == "Password" or val == "Email password":
+    if val == "Password" or val == "Email password" or val == 'New Email password':
         entry.delete(0, END)
         entry.config(fg="#292A2D")
         entry.config(show="*")
-    elif index == 2 and val == "Password" or index == 4 and val == "Email password":
+    elif index == 2 and val == "Password" or index == 4 and val == "Email password" or index == 2 and val == 'New Email password':
         entry.config(fg="#292A2D")
         state_entry = entry["show"]
         entry.config(show=state_entry)
