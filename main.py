@@ -62,8 +62,9 @@ image_path = ''
 exist = False
 cutting_value = False
 file = 0
-
-
+with open('rohithdecrypted.bin','rb') as f:
+    c = pickle.load(f)
+    print(c)
 class Login:  # login_class
     def __init__(self, username, password):
         self.username = str(username)
@@ -188,7 +189,8 @@ class Register:
         # to save recovery password so that in case he forgets his email he can reset it 
         recovery_password_encrypt = cryptocode.encrypt(self.email_password, password_recovery_email)
         my_cursor.execute(
-            "update data_input set recovery_password=(?) where username =(?)",(recovery_password_encrypt, self.username))
+            "update data_input set recovery_password=(?) where username =(?)",
+            (recovery_password_encrypt, self.username))
 
         file_name = self.username + ".bin"
         with open(file_name, "wb") as f:
@@ -232,7 +234,7 @@ class Deletion:
             except:
                 pass
         delete = Button(delete_med_account, text='Delete', fg='white', bg='#292A2D',
-                        command=lambda: self.change_account_name( str(selectaccount.get())))
+                        command=lambda: self.change_account_name(str(selectaccount.get())))
         selectaccount['values'] = tu
         change_account_label = Label(
             delete_med_account, fg='white', bg='#292A2D', text='Select account to be deleted')
@@ -281,15 +283,16 @@ class Deletion:
                 for i in values:
                     print(i[0])
             add_account_window(self.real_username,
-                                            self.window, self.hashed_password)
+                               self.window, self.hashed_password)
         else:
             a = Tk()
             a.withdraw()
             messagebox.showinfo('Error', 'Please try again')
             a.destroy()
+
     def delete_main_account(self):
         answer = messagebox.askyesno('Delete Account', 'Are you sure you want to delete you account')
-        if answer == True:
+        if answer:
             result = simpledialog.askstring(
                 'Delete Account', f'Please type {self.real_username}-CONFIRM to delete your account')
             if result == f'{self.real_username}-CONFIRM':
@@ -422,8 +425,6 @@ class Change_details:
         pyAesCrypt.encryptFile(f'{self.real_username}decrypted.bin',
                                f'{self.real_username}.bin.fenc', self.hashed_password, bufferSize)
 
-
-    
     def change_email(self):
         my_cursor.execute(f'select recovery_password,email from data_input where username = {self.username}')
         recovery_password = my_cursor.fetchall()
@@ -433,13 +434,15 @@ class Change_details:
             new_window = Tk()
             new_email = Label(new_window, text='New email')
             new_email_entry = Entry(new_window)
-            save = Button(new_window, text='Save', command = save_email)
-
+            save = Button(new_window, text='Save', command=save_email)
+    def save_email(self, new_email):
+        pass
 
 def create_key(password, message):
     password_key = password.encode()  # convert string to bytes
     salt = os.urandom(64)  # create a random 64 bit byte
-    # PBKDF2HMAC- it is a type of encryption-Password-Based Key Derivation Function 2,HMAC-hashed message authentication code
+    # PBKDF2 HMAC- it is a type of encryption-Password-Based Key Derivation Function 2,HMAC-hashed message
+    # authentication code
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA3_512(),
         length=32,
@@ -510,7 +513,6 @@ def settings(real_username, hashed_password, window):
 
     settings_window.title('Settings')
     settings_window.config(bg='#292A2D')
-
 
     delete_object = Deletion(real_username, hashed_password, window)
     change_object = Change_details(real_username, hashed_password, window)
@@ -935,6 +937,7 @@ var = 0
 
 def add_account_window(username, window, hashed_password):
     d = window.winfo_children()
+    no_accounts = 0
     try:
         for i in d:
             i.destroy()
@@ -943,119 +946,91 @@ def add_account_window(username, window, hashed_password):
     try:
         with open(username + 'decrypted.bin', 'rb') as f:
             account_fetch = pickle.load(f)
+            no_accounts = len(account_fetch)
     except:
         account_fetch = []
-
+        no_accounts =0
     no_of_accounts = 0
     try:
         while no_of_accounts < 12:
-                social_username = account_fetch[no_of_accounts][0]
-                social_password = account_fetch[no_of_accounts][1]
-                social_media = account_fetch[no_of_accounts][2]
-                image_path_loc = account_fetch[no_of_accounts][3]
-                username_label_widget = Label(
-                    window, text=f'Username: {social_username}', fg='white', bg='#292A2D')
-                password_label_widget = Label(
-                    window, text=f'Password: {social_password}', fg='white', bg='#292A2D')
-                social_media_label = Label(
-                    window, text=f'Account Name: {social_media}', fg='white', bg='#292A2D')
-                if image_path_loc:
-                    file = image.open(image_path_loc)
-                    if file.size == '(32x32)' or file.size == '(16x16)':
-                                print('g')
-                                file = file.resize((70, 70))
-                    # noinspection PyBroadException
-                    try:
-                        tkimage = tk_image.PhotoImage(file)
-                    except:
-                        tkimage = tk_image.PhotoImage(image.open('photo.png'))
-                else:
-                    tkimage = tk_image.PhotoImage(image.open('photo.png'))
+            social_username = account_fetch[no_of_accounts][0]
+            social_password = account_fetch[no_of_accounts][1]
+            social_media = account_fetch[no_of_accounts][2]
+            image_path_loc = account_fetch[no_of_accounts][3]
+            username_label_widget = Label(
+                window, text=f'Username: {social_username}', fg='white', bg='#292A2D')
+            password_label_widget = Label(
+                window, text=f'Password: {social_password}', fg='white', bg='#292A2D')
+            social_media_label = Label(
+                window, text=f'Account Name: {social_media}', fg='white', bg='#292A2D')
+            if image_path_loc:
+                file = image.open(image_path_loc)
+                # noinspection PyBroadException
+                tkimage = tk_image.PhotoImage(file)
 
-                default_image_button = Button(window, image=tkimage, borderwidth='0', bg='#292A2D',
-                                              command=lambda: change_icon(default_image_button, social_username, username,
-                                                                          hashed_password, window))                        
-                if no_of_accounts < 3:
-                    username_label_widget.grid(
-                        row=2, column=0 + no_of_accounts, rowspan=1)
-                    password_label_widget.grid(
-                        row=3, column=0 + no_of_accounts, rowspan=1)
-                    social_media_label.grid(
-                        row=1, column=0 + no_of_accounts, rowspan=1)
-                    default_image_button.photo = tkimage
-                    default_image_button.grid(
-                        row=0, column=0 + no_of_accounts, rowspan=1)
-                    default_image_button.place(x=40 + no_of_accounts * 250, y=10)
-                    username_label_widget.place(x=30 + no_of_accounts * 250, y=110)
-                    social_media_label.place(x=30 + no_of_accounts * 250, y=90)
-                    password_label_widget.place(x=30 + no_of_accounts * 250, y=130)
+            else:
+                tkimage = tk_image.PhotoImage(image.open('photo.png'))
 
-                elif 3 <= no_of_accounts < 6:
-                    dd = int(no_of_accounts % 3)
-                    username_label_widget.grid(row=2 + 1, column=0 + dd)
-                    password_label_widget.grid(row=3 + 1, column=0 + dd)
-                    social_media_label.grid(row=1 + 1, column=0 + dd)
-                    default_image_button.photo = tkimage
-                    default_image_button.grid(row=0 + 1, column=0 + dd)
-                    default_image_button.place(x=40 + dd * 250, y=170)
-                    username_label_widget.place(x=30 + dd * 250, y=250)
-                    social_media_label.place(x=30 + dd * 250, y=230)
-                    password_label_widget.place(x=30 + dd * 250, y=270)
-                elif 6 <= no_of_accounts < 9:
-                    dd = int(no_of_accounts % 6)
-                    username_label_widget.grid(row=2 + 1, column=0 + dd)
-                    password_label_widget.grid(row=3 + 1, column=0 + dd)
-                    social_media_label.grid(row=1 + 1, column=0 + dd)
-                    default_image_button.photo = tkimage
-                    default_image_button.grid(row=0 + 1, column=0 + dd)
-                    default_image_button.place(x=40 + dd * 250, y=300)
-                    social_media_label.place(x=30 + dd * 250, y=380)
-                    username_label_widget.place(x=30 + dd * 250, y=400)
-                    password_label_widget.place(x=30 + dd * 250, y=420)
-                no_of_accounts = no_of_accounts + 1
+            default_image_button = Button(window, image=tkimage, borderwidth='0', bg='#292A2D',
+                                          command=lambda: change_icon(default_image_button, social_username, username,
+                                                                      hashed_password, window))
+            if no_of_accounts < 3:
+                username_label_widget.grid(
+                    row=2, column=0 + no_of_accounts, rowspan=1)
+                password_label_widget.grid(
+                    row=3, column=0 + no_of_accounts, rowspan=1)
+                social_media_label.grid(
+                    row=1, column=0 + no_of_accounts, rowspan=1)
+                default_image_button.photo = tkimage
+                default_image_button.grid(
+                    row=0, column=0 + no_of_accounts, rowspan=1)
+                default_image_button.place(x=40 + no_of_accounts * 250, y=10)
+                username_label_widget.place(x=30 + no_of_accounts * 250, y=110)
+                social_media_label.place(x=30 + no_of_accounts * 250, y=90)
+                password_label_widget.place(x=30 + no_of_accounts * 250, y=130)
+
+            elif 3 <= no_of_accounts < 6:
+                dd = int(no_of_accounts % 3)
+                username_label_widget.grid(row=2 + 1, column=0 + dd)
+                password_label_widget.grid(row=3 + 1, column=0 + dd)
+                social_media_label.grid(row=1 + 1, column=0 + dd)
+                default_image_button.photo = tkimage
+                default_image_button.grid(row=0 + 1, column=0 + dd)
+                default_image_button.place(x=40 + dd * 250, y=170)
+                username_label_widget.place(x=30 + dd * 250, y=250)
+                social_media_label.place(x=30 + dd * 250, y=230)
+                password_label_widget.place(x=30 + dd * 250, y=270)
+            elif 6 <= no_of_accounts < 9:
+                dd = int(no_of_accounts % 6)
+                username_label_widget.grid(row=2 + 1, column=0 + dd)
+                password_label_widget.grid(row=3 + 1, column=0 + dd)
+                social_media_label.grid(row=1 + 1, column=0 + dd)
+                default_image_button.photo = tkimage
+                default_image_button.grid(row=0 + 1, column=0 + dd)
+                default_image_button.place(x=40 + dd * 250, y=300)
+                social_media_label.place(x=30 + dd * 250, y=380)
+                username_label_widget.place(x=30 + dd * 250, y=400)
+                password_label_widget.place(x=30 + dd * 250, y=420)
+            no_of_accounts = no_of_accounts + 1
     except:
-            pass
-
-    try:
-        my_cursor.execute(
-            "select no_of_accounts from data_input where username=(?)", (username,))
-        values1 = my_cursor.fetchall()
-        no_accounts = 0
-        for i in values1:
-            no_accounts = i[0]
-    except:
-        no_accounts = 0
+        pass
 
     image_add = tk_image.PhotoImage(image.open('add-button.png'))
-    if no_accounts <= 9:
-        image_add = tk_image.PhotoImage(image.open('add-button.png'))
-        add_button_text = Label(
-            window, fg='white', text='Add Account', bg='#292A2D')
-        add_button = Button(
-            window, image=image_add, bg='#292A2D', activebackground='#292A2D', border="0", compound='top',
-            command=lambda: addaccount(username, hashed_password, window)
-        )
-        add_button.photo = image_add
-        d = int(no_accounts % 4)
-        add_button.grid(row=10, column=10)
-        add_button_text.grid(row=11, column=10)
+    add_button_text = Label(
+                window, fg='white', text='Add Account', bg='#292A2D')
+    add_button = Button(
+                window, image=image_add, bg='#292A2D', activebackground='#292A2D', border="0", compound='top',
+                command=lambda: addaccount(username, hashed_password, window)
+            )
+    add_button.photo = image_add
+    d = int(no_accounts % 4)
+    add_button.grid(row=10, column=10)
+    add_button_text.grid(row=11, column=10)
 
-        add_button.place(x=719 + 50, y=410)
-        add_button_text.place(x=710 + 50, y=480)
-    else:
-        image_add = tk_image.PhotoImage(image.open('add-button.png'))
-        add_button_text = Label(
-            window, fg='white', text='Add Account', bg='#292A2D')
-        add_button = Button(
-            window, image=image_add, bg='#292A2D', activebackground='#292A2D', state=DISABLED, border="0",
-            compound='top')
-        add_button.photo = image_add
-        d = int(no_accounts % 4)
-        add_button.grid(row=10, column=10)
-        add_button_text.grid(row=11, column=10)
-
-        add_button.place(x=719 + 50, y=410)
-        add_button_text.place(x=710 + 50, y=480)
+    add_button.place(x=719 + 50, y=410)
+    add_button_text.place(x=710 + 50, y=480)
+    if no_accounts >= 9:
+        add_button.config(state=DISABLED)
 
 
 def window_after(username, hash_password):
@@ -1454,7 +1429,7 @@ def window_after(username, hash_password):
 
             def highlight_text():
                 TextArea.tag_configure(
-                    "start", background ="#FFFF00", foreground ="#292A2D")
+                    "start", background="#FFFF00", foreground="#292A2D")
                 try:
                     TextArea.tag_add("start", "sel.first", "sel.last")
                 except TclError:
@@ -1847,7 +1822,6 @@ def addaccount(username, hashed_password, window):
     name_of_social_entry.place(x=200, y=70 + 100)
 
     def browsefunc():
-        global image_path
         try:
             image_path = fd.askopenfilename()
             im = image.open(image_path)
@@ -1855,8 +1829,11 @@ def addaccount(username, hashed_password, window):
             add_icon_button.config(image=tkimage)
             add_icon_button.photo = tkimage
         except:
-            pass
-
+            image_path = 'photo.png'
+            im = image.open(image_path)
+            tkimage = tk_image.PhotoImage(im)
+            add_icon_button.config(image=tkimage)
+            add_icon_button.photo = tkimage
     new_id = tk_image.PhotoImage(image.open("photo.png"))
     add_icon_button = Button(
         root1, image=new_id, borderwidth="0", command=browsefunc, border='0', highlightthickness='0',
@@ -1866,7 +1843,6 @@ def addaccount(username, hashed_password, window):
     add_icon_button.place(x=125, y=200)
 
     def save():
-        global image_path
         global exist
         list_account = [str(username_window_entry.get()), str(
             password_entry.get()), str(name_of_social_entry.get()), image_path]
@@ -1891,9 +1867,11 @@ def addaccount(username, hashed_password, window):
                                name_of_social_entry.get(), username)
 
             if verifying:
+                a = Toplevel()
+                a.withdraw()
                 messagebox.showerror('Error', 'The account already exists')
-
-            elif not exist:
+                a.destroy()
+            else:
                 name_file = username + "decrypted.bin"
                 with open(name_file, "rb") as f:
                     try:
@@ -1921,9 +1899,6 @@ def addaccount(username, hashed_password, window):
                                   (real_accounts, username))
                 add_account_window(username, window, hashed_password)
 
-            elif not verifying:
-                messagebox.showerror(
-                    'Error', 'Account with the username already exist')
 
     save_button = Button(root1, text="Save",
                          command=save, fg='white', bg='#292A2D')
@@ -1935,14 +1910,14 @@ def addaccount(username, hashed_password, window):
 
 def verify(social_username, social_media, real_username):
     file_name = f'{real_username}decrypted.bin'
-    try:
-        with open(file_name, 'r') as f:
-            test_values = pickle.load(f)
-            for user in test_values:
-                if user[0] == str(social_username) or user[2] == str(social_media):
-                    return True
-    except:
-        return False
+    with open(file_name, 'rb') as f:
+            try:
+                test_values = pickle.load(f)
+                for user in test_values:
+                    if user[0] == str(social_username) or user[2] == str(social_media):
+                        return True
+            except:
+                return False
 
 
 # noinspection PyTypeChecker
@@ -2307,12 +2282,12 @@ reg_button.place(x=140, y=200 - 8)
 root.resizable(False, False)
 root.mainloop()
 
-''' to remove all decrypted files
-the glob function returns a list of files ending with .decrypted.bin'''
-list_file = glob.glob("*decrypted.bin")
-for i in list_file:
-    converting_str = str(i)
-    try:
-        os.remove(converting_str)
-    except:
-        pass
+# ''' to remove all decrypted files
+# the glob function returns a list of files ending with .decrypted.bin'''
+# list_file = glob.glob("*decrypted.bin")
+# for i in list_file:
+#     converting_str = str(i)
+#     try:
+#         os.remove(converting_str)
+#     except:
+#         pass
