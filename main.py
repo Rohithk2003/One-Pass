@@ -11,7 +11,6 @@ import smtplib
 import sqlite3
 import sys
 
-
 # tkinter modules
 from PIL import Image as image
 from PIL import ImageTk as tk_image
@@ -53,7 +52,7 @@ my_cursor = connection.cursor()
 
 my_cursor.execute(
     "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,"
-    "salt blob,no_of_accounts int(120) default 0, recovery_password varchar(100)) "
+    "salt blob,no_of_accounts int(120) default 0, recovery_password varchar(100), profile_path varchar(100)) "
 )
 # for image loading
 l = [{"1": "member.png"}]
@@ -130,6 +129,176 @@ class Login:  # login_class
         window_after(self.username, main_password)
 
 
+class Profile_view:
+    def __init__(self, username, password, email_id, email_password, hashed_password):
+        self.username = username
+        self.password = password
+        self.email_id = email_id
+        self.email_password = email_password
+        self.hashed_password = hashed_password
+
+    def profile_window(self):
+        profile = Toplevel()
+        profile.config(bg="#292A2D")
+        profile.title("Profile")
+        profile.resizable(False, False)
+
+        width_window = 400
+        height_window = 400
+        screen_width = profile.winfo_screenwidth()
+        screen_height = profile.winfo_screenheight()
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+
+        profile.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+
+        old_text = f"{self.password}"
+        new_text = old_text.translate("*" * 256)
+
+        old_text_email = f"{self.email_password}"
+        new_text_email = old_text_email.translate("*" * 256)
+        # all labels
+        username_label = Label(
+            profile,
+            text="Username:",
+            font="Verdana 10",
+            fg="white",
+            bg="#292A2D",
+            highlightcolor="#292A2D",
+            activebackground="#292A2D",
+        )
+        password_label = Label(
+            profile,
+            text="Password:",
+            font="Verdana 10",
+            fg="white",
+            bg="#292A2D",
+            highlightcolor="#292A2D",
+            activebackground="#292A2D",
+        )
+        email_id_label = Label(
+            profile,
+            text="Email:",
+            font="Verdana 10",
+            fg="white",
+            bg="#292A2D",
+            highlightcolor="#292A2D",
+            activebackground="#292A2D",
+        )
+        email_password_label = Label(
+            profile,
+            text="Email Password:",
+            font="Verdana 10",
+            fg="white",
+            bg="#292A2D",
+            highlightcolor="#292A2D",
+            activebackground="#292A2D",
+        )
+
+        # details label
+        username_label_right = Label(
+            profile,
+            text=self.username,
+            font="Verdana 10",
+            fg="white",
+            bg="#292A2D",
+            highlightcolor="#292A2D",
+            activebackground="#292A2D",
+        )
+
+        password_label_right = Label(
+            profile,
+            text=old_text,
+            font="Verdana 10",
+            fg="white",
+            bg="#292A2D",
+            highlightcolor="#292A2D",
+        )
+
+        email_id_label_right = Label(
+            profile,
+            text=self.email_id,
+            font="Verdana 10",
+            fg="white",
+            bg="#292A2D",
+            highlightcolor="#292A2D",
+            activebackground="#292A2D",
+        )
+
+        email_password_label_right = Label(
+            profile,
+            text=new_text_email,
+            font="Verdana 10",
+            fg="white",
+            bg="#292A2D",
+            highlightcolor="#292A2D",
+            activebackground="#292A2D",
+        )
+
+        # profile image
+        profile_text = Label(
+            profile,
+            text="Add profile photo",
+            font="Verdana 10",
+            fg="white",
+            bg="#292A2D",
+            highlightcolor="#292A2D",
+            activebackground="#292A2D",
+        )
+
+        def show_pass(label, index, button):
+            button.config(text="Hide")
+            if index == 1:
+                label.config(text=old_text)
+            elif index == 2:
+                label.config(text=old_text_email)
+
+        def hide_pass(label, index, button):
+            button.config(text="Show")
+            if index == 1:
+                label.config(text=new_text)
+            elif index == 2:
+                label.config(text=new_text_email)
+
+        my_cursor.execute(
+            "select profile_path from data_input where username = (?)", (self.username,)
+        )
+        for i in my_cursor.fetchall():
+            if i[0] == "" or not i[0]:
+                profile_image = tk_image.PhotoImage(image.open("member.png"))
+
+            else:
+                profile_text.config(text="")
+                a = image.open(i[0])
+                profile_image = tk_image.PhotoImage(a)
+
+        show = Button(
+            profile,
+            text="Show",
+            font="Verdana 8",
+            fg="white",
+            bg="black",
+            highlightcolor="black",
+            activebackground="black",
+            command=lambda: show_pass(password_label_right, 1, show),
+        )
+        show1 = Button(
+            profile,
+            text="Show",
+            font="Verdana 8",
+            command=lambda: show_pass(email_password_label_right, 2, show1),
+        )
+
+        profile_photo = Label(profile, image=profile_image)
+
+        delete_object = Deletion(self.username, self.hashed_password, profile)
+        delete_this_account = Button(
+            profile,
+            text="Delete Account",
+            command=lambda: delete_object.delete_main_account(),
+        )
+
+
 # for handling registrations
 class Register:
     def __init__(self, username, password, email_id, email_password):
@@ -163,16 +332,16 @@ class Register:
                     email_split += i
         val = email_split[::-1]
         main_password = val + "/" + self.email_password  # static salt
+        print(main_password)
         static_salt_password = self.password + "@" + main_password
         # hashing/encrypting the password and store the dynamic salt created during creat_key() fn is called along with the encrypted password in database
         cipher_text, salt_for_decryption = create_key(
             main_password, static_salt_password
         )
-        print(self.email_id)
         object.execute(
-                "insert into data_input values (?,?,?,?, 0,0)",
-                (self.username, self.email_id, cipher_text, salt_for_decryption),
-            )
+            "insert into data_input values (?,?,?,?, 0,0)",
+            (self.username, self.email_id, cipher_text, salt_for_decryption),
+        )
 
         # so inserting the users details into database
         return False
@@ -493,20 +662,32 @@ class Change_details:
                 else:
                     email_split += i
         val = email_split[::-1]
+        print(recovery_password)
+        print(val)
         main_password = val + "/" + recovery_password  # static salt
+        print(recovery_password)
         print(main_password)
         my_cursor.execute(
-            "select salt,password from data_input where username =(?)", (self.real_username,)
+            "select salt,password from data_input where username =(?)",
+            (self.real_username,),
         )
         a = my_cursor.fetchall()
         decrypted_string = ""
         for i in a:
-            string = retreive_key(main_password, i[1], i[0])
+            try:
+                string = retreive_key(main_password, i[1], i[0])
+            except:
+                messagebox.showinfo(
+                    "Error", "Some unknown error please try again later"
+                )
+                break
+
             for i in string:
                 if i == "@":
                     break
                 else:
                     decrypted_string += i
+        print(decrypted_string)
         value = decrypted_string + self.real_username
         email_split = ""
         word = new_email.split()
@@ -525,34 +706,44 @@ class Change_details:
             re_hash,
             bufferSize,
         )
-        password_recovery_email = new_email + self.hashed_password
+
+        re_hash_text1 = decrypted_string + self.real_username
+        new_salt1 = decrypted_string + "@" + main_password
+        re_hash_new1 = hashlib.sha3_512(re_hash_text1.encode()).hexdigest()
+        re_encrypt, new_salt = create_key(main_password, new_salt1)
+        my_cursor.execute(
+            "update data_input set password = (?) where username = (?)",
+            (re_encrypt, self.real_username),
+        )
+        password_recovery_email = new_email + re_hash_new1
         # to save recovery password so that in case he forgets his email he can reset it
         recovery_password_encrypt = cryptocode.encrypt(
             new_recovery_password, password_recovery_email
         )
         os.remove(f"{self.real_username}.bin.fenc")
         my_cursor.execute(
-             "update data_input set email_id = (?) where username = (?)",
+            "update data_input set email_id = (?) where username = (?)",
             (new_email, self.real_username),
+        )
+        my_cursor.execute(
+            "update data_input set salt = (?) where username = (?)",
+            (new_salt, self.real_username),
         )
         my_cursor.execute(
             "update data_input set recovery_password = (?) where username = (?)",
             (recovery_password_encrypt, self.real_username),
         )
-        re_hash_text = decrypted_string + self.real_username
-        new_salt = decrypted_string + "@" + main_password
-        re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
-        re_encrypt, new_salt = create_key(main_password, new_salt)
-        my_cursor.execute(
-            "update data_input set password = (?) where username = (?)",
-            (re_encrypt, self.real_username),
-        )
         pyAesCrypt.encryptFile(
             self.real_username + "decrypted.bin",
             self.real_username + ".bin.fenc",
-            re_hash_new,
+            re_hash_new1,
             bufferSize,
         )
+        ad = Toplevel()
+        ad.withdraw()
+        messagebox.showinfo("Success", "Your email and password has been changed")
+        ad.destroy()
+        self.window.destroy()
 
     def change_email(self):
         my_cursor.execute(
@@ -562,23 +753,20 @@ class Change_details:
         recovery_password_a = my_cursor.fetchall()
         print(recovery_password_a)
         for i in recovery_password_a:
-            print(i[1])
+            print(i[0])
             password = i[1] + self.hashed_password
             recovery_password = cryptocode.decrypt(i[0], password)
+            print(recovery_password)
             new_window = Toplevel()
 
-            new_email = Label(new_window, text="New email")
             new_email_entry = Entry(new_window)
 
-            new_recovery_password_label = Label(
-                new_window, text="New recovery password"
-            )
             new_recovery_password_entry = Entry(new_window)
 
             save = Button(
                 new_window,
                 text="Save",
-                command=lambda:self.save_email(
+                command=lambda: self.save_email(
                     str(new_email_entry.get()),
                     i[1],
                     recovery_password,
@@ -599,7 +787,7 @@ class Change_details:
             x = screen_width / 2 - width_window / 2
             y = screen_height / 2 - height_window / 2
             new_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-            new_window.title("Change Recovery email or password")
+            new_window.title("Change Recovery details")
             new_window.geometry("300x300")
             new_window.config(bg="#292A2D")
 
@@ -623,7 +811,15 @@ class Change_details:
             new_email_password.place(x=10, y=100 + 50)
             new_email_entry.place(x=150 - 40, y=70 + 50)
             new_email_password_entry.place(x=150 - 40, y=100 + 50)
-            save.place(x=60, y=200)
+            save.place(x=150 - 40, y=200)
+
+            new_email_password_entry.config(show="")
+
+            new_email_password_entry.config(fg="grey")
+            new_email_password_entry.insert(0, "New Email password")
+
+            new_email_entry.config(fg="grey")
+            new_email_entry.insert(0, "New Email")
 
             new_email_entry.bind(
                 "<FocusIn>",
@@ -646,7 +842,7 @@ class Change_details:
             )
             new_email_password_entry.bind(
                 "<FocusOut>",
-                lambda event, val_val=new_email_password_entry, val="Password", index=2: handle_focus_out(
+                lambda event, val_val=new_email_password_entry, val="New Email password", index=2: handle_focus_out(
                     val_val, val, index
                 ),
             )
@@ -788,6 +984,9 @@ def settings(real_username, hashed_password, window):
         settings_window,
         text="Change recovery email",
         command=lambda: change_object.change_email(),
+        fg="white",
+        bg="#292A2D",
+        width=20,
     )
 
     Delete_account_button.grid(row=1, column=1, columnspan=2)
@@ -814,7 +1013,7 @@ def login_password():
     text = (
         "Please provide the recovery email  and recovery email password \n that you provided while creating an "
         "account "
-    )   
+    )
     text_label = Label(window, text=text, fg="white", bg="#292A2D")
     width_window = 400
     height_window = 400
@@ -2276,6 +2475,53 @@ def window_after(username, hash_password):
         compound="left",
         command=lambda: testing(root, mainarea, username, hash_password),
     )
+
+    # profile sidebar functions and objects
+
+    # fetching the email from database
+    my_cursor.execute(
+        "select email,recovery_password from data_input where username = (?)",
+        (username,),
+    )
+    email_id = ""
+    rec_pass = ""
+    for email in my_cursor.fetchall():
+        email_id = email[0]
+        rec_pass = email[1]
+    # getting the recovery password
+    password_rec = email_id + hash_password
+    decrytped_rec_pass = cryptocode.decrypt(rec_pass, password_rec)
+
+    # getting password
+    # generating the static salt and decrypting the password
+    email_split = ""
+    decrypted_string = ""
+    word = email_id.split()
+    for i in word:
+        for a in i:
+            if i == "@":
+                break
+            else:
+                email_split += i
+    val = email_split[::-1]
+    main_password = val + "/" + decrytped_rec_pass  # static salt
+    my_cursor.execute(
+        "select password,salt from data_input where username = (?)", (username,)
+    )
+    for i in my_cursor.fetchall():
+        string = retreive_key(main_password, i[0], i[1])
+        for i in string:
+            if i == "@":
+                break
+            else:
+                decrypted_string += i
+    profile_object = Profile_view(
+        username, decrypted_string, email_id, decrytped_rec_pass, hash_password
+    )
+
+    profile_button = Button(
+        sidebar, text="Profile", command=lambda: profile_object.profile_window()
+    )
     notes_buttons = Button(
         sidebar,
         image=notes_img,
@@ -2284,6 +2530,7 @@ def window_after(username, hash_password):
         compound="left",
         command=note_pad_sec,
     )
+
     button.grid(row=0, column=1)
     notes_buttons.grid(row=1, column=1)
     settings_image = tk_image.PhotoImage(image.open("settings.png"))
@@ -2546,14 +2793,21 @@ def get(window, name):
 
 def handle_focus_in(entry, index):
     val = str(entry.get())
-    if val == "Username" or val == "Email ID":
+    if val == "Username" or val == "Email ID" or val == "New Email":
         entry.delete(0, END)
         entry.config(fg="#292A2D")
-    if val == "Password" or val == "Email password":
+    if val == "Password" or val == "Email password" or val == "New Email password":
         entry.delete(0, END)
         entry.config(fg="#292A2D")
         entry.config(show="*")
-    elif index == 2 and val == "Password" or index == 4 and val == "Email password":
+    elif (
+        index == 2
+        and val == "Password"
+        or index == 4
+        and val == "Email password"
+        or index == 2
+        and val == "New Email password"
+    ):
         entry.config(fg="#292A2D")
         state_entry = entry["show"]
         entry.config(show=state_entry)
@@ -2608,6 +2862,7 @@ def login(window):
     login_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
     input_entry = Entry(login_window)
     pass_entry = Entry(login_window, show="*")
+
     forgot = Button(
         login_window,
         text="Forgot Password?",
@@ -2619,6 +2874,7 @@ def login(window):
         activebackground="#292A2D",
         activeforeground="white",
         relief=RAISED,
+        font="Verdana 8",
     )
     register_button = Button(
         login_window,
@@ -2631,6 +2887,7 @@ def login(window):
         activebackground="#292A2D",
         activeforeground="white",
         relief=RAISED,
+        font="Verdana 8",
     )
 
     mod_label = Label(
@@ -2658,6 +2915,7 @@ def login(window):
         activebackground="#292A2D",
         activeforeground="white",
         relief=RAISED,
+        font="Verdana 8",
     )
 
     def login_checking_1(*event):
@@ -2682,7 +2940,14 @@ def login(window):
             else:
                 pass
 
-    but = Button(login_window, text="Login", command=login_checking_1)
+    but = Button(
+        login_window,
+        text="Login",
+        command=login_checking_1,
+        bg="black",
+        fg="white",
+        font="Verdana 8",
+    )
 
     va = get(login_window, "1")
     my_label = Label(login_window, image=va, bg="#292A2D")
@@ -2710,10 +2975,28 @@ def login(window):
 
     but.place(x=100 + 80, y=220)
 
-    forgot.place(x=100 + 10 + 10, y=270)
+    forgot.place(x=100 + 10, y=270)
     mod_label.place(x=210 + 11, y=270)
     my_label.grid(row=0, column=2)
     my_label.place(x=135, y=10)
+
+    def on_enter(event, button):
+
+        button.configure(font="Verdana 8 underline")
+
+    def on_leave(enter, button):
+        button.configure(font="Verdana 8 normal")
+
+    forgot.bind("<Enter>", lambda event, b="<Enter>", a=forgot: on_enter(b, a))
+    forgot.bind("<Leave>", lambda event, c="<Enter>", a=forgot: on_leave(c, a))
+
+    register_button.bind(
+        "<Enter>", lambda event, b="<Enter>", a=register_button: on_enter(b, a)
+    )
+    register_button.bind(
+        "<Leave>", lambda event, c="<Enter>", a=register_button: on_leave(c, a)
+    )
+
     input_entry.bind(
         "<FocusIn>",
         lambda event, val_val=input_entry, index=1: handle_focus_in(val_val, index),
@@ -2911,7 +3194,10 @@ def register(window):
         email_id_register = str(email_id_entry.get())
         email_password_register = str(email_password_entry.get())
         if username_register == "Username" or password_register == "Password":
-            messagebox.showerror("Error", "Fields cannot be empty")
+            root2 = Tk()
+            root2.withdraw()
+            messagebox.showinfo("Fields Empty", "Fields cannot be empty")
+            root2.destroy()
         else:
             register_user = Register(
                 username_register,
@@ -2967,16 +3253,16 @@ main = Label(
     bg="#292A2D",
 )
 login_text = Label(
-    root, text="Login   :", fg="white", bg="#292A2D", font=("Courier New", 12)
+    root, text="Login   :", fg="white", bg="#292A2D", font=("Verdana", 15)
 )
 register_text = Label(
-    root, text="Register: ", fg="white", bg="#292A2D", font=("Courier New", 12)
+    root, text="Register: ", fg="white", bg="#292A2D", font=("Verdana", 15)
 )
 reg_button = Button(
     root,
     text="Register",
     command=lambda: register(root),
-    font=("Courier New", 12),
+    font=("Verdana", 15),
     fg="white",
     bg="#292A2D",
     relief=RAISED,
@@ -2986,7 +3272,7 @@ login_button = Button(
     root,
     text="login",
     command=lambda: login(root),
-    font=("Courier New", 12),
+    font=("Verdana", 15),
     fg="white",
     bg="#292A2D",
     relief=RAISED,
@@ -3010,8 +3296,8 @@ reg_button.place(x=140, y=200 - 8)
 root.resizable(False, False)
 root.mainloop()
 
-''' to remove all decrypted files
-the glob function returns a list of files ending with .decrypted.bin'''
+""" to remove all decrypted files
+the glob function returns a list of files ending with .decrypted.bin"""
 list_file = glob.glob("*decrypted.bin")
 for i in list_file:
     converting_str = str(i)
