@@ -73,10 +73,10 @@ class Login:  # login_class
 
     def login_checking(self):  # verifying the user
 
+        for_hashing_both = self.password + self.username
         if self.username == "Username":
             # checking for blank username
             root_error = Tk()
-            for_hashing_both = self.password + self.username
             main_password = hashlib.sha3_512(
                 for_hashing_both.encode()
             ).hexdigest()  # hashing the  password for returning
@@ -87,14 +87,12 @@ class Login:  # login_class
         elif self.password == "Password":
             # checking for blank password
             root_error = Tk()
-            for_hashing_both = self.password + self.username
             main_password = hashlib.sha3_512(for_hashing_both.encode()).hexdigest()
             root_error.withdraw()
             messagebox.showerror("Error", "Password cannot be empty ")
             root_error.destroy()
             return False, main_password
         else:
-            for_hashing_both = self.password + self.username
             main_password = hashlib.sha3_512(for_hashing_both.encode()).hexdigest()
             if os.path.exists(f"{self.username}.bin.fenc"):
                 try:
@@ -1334,7 +1332,7 @@ def login_password():
                 otp_entry.place(x=200, y=200)
                 digits = "1234567890"
                 OTP = ""
-                for i in range(6):
+                for _ in range(6):
                     OTP += random.choice(digits)
                 OTP_secure = hashlib.sha512(OTP.encode()).hexdigest()
                 l = list(OTP_secure)
@@ -1500,7 +1498,7 @@ def add_account_window(username, window, hashed_password):
                 social_media_label.place(x=30 + dd * 250, y=380)
                 username_label_widget.place(x=30 + dd * 250, y=400)
                 password_label_widget.place(x=30 + dd * 250, y=420)
-            no_of_accounts = no_of_accounts + 1
+            no_of_accounts += 1
     except:
         pass
 
@@ -1596,32 +1594,31 @@ def window_after(username, hash_password):
                     defaultextension=".txt",
                     filetypes=[("All Files", "*.*"), ("Text Documents", "*.txt")],
                 )
-                if file != None:
-                    if file.endswith(".bin.fenc"):
-                        password = str(
-                            simpledialog.askstring(
-                                title="Password Required",
-                                prompt="Please provide the password",
-                            )
+                if file != None and file.endswith(".bin.fenc"):
+                    password = str(
+                        simpledialog.askstring(
+                            title="Password Required",
+                            prompt="Please provide the password",
                         )
-                        if password == "":
-                            messagebox.showerror("Error", "Password cannot be empty")
-                        else:
-                            new_file = os.path.splitext(file)[0]
-                            b = os.path.basename(new_file)
-                            new_d = os.path.basename(b)
-                            filename = new_d + "decrypted.txt"
-                            try:
-                                pyAesCrypt.decryptFile(
-                                    file, filename, password, bufferSize
-                                )
-                                root.title(os.path.basename(file) + " - Notepad")
-                                TextArea.delete(1.0, END)
-                                with open(filename, "r") as f:
-                                    TextArea.insert(1.0, f.read())
-                                    f.close()
-                            except:
-                                messagebox.showerror("Error", "Wrong password")
+                    )
+                    if password == "":
+                        messagebox.showerror("Error", "Password cannot be empty")
+                    else:
+                        new_file = os.path.splitext(file)[0]
+                        b = os.path.basename(new_file)
+                        new_d = os.path.basename(b)
+                        filename = new_d + "decrypted.txt"
+                        try:
+                            pyAesCrypt.decryptFile(
+                                file, filename, password, bufferSize
+                            )
+                            root.title(os.path.basename(file) + " - Notepad")
+                            TextArea.delete(1.0, END)
+                            with open(filename, "r") as f:
+                                TextArea.insert(1.0, f.read())
+                                f.close()
+                        except:
+                            messagebox.showerror("Error", "Wrong password")
 
                 # check to if there is a file_name
                 global status_name
@@ -1644,30 +1641,23 @@ def window_after(username, hash_password):
                         "Input", "What is new file name?", parent=application_window
                     )
                     application_window.destroy()
-                    if file != None or file != 0:
-                        new_file, file_extension = os.path.splitext(file)
-                        b = os.path.basename(new_file)
-                        new_d = os.path.basename(b)
-                        new_file_name = os.path.basename(b)
-                        f = open(file, "r")
+                    new_file, file_extension = os.path.splitext(file)
+                    b = os.path.basename(new_file)
+                    new_d = os.path.basename(b)
+                    new_file_name = os.path.basename(b)
+                    with open(file, "r") as f:
                         dir = os.path.dirname(file)
                         values = f.read()
+                    os.remove(file)
+                    file = (dir) + "/" + a + file_extension
+                    with open(file, "w") as f:
+                        f.write(values)
                         f.close()
-                        os.remove(file)
-                        file = (dir) + "/" + a + file_extension
-                        with open(file, "w") as f:
-                            f.write(values)
-                            f.close()
-                        TextArea.delete(1.0, END)
-                        with open(file, "r") as f:
-                            TextArea.insert(1.0, f.read())
-                            f.close()
-                        root.title(a + file_extension + " - Notepad")
-                    else:
-                        messagebox.showinfo(
-                            "Rename", "Please save your file before renaming it"
-                        )
-                        save_as_File()
+                    TextArea.delete(1.0, END)
+                    with open(file, "r") as f:
+                        TextArea.insert(1.0, f.read())
+                        f.close()
+                    root.title(a + file_extension + " - Notepad")
                 else:
                     messagebox.showinfo(
                         "Rename", "Please save your file before renaming it"
@@ -1677,7 +1667,7 @@ def window_after(username, hash_password):
             def save_as_File():
                 global password
                 global file
-                if file == None:
+                if file is None:
                     result = messagebox.askyesno(
                         "Confirm", "Do you want to encrypt your file?"
                     )
@@ -1998,10 +1988,10 @@ def window_after(username, hash_password):
                 find_button.pack(side="right")
 
             def replacenfind(value, window, replace_value):
-                text_find = str(value)
                 index = "1.0"
                 TextArea.tag_remove("found", "1.0", END)
                 if value:
+                    text_find = str(value)
                     while 1:
                         index = TextArea.search(
                             text_find, index, nocase=1, stopindex=END
@@ -2018,10 +2008,10 @@ def window_after(username, hash_password):
                 window.focus_set()
 
             def find(value, window):
-                text_find = str(value)
                 index = "1.0"
                 TextArea.tag_remove("found", "1.0", END)
                 if value:
+                    text_find = str(value)
                     while 1:
                         index = TextArea.search(
                             text_find, index, nocase=1, stopindex=END
@@ -2562,18 +2552,13 @@ def change_icon(button, usernam, users_username, hashed_password, window):
         filetypes=[("image", "*.png"), ("image", "*.jpeg"), ("image", "*.jpg")],
         title="Add icon",
     )
-    f = open(file_name, "rb")
-    pad = pickle.load(f)
-    f.close()
+    with open(file_name, "rb") as f:
+        pad = pickle.load(f)
     path = ""
     for i in pad:
         if i[0] == usernam:
             path = i[3]
-    if path == "":
-        path_im = image.open("photo.png")
-    else:
-        path_im = image.open(path)
-
+    path_im = image.open("photo.png") if path == "" else image.open(path)
     try:
         im = image.open(image_path)
         if im:
@@ -2787,30 +2772,18 @@ def get(window, name):
     for i in l:
         for a in i:
             if a == name:
-                d = tk_image.PhotoImage(image.open(i[a]), master=window)
-                return d
+                return tk_image.PhotoImage(image.open(i[a]), master=window)
 
 
 def handle_focus_in(entry, index):
     val = str(entry.get())
-    if val == "Username" or val == "Email ID" or val == "New Email":
+    if val in ["Username", "Email ID", "New Email"]:
         entry.delete(0, END)
         entry.config(fg="#292A2D")
-    if val == "Password" or val == "Email password" or val == "New Email password":
+    if val in ["Password", "Email password", "New Email password"]:
         entry.delete(0, END)
         entry.config(fg="#292A2D")
         entry.config(show="*")
-    elif (
-        index == 2
-        and val == "Password"
-        or index == 4
-        and val == "Email password"
-        or index == 2
-        and val == "New Email password"
-    ):
-        entry.config(fg="#292A2D")
-        state_entry = entry["show"]
-        entry.config(show=state_entry)
 
 
 def handle_focus_out(entry, val, index):
@@ -2829,7 +2802,7 @@ def handle_focus_out(entry, val, index):
 def password_sec(entry, button):
     a = entry["show"]
     val = str(entry.get())
-    if val == "Password" or val == "Email Password":
+    if val in ["Password", "Email Password"]:
         entry.config(show="")
 
     else:
@@ -2926,8 +2899,8 @@ def login(window):
         val_list = my_cursor.fetchall()
         password = str(pass_entry.get())
         username = str(input_entry.get())
-        login = Login(username, password)
         if username != "" or password != "":
+            login = Login(username, password)
             check, main_password = login.login_checking()
             if check:
                 root = Tk()
@@ -2937,8 +2910,6 @@ def login(window):
                 login_window.destroy()
 
                 login.windows(main_password, login_window, my_cursor)
-            else:
-                pass
 
     but = Button(
         login_window,
@@ -3191,14 +3162,14 @@ def register(window):
 
         username_register = str(username_entry.get())
         password_register = str(password_entry.get())
-        email_id_register = str(email_id_entry.get())
-        email_password_register = str(email_password_entry.get())
         if username_register == "Username" or password_register == "Password":
             root2 = Tk()
             root2.withdraw()
             messagebox.showinfo("Fields Empty", "Fields cannot be empty")
             root2.destroy()
         else:
+            email_password_register = str(email_password_entry.get())
+            email_id_register = str(email_id_entry.get())
             register_user = Register(
                 username_register,
                 password_register,
