@@ -284,7 +284,7 @@ class Profile_view:
             font="Verdana 8",
             command=lambda: show_pass(email_password_label_right, 2, show1),
         )
-
+        
         profile_photo = Label(profile, image=profile_image)
 
         delete_object = Deletion(self.username, self.hashed_password, profile)
@@ -2542,12 +2542,12 @@ def window_after(username, hash_password, password_new):
         "select recovery_password,salt_recovery from data_input where username = (?)",
         (username,),
     )
+    encrypted_pass=''
     for i in my_cursor.fetchall():
         password = email_id + hash_password
         key = pbkdf2.PBKDF2(password, i[1]).read(32)
         aes = pyaes.AESModeOfOperationCTR(key)
         encrypted_pass = (aes.decrypt(i[0])).decode()
-    print(password_new)
     profile_object = Profile_view(
         username, password_new, email_id, encrypted_pass, hash_password, mainarea
     )
