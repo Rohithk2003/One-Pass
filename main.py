@@ -145,14 +145,6 @@ class Profile_view:
     def profile_window(self, profile, s):
         profile.config(bg="#292A2D")
         s.title("Profile")
-        # decrypting the password
-        print(self.password)
-        old_text = f"{self.password}"
-        new_text = old_text.translate("*" * 256)
-
-        old_text_email = f"{self.email_password}"
-        new_text_email = old_text_email.translate("*" * 256)
-        print(self.email_id)
         # all labels
         username_label = Label(
             profile,
@@ -204,7 +196,7 @@ class Profile_view:
 
         password_label_right = Label(
             profile,
-            text=old_text,
+            text=self.password,
             font="Verdana 15",
             fg="white",
             bg="#292A2D",
@@ -223,7 +215,7 @@ class Profile_view:
 
         email_password_label_right = Label(
             profile,
-            text=new_text_email,
+            text=self.email_password,
             font="Verdana 15",
             fg="white",
             bg="#292A2D",
@@ -249,29 +241,27 @@ class Profile_view:
             "select profile_path from data_input where username = (?)", (self.username,)
         )
         value = my_cursor.fetchall()
-        print(value)
         if value !=[] :
             for i in value:
                     if i[0] == "" or not i[0] or i[0] == "0":
                         profile_image = tk_image.PhotoImage(image.open("member.png"))
-                        print('g')
-                        profile_photo = Label(profile, image=profile_image)
-
+                        profile_photo = Label(
+                            profile, image=profile_image, bg='#292A2D')
+                        profile_photo.photo = profile_image
                     else:
-                        print('h')
                         profile_text.config(text="")
                         a = image.open(i[0])
                         profile_image = tk_image.PhotoImage(a)
                         profile_photo = Label(profile, image=profile_image)
         else:
-                    print('d')
                     profile_image = tk_image.PhotoImage(image.open("member.png"))
                     profile_photo = Label(profile, image=profile_image,bg='#292A2D')
                     profile_photo.photo = profile_image
         delete_object = Deletion(self.username, self.hashed_password, profile)
         delete_this_account = Button(
             profile,
-            text="Delete Account",
+            text="Delete Account",fg='white',bg='black',font="Verdana 15",
+
             command=lambda: delete_object.delete_main_account(),
         )
 
@@ -280,6 +270,7 @@ class Profile_view:
         email_id_label.grid(row=3, column=0)
         email_password_label.grid(row=4, column=0)
         profile_photo.grid(row=0,column=0)
+        delete_this_account.grid(row=10,column=0)
 
         username_label_right.grid(row=1, column=1)
         password_label_right.grid(row=2, column=1)
@@ -287,11 +278,12 @@ class Profile_view:
         email_password_label_right.grid(row=4, column=1)
 
 
-        username_label.place(x=300, y=100+100)
-        password_label.place(x=300, y=150+100)
-        email_id_label.place(x=300, y=200+100)
-        email_password_label.place(x=300, y=250+100)
+        username_label.place(x=200, y=100+100)
+        password_label.place(x=200, y=150+100)
+        email_id_label.place(x=200, y=200+100)
+        email_password_label.place(x=200, y=250+100)
         profile_photo.place(x=350, y=50)
+        delete_this_account.place(x=0 , y=440 + 20)
 
         username_label_right.place(x=500, y=100+100)
         password_label_right.place(x=500, y=150+100)
@@ -516,14 +508,14 @@ class Deletion:
                         "Account deletion",
                         "Success your account has been deleted. See you!!",
                     )
-                    sys.exit()
-                    quit()
+                    if not os.path.exists(f'{self.real_username}.bin.fenc'):
+                        quit()
                 except:
                     pass
             else:
-                quit()
+                pass
         else:
-            quit()
+            pass
 
 
 class Change_details:
