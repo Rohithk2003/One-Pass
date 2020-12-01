@@ -10,6 +10,12 @@ import random
 import smtplib
 import sqlite3
 import sys
+import pyaes
+import pbkdf2
+import binascii
+import os
+import secrets
+import base64
 
 # tkinter modules
 from PIL import Image as image
@@ -26,7 +32,7 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import cryptocode
+
 
 # for updating the file
 from update_check import isUpToDate
@@ -52,7 +58,7 @@ my_cursor = connection.cursor()
 
 my_cursor.execute(
     "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,"
-    "salt blob,no_of_accounts int(120) default 0, recovery_password varchar(100), profile_path varchar(100)) "
+    "salt blob, recovery_password varchar(100), profile_path varchar(100),salt_recovery blob) "
 )
 # for image loading
 l = [{"1": "member.png"}]
@@ -92,7 +98,7 @@ class Login:  # login_class
             root_error.withdraw()
             messagebox.showerror("Error", "Password cannot be empty ")
             root_error.destroy()
-            return False, main_password
+            return False, main_password, self.password
         else:
             for_hashing_both = self.password + self.username
             main_password = hashlib.sha3_512(for_hashing_both.encode()).hexdigest()
@@ -113,7 +119,7 @@ class Login:  # login_class
                         f"Wrong password for {self.username}",
                     )
                     root.destroy()
-                    return False, main_password
+                    return False, main_password, self.password
             else:
                 root_error = Tk()
                 root_error.withdraw()
@@ -122,41 +128,32 @@ class Login:  # login_class
                     f"{self.username} doesn't exist, Please register or provide the correct username",
                 )
                 root_error.destroy()
-                return False, main_password
-            return True, main_password
-
-    def windows(self, main_password, window, cursor):  # for calling the main function
-        window_after(self.username, main_password)
+                return False, main_password, self.password
+            print(self.password)
+            return True, main_password, self.password
 
 
 class Profile_view:
-    def __init__(self, username, password, email_id, email_password, hashed_password):
+    def __init__(
+        self, username, password, email_id, email_password, hashed_password, profile
+    ):
         self.username = username
         self.password = password
         self.email_id = email_id
         self.email_password = email_password
         self.hashed_password = hashed_password
 
-    def profile_window(self):
-        profile = Toplevel()
+    def profile_window(self, profile, s):
         profile.config(bg="#292A2D")
-        profile.title("Profile")
-        profile.resizable(False, False)
-
-        width_window = 400
-        height_window = 400
-        screen_width = profile.winfo_screenwidth()
-        screen_height = profile.winfo_screenheight()
-        x = screen_width / 2 - width_window / 2
-        y = screen_height / 2 - height_window / 2
-
-        profile.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-
+        s.title("Profile")
+        # decrypting the password
+        print(self.password)
         old_text = f"{self.password}"
         new_text = old_text.translate("*" * 256)
 
         old_text_email = f"{self.email_password}"
         new_text_email = old_text_email.translate("*" * 256)
+
         # all labels
         username_label = Label(
             profile,
@@ -264,7 +261,7 @@ class Profile_view:
             "select profile_path from data_input where username = (?)", (self.username,)
         )
         for i in my_cursor.fetchall():
-            if i[0] == "" or not i[0]:
+            if i[0] == "" or not i[0] or i[0] == "0":
                 profile_image = tk_image.PhotoImage(image.open("member.png"))
 
             else:
@@ -297,6 +294,32 @@ class Profile_view:
             text="Delete Account",
             command=lambda: delete_object.delete_main_account(),
         )
+
+        username_label.grid(row=0, column=0)
+        password_label.grid(row=1, column=0)
+        email_id_label.grid(row=2, column=0)
+        email_password_label.grid(row=3, column=0)
+
+        username_label_right.grid(row=0, column=1)
+        password_label_right.grid(row=1, column=1)
+        email_id_label_right.grid(row=2, column=2)
+        email_password_label_right.grid(row=3, column=1)
+
+        show.grid(row=1, column=2)
+        show1.grid(row=1, column=2)
+
+        username_label.place(x=100, y=100)
+        password_label.place(x=100, y=150)
+        email_id_label.place(x=100, y=200)
+        email_password_label.place(x=100, y=250)
+
+        username_label_right.place(x=200, y=100)
+        password_label_right.place(x=200, y=150)
+        email_id_label_right.place(x=200, y=200)
+        email_password_label_right.place(x=200, y=250)
+
+        show.place(x=200, y=250)
+        show1.place(x=200, y=350)
 
 
 # for handling registrations
@@ -332,15 +355,36 @@ class Register:
                     email_split += i
         val = email_split[::-1]
         main_password = val + "/" + self.email_password  # static salt
-        print(main_password)
         static_salt_password = self.password + "@" + main_password
         # hashing/encrypting the password and store the dynamic salt created during creat_key() fn is called along with the encrypted password in database
         cipher_text, salt_for_decryption = create_key(
             main_password, static_salt_password
         )
+
+        for_hashing = self.password + self.username
+        """for encrypting the file"""
+        hash_pass = hashlib.sha3_512(for_hashing.encode()).hexdigest()
+        # for encrypting the recovery password
+
+        password_recovery_email = self.email_id + hash_pass
+        message = self.email_password
+        passwordSalt = secrets.token_bytes(512)
+        key = pbkdf2.PBKDF2(password_recovery_email, passwordSalt).read(32)
+        iv = secrets.randbits(256)
+        aes = pyaes.AESModeOfOperationCTR(key)
+        encrypted_pass = aes.encrypt(message)
+
         object.execute(
-            "insert into data_input values (?,?,?,?, 0,0)",
-            (self.username, self.email_id, cipher_text, salt_for_decryption),
+            "insert into data_input values (?,?,?,?,?,?,?)",
+            (
+                self.username,
+                self.email_id,
+                cipher_text,
+                salt_for_decryption,
+                encrypted_pass,
+                0,
+                passwordSalt,
+            ),
         )
 
         # so inserting the users details into database
@@ -355,15 +399,6 @@ class Register:
         for_hashing = self.password + self.username
         """for encrypting the file"""
         hash_pass = hashlib.sha3_512(for_hashing.encode()).hexdigest()
-        password_recovery_email = self.email_id + hash_pass
-        # to save recovery password so that in case he forgets his email he can reset it
-        recovery_password_encrypt = cryptocode.encrypt(
-            self.email_password, password_recovery_email
-        )
-        my_cursor.execute(
-            "update data_input set recovery_password=(?) where username =(?)",
-            (recovery_password_encrypt, self.username),
-        )
 
         file_name = self.username + ".bin"
         with open(file_name, "wb") as f:
@@ -380,7 +415,7 @@ class Register:
         pyAesCrypt.decryptFile(
             file_name + ".fenc", f"{self.username}decrypted.bin", hash_pass, bufferSize
         )
-        window_after(self.username, hash_pass)
+        window_after(self.username, hash_pass, self.password)
 
 
 # for hashing-encryting and decrypting password and for (forgot_password)
@@ -511,9 +546,6 @@ class Deletion:
                 quit()
         else:
             quit()
-
-
-# deleting sub account
 
 
 class Change_details:
@@ -651,8 +683,7 @@ class Change_details:
     def save_email(
         self, new_email, old_email, recovery_password, new_recovery_password
     ):
-        print(old_email)
-        print(recovery_password)
+
         email_split = ""
         word = old_email.split()
         for i in word:
@@ -662,11 +693,8 @@ class Change_details:
                 else:
                     email_split += i
         val = email_split[::-1]
-        print(recovery_password)
-        print(val)
+
         main_password = val + "/" + recovery_password  # static salt
-        print(recovery_password)
-        print(main_password)
         my_cursor.execute(
             "select salt,password from data_input where username =(?)",
             (self.real_username,),
@@ -687,7 +715,6 @@ class Change_details:
                     break
                 else:
                     decrypted_string += i
-        print(decrypted_string)
         value = decrypted_string + self.real_username
         email_split = ""
         word = new_email.split()
@@ -715,24 +742,33 @@ class Change_details:
             "update data_input set password = (?) where username = (?)",
             (re_encrypt, self.real_username),
         )
-        password_recovery_email = new_email + re_hash_new1
-        # to save recovery password so that in case he forgets his email he can reset it
-        recovery_password_encrypt = cryptocode.encrypt(
-            new_recovery_password, password_recovery_email
+
+        # encrypting the new recovery password
+        password = new_email + re_hash_new1
+        message = new_recovery_password
+        passwordSalt = secrets.token_bytes(512)
+        key = pbkdf2.PBKDF2(password, passwordSalt).read(32)
+        iv = secrets.randbits(256)
+        aes = pyaes.AESModeOfOperationCTR(key)
+        encrypted_pass = aes.encrypt(message)
+        print(encrypted_pass)
+        my_cursor.execute(
+            "update data_input set recovery_password = (?),,set salt_recovery=(?) where username = (?)",
+            (encrypted_pass, passwordSalt, self.real_username),
         )
+
         os.remove(f"{self.real_username}.bin.fenc")
         my_cursor.execute(
-            "update data_input set email_id = (?) where username = (?)",
-            (new_email, self.real_username),
+            "update data_input set email_id = (?), set salt_recovery=(?),set salt = (?),set recovery_password = (?) where where username = (?)",
+            (
+                new_email,
+                new_salt_rec,
+                new_salt,
+                recovery_password_encrypt,
+                self.real_username,
+            ),
         )
-        my_cursor.execute(
-            "update data_input set salt = (?) where username = (?)",
-            (new_salt, self.real_username),
-        )
-        my_cursor.execute(
-            "update data_input set recovery_password = (?) where username = (?)",
-            (recovery_password_encrypt, self.real_username),
-        )
+
         pyAesCrypt.encryptFile(
             self.real_username + "decrypted.bin",
             self.real_username + ".bin.fenc",
@@ -747,7 +783,7 @@ class Change_details:
 
     def change_email(self):
         my_cursor.execute(
-            "select recovery_password,email_id from data_input where username = (?)",
+            "select recovery_password,email_id,recovery_salt from data_input where username = (?)",
             (self.real_username,),
         )
         recovery_password_a = my_cursor.fetchall()
@@ -755,7 +791,7 @@ class Change_details:
         for i in recovery_password_a:
             print(i[0])
             password = i[1] + self.hashed_password
-            recovery_password = cryptocode.decrypt(i[0], password)
+            recovery_password = retreive_key(password, i[0], i[2])
             print(recovery_password)
             new_window = Toplevel()
 
@@ -1526,7 +1562,7 @@ def add_account_window(username, window, hashed_password):
         add_button.config(state=DISABLED)
 
 
-def window_after(username, hash_password):
+def window_after(username, hash_password, password_new):
     # sidebar
     root = Tk()
     root.resizable(False, False)
@@ -2467,12 +2503,15 @@ def window_after(username, hash_password):
     notes_img = tk_image.PhotoImage(image.open("notes.png"))
     mainarea = Frame(root, bg="#292A2D", width=500, height=500)
     mainarea.pack(expand=True, fill="both", side="right")
+
     button = Button(
         sidebar,
         image=pass_img,
         text="Passwords",
         padx=14,
         compound="left",
+        fg="white",
+        bg="black",
         command=lambda: testing(root, mainarea, username, hash_password),
     )
 
@@ -2480,18 +2519,12 @@ def window_after(username, hash_password):
 
     # fetching the email from database
     my_cursor.execute(
-        "select email,recovery_password from data_input where username = (?)",
+        "select email_id,salt_recovery from data_input where username = (?)",
         (username,),
     )
     email_id = ""
-    rec_pass = ""
     for email in my_cursor.fetchall():
         email_id = email[0]
-        rec_pass = email[1]
-    # getting the recovery password
-    password_rec = email_id + hash_password
-    decrytped_rec_pass = cryptocode.decrypt(rec_pass, password_rec)
-
     # getting password
     # generating the static salt and decrypting the password
     email_split = ""
@@ -2504,23 +2537,29 @@ def window_after(username, hash_password):
             else:
                 email_split += i
     val = email_split[::-1]
-    main_password = val + "/" + decrytped_rec_pass  # static salt
+
+    # decrypting the recovery passworwd using pbkdf2
     my_cursor.execute(
-        "select password,salt from data_input where username = (?)", (username,)
+        "select recovery_password,salt_recovery from data_input where username = (?)",
+        (username,),
     )
     for i in my_cursor.fetchall():
-        string = retreive_key(main_password, i[0], i[1])
-        for i in string:
-            if i == "@":
-                break
-            else:
-                decrypted_string += i
+        password = email_id + hash_password
+        key = pbkdf2.PBKDF2(password, i[1]).read(32)
+        aes = pyaes.AESModeOfOperationCTR(key)
+        encrypted_pass = (aes.decrypt(i[0])).decode()
+    print(password_new)
     profile_object = Profile_view(
-        username, decrypted_string, email_id, decrytped_rec_pass, hash_password
+        username, password_new, email_id, encrypted_pass, hash_password, mainarea
     )
 
     profile_button = Button(
-        sidebar, text="Profile", command=lambda: profile_object.profile_window()
+        sidebar,
+        text="Profile",
+        command=lambda: profile_object.profile_window(mainarea, root),
+        padx=35,
+        fg="white",
+        bg="black",
     )
     notes_buttons = Button(
         sidebar,
@@ -2529,10 +2568,14 @@ def window_after(username, hash_password):
         padx=20,
         compound="left",
         command=note_pad_sec,
+        fg="white",
+        bg="black",
     )
 
     button.grid(row=0, column=1)
     notes_buttons.grid(row=1, column=1)
+    profile_button.grid(row=2, column=1)
+    # profile_button.grid(row=2,column=1)
     settings_image = tk_image.PhotoImage(image.open("settings.png"))
     settings_button = Button(
         sidebar,
@@ -2879,7 +2922,7 @@ def login(window):
     register_button = Button(
         login_window,
         text="Register",
-        command=lambda: register(window),
+        command=lambda: register(window, login_window),
         fg="white",
         bg="#292A2D",
         border="0",
@@ -2928,15 +2971,14 @@ def login(window):
         username = str(input_entry.get())
         login = Login(username, password)
         if username != "" or password != "":
-            check, main_password = login.login_checking()
+            check, main_password, passw = login.login_checking()
             if check:
                 root = Tk()
                 root.withdraw()
                 messagebox.showinfo("Success", "You have now logged in ")
                 root.destroy()
                 login_window.destroy()
-
-                login.windows(main_password, login_window, my_cursor)
+                window_after(username, main_password, passw)
             else:
                 pass
 
@@ -3020,7 +3062,7 @@ def login(window):
     )
 
 
-def register(window):
+def register(window, *a):
     login_window1 = Tk()
     login_window1.resizable(False, False)
 
@@ -3028,7 +3070,10 @@ def register(window):
     login_window1.focus_set()
     login_window1.grab_set()
     try:
+        for i in a:
+            i.destroy()
         window.destroy()
+
     except:
         pass
     login_window1.resizable(False, False)
