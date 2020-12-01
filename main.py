@@ -152,12 +152,12 @@ class Profile_view:
 
         old_text_email = f"{self.email_password}"
         new_text_email = old_text_email.translate("*" * 256)
-
+        print(self.email_id)
         # all labels
         username_label = Label(
             profile,
             text="Username:",
-            font="Verdana 10",
+            font="Verdana 15",
             fg="white",
             bg="#292A2D",
             highlightcolor="#292A2D",
@@ -166,7 +166,7 @@ class Profile_view:
         password_label = Label(
             profile,
             text="Password:",
-            font="Verdana 10",
+            font="Verdana 15",
             fg="white",
             bg="#292A2D",
             highlightcolor="#292A2D",
@@ -175,7 +175,7 @@ class Profile_view:
         email_id_label = Label(
             profile,
             text="Email:",
-            font="Verdana 10",
+            font="Verdana 15",
             fg="white",
             bg="#292A2D",
             highlightcolor="#292A2D",
@@ -184,7 +184,7 @@ class Profile_view:
         email_password_label = Label(
             profile,
             text="Email Password:",
-            font="Verdana 10",
+            font="Verdana 15",
             fg="white",
             bg="#292A2D",
             highlightcolor="#292A2D",
@@ -195,7 +195,7 @@ class Profile_view:
         username_label_right = Label(
             profile,
             text=self.username,
-            font="Verdana 10",
+            font="Verdana 15",
             fg="white",
             bg="#292A2D",
             highlightcolor="#292A2D",
@@ -205,7 +205,7 @@ class Profile_view:
         password_label_right = Label(
             profile,
             text=old_text,
-            font="Verdana 10",
+            font="Verdana 15",
             fg="white",
             bg="#292A2D",
             highlightcolor="#292A2D",
@@ -214,7 +214,7 @@ class Profile_view:
         email_id_label_right = Label(
             profile,
             text=self.email_id,
-            font="Verdana 10",
+            font="Verdana 15",
             fg="white",
             bg="#292A2D",
             highlightcolor="#292A2D",
@@ -224,7 +224,7 @@ class Profile_view:
         email_password_label_right = Label(
             profile,
             text=new_text_email,
-            font="Verdana 10",
+            font="Verdana 15",
             fg="white",
             bg="#292A2D",
             highlightcolor="#292A2D",
@@ -235,58 +235,39 @@ class Profile_view:
         profile_text = Label(
             profile,
             text="Add profile photo",
-            font="Verdana 10",
+            font="Verdana 15",
             fg="white",
             bg="#292A2D",
             highlightcolor="#292A2D",
             activebackground="#292A2D",
         )
 
-        def show_pass(label, index, button):
-            button.config(text="Hide")
-            if index == 1:
-                label.config(text=old_text)
-            elif index == 2:
-                label.config(text=old_text_email)
 
-        def hide_pass(label, index, button):
-            button.config(text="Show")
-            if index == 1:
-                label.config(text=new_text)
-            elif index == 2:
-                label.config(text=new_text_email)
 
+    
         my_cursor.execute(
             "select profile_path from data_input where username = (?)", (self.username,)
         )
-        for i in my_cursor.fetchall():
-            if i[0] == "" or not i[0] or i[0] == "0":
-                profile_image = tk_image.PhotoImage(image.open("member.png"))
+        value = my_cursor.fetchall()
+        print(value)
+        if value !=[] :
+            for i in value:
+                    if i[0] == "" or not i[0] or i[0] == "0":
+                        profile_image = tk_image.PhotoImage(image.open("member.png"))
+                        print('g')
+                        profile_photo = Label(profile, image=profile_image)
 
-            else:
-                profile_text.config(text="")
-                a = image.open(i[0])
-                profile_image = tk_image.PhotoImage(a)
-
-        show = Button(
-            profile,
-            text="Show",
-            font="Verdana 8",
-            fg="white",
-            bg="black",
-            highlightcolor="black",
-            activebackground="black",
-            command=lambda: show_pass(password_label_right, 1, show),
-        )
-        show1 = Button(
-            profile,
-            text="Show",
-            font="Verdana 8",
-            command=lambda: show_pass(email_password_label_right, 2, show1),
-        )
-        
-        profile_photo = Label(profile, image=profile_image)
-
+                    else:
+                        print('h')
+                        profile_text.config(text="")
+                        a = image.open(i[0])
+                        profile_image = tk_image.PhotoImage(a)
+                        profile_photo = Label(profile, image=profile_image)
+        else:
+                    print('d')
+                    profile_image = tk_image.PhotoImage(image.open("member.png"))
+                    profile_photo = Label(profile, image=profile_image,bg='#292A2D')
+                    profile_photo.photo = profile_image
         delete_object = Deletion(self.username, self.hashed_password, profile)
         delete_this_account = Button(
             profile,
@@ -294,31 +275,29 @@ class Profile_view:
             command=lambda: delete_object.delete_main_account(),
         )
 
-        username_label.grid(row=0, column=0)
-        password_label.grid(row=1, column=0)
-        email_id_label.grid(row=2, column=0)
-        email_password_label.grid(row=3, column=0)
+        username_label.grid(row=1, column=0)
+        password_label.grid(row=2, column=0)
+        email_id_label.grid(row=3, column=0)
+        email_password_label.grid(row=4, column=0)
+        profile_photo.grid(row=0,column=0)
 
-        username_label_right.grid(row=0, column=1)
-        password_label_right.grid(row=1, column=1)
-        email_id_label_right.grid(row=2, column=2)
-        email_password_label_right.grid(row=3, column=1)
+        username_label_right.grid(row=1, column=1)
+        password_label_right.grid(row=2, column=1)
+        email_id_label_right.grid(row=3, column=2)
+        email_password_label_right.grid(row=4, column=1)
 
-        show.grid(row=1, column=2)
-        show1.grid(row=1, column=2)
 
-        username_label.place(x=100, y=100)
-        password_label.place(x=100, y=150)
-        email_id_label.place(x=100, y=200)
-        email_password_label.place(x=100, y=250)
+        username_label.place(x=300, y=100+100)
+        password_label.place(x=300, y=150+100)
+        email_id_label.place(x=300, y=200+100)
+        email_password_label.place(x=300, y=250+100)
+        profile_photo.place(x=350, y=50)
 
-        username_label_right.place(x=200, y=100)
-        password_label_right.place(x=200, y=150)
-        email_id_label_right.place(x=200, y=200)
-        email_password_label_right.place(x=200, y=250)
+        username_label_right.place(x=500, y=100+100)
+        password_label_right.place(x=500, y=150+100)
+        email_id_label_right.place(x=500, y=200+100)
+        email_password_label_right.place(x=500, y=250+100)
 
-        show.place(x=200, y=250)
-        show1.place(x=200, y=350)
 
 
 # for handling registrations
@@ -2548,6 +2527,7 @@ def window_after(username, hash_password, password_new):
         key = pbkdf2.PBKDF2(password, i[1]).read(32)
         aes = pyaes.AESModeOfOperationCTR(key)
         encrypted_pass = (aes.decrypt(i[0])).decode()
+    print(email_id)
     profile_object = Profile_view(
         username, password_new, email_id, encrypted_pass, hash_password, mainarea
     )
