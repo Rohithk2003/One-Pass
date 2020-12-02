@@ -15,7 +15,6 @@ import pbkdf2
 import binascii
 import os
 import secrets
-import base64
 
 # tkinter modules
 from PIL import Image as image
@@ -145,6 +144,7 @@ class Profile_view:
     def profile_window(self, profile, s):
         profile.config(bg="#292A2D")
         s.title("Profile")
+        s.iconbitmap(default='transparent.ico')
         # all labels
         username_label = Label(
             profile,
@@ -240,22 +240,23 @@ class Profile_view:
         my_cursor.execute(
             "select profile_path from data_input where username = (?)", (self.username,)
         )
+        profile_photo=Button(profile, bg = '#292A2D')
+
         value = my_cursor.fetchall()
         if value !=[] :
             for i in value:
                     if i[0] == "" or not i[0] or i[0] == "0":
                         profile_image = tk_image.PhotoImage(image.open("member.png"))
-                        profile_photo = Label(
-                            profile, image=profile_image, bg='#292A2D')
+                        profile_photo.config( image = profile_image)
                         profile_photo.photo = profile_image
                     else:
                         profile_text.config(text="")
                         a = image.open(i[0])
                         profile_image = tk_image.PhotoImage(a)
-                        profile_photo = Label(profile, image=profile_image)
+                        profile_photo.config( image = profile_image)
+                        profile_photo.photo = profile_image
         else:
                     profile_image = tk_image.PhotoImage(image.open("member.png"))
-                    profile_photo = Label(profile, image=profile_image,bg='#292A2D')
                     profile_photo.photo = profile_image
         delete_object = Deletion(self.username, self.hashed_password, profile)
         delete_this_account = Button(
@@ -517,7 +518,7 @@ class Deletion:
         else:
             pass
 
-
+@classmethod
 class Change_details:
     def __init__(self, real_username, hashed_password, window):
         self.real_username = real_username
@@ -982,7 +983,7 @@ def settings(real_username, hashed_password, window):
         settings_window,
         text="Change account",
         width=20,
-        command=lambda: change_object.change_window_creation(),
+        command=login_password,
         fg="white",
         bg="#292A2D",
     )
@@ -1059,6 +1060,7 @@ def login_password():
     running = False
 
     def generate_key1(file):
+        print('hgd')
         pyAesCrypt.encryptFile(file, "otp.bin.fenc", key, bufferSize)
         os.unlink(file)
         messagebox.showinfo(
@@ -1141,72 +1143,73 @@ def login_password():
         )
         show_both_12.grid(row=0, column=5)
         show_both_12.place(x=250 - 15, y=100 + 50 - 5)
-        my_cursor.execute(
-            "select password,salt from data_input where email_id = (?)", (email,)
-        )
-        values_password = my_cursor.fetchall()
-        password_decrypt = ""
-        word = email.split()
-        for i in word:
-            for a in i:
-                if i == "@":
-                    break
-                else:
-                    password_decrypt += i
-        new_val = password_decrypt[::-1]
-        main_pass = new_val + "/" + password1
-        has = None
-        salt = None
-        decrypted_string = ""
-        for i in values_password:
-            has = i[0]
-            salt = i[1]
-        try:
-            string = retreive_key(main_pass, has, salt)
-            for i in string:
-                if i == "@":
-                    break
-                else:
-                    decrypted_string += i
-            value = decrypted_string + username12
+        def change():
+            my_cursor.execute(
+                "select password,salt from data_input where email_id = (?)", (email,)
+            )
+            values_password = my_cursor.fetchall()
+            password_decrypt = ""
+            word = email.split()
+            for i in word:
+                for a in i:
+                    if i == "@":
+                        break
+                    else:
+                        password_decrypt += i
+            new_val = password_decrypt[::-1]
+            main_pass = new_val + "/" + password1
+            has = None
+            salt = None
+            decrypted_string = ""
+            for i in values_password:
+                has = i[0]
+                salt = i[1]
+            try:
+                string = retreive_key(main_pass, has, salt)
+                for i in string:
+                    if i == "@":
+                        break
+                    else:
+                        decrypted_string += i
+                value = decrypted_string + username12
 
-            re_hash = hashlib.sha3_512(value.encode()).hexdigest()
+                re_hash = hashlib.sha3_512(value.encode()).hexdigest()
 
-            def change():
-                pyAesCrypt.decryptFile(
-                    file_name_reentry,
-                    username12 + "decrypted.bin",
-                    re_hash,
-                    bufferSize,
-                )
+                def change():
+                    pyAesCrypt.decryptFile(
+                        file_name_reentry,
+                        username12 + "decrypted.bin",
+                        re_hash,
+                        bufferSize,
+                    )
 
-                re_hash_text = str(new_password_entry.get()) + str(
-                    new_username_entry.get()
-                )
-                new_salt = str(new_password_entry.get()) + "@" + main_pass
-                re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
-                re_encrypt, new_salt = create_key(main_pass, new_salt)
-                pyAesCrypt.encryptFile(
-                    username12 + "decrypted.bin",
-                    str(new_username_entry.get()) + ".bin.fenc",
-                    re_hash_new,
-                    bufferSize,
-                )
+                    re_hash_text = str(new_password_entry.get()) + str(
+                        new_username_entry.get()
+                    )
+                    new_salt = str(new_password_entry.get()) + "@" + main_pass
+                    re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
+                    re_encrypt, new_salt = create_key(main_pass, new_salt)
+                    pyAesCrypt.encryptFile(
+                        username12 + "decrypted.bin",
+                        str(new_username_entry.get()) + ".bin.fenc",
+                        re_hash_new,
+                        bufferSize,
+                    )
 
-                my_cursor.execute(
-                    "update data_input set username = (?) where username = (?)",
-                    (str(new_username_entry.get()), username12),
-                )
-                my_cursor.execute(
-                    "update data_input set password = (?) where username = (?)",
-                    (re_encrypt, username12),
-                )
+                    my_cursor.execute(
+                        "update data_input set username = (?) where username = (?)",
+                        (str(new_username_entry.get()), username12),
+                    )
+                    my_cursor.execute(
+                        "update data_input set password = (?) where username = (?)",
+                        (re_encrypt, username12),
+                    )
 
-        except:
-            p = Tk()
-            p.withdraw()
-            messagebox.showinfo("Error", "Wrong recovery password")
-            p.destroy()
+            except:
+                p = Tk()
+                p.withdraw()
+                messagebox.showinfo("Error", "Wrong recovery password")
+                p.destroy()
 
         change_button = Button(root, text="Change", command=change)
         change_button.grid(row=3, column=0, columnspan=1)
@@ -1250,14 +1253,15 @@ def login_password():
             s.starttls()
             s.login("rohithk6474@gmail.com", "Kedaram@123")
             s.sendmail("rohithk6474@gmail.com", email, msg)
-
         except:
-            messagebox.showinfo("Error", "Please Connect to the internet \n then retry")
-            sys.exit()
+            a = Tk()
+            a.withdraw()
+            messagebox.showwarning('No internet','No internet is available')
 
     def main(key):
         run = False
         global running
+        print('gs')
         username_verify = str(username_forgot_entry.get())
         recover_email_entry_verify = str(recover_email_entry.get())
         recover_password_entry_verify = str(recover_password_entry.get())
@@ -1293,7 +1297,7 @@ def login_password():
 
         else:
             verify_password = ""
-
+            print('h')
             for i in recover_email_entry_verify:
                 if i == "@":
                     break
@@ -1305,19 +1309,17 @@ def login_password():
                 (username_verify,),
             )
             values_fetch = my_cursor.fetchall()
-            try:
-                for i in values_fetch:
+            for i in values_fetch:
 
                     if i[0] == recover_email_entry_verify:
                         run = True
+                        print('h')
                     else:
                         run = False
                         roo1 = Tk()
                         roo1.withdraw()
                         messagebox.showerror("Error", "Wrong Recovey email")
                         roo1.destroy()
-            except:
-                pass
 
             if run:
                 otp_entry = Entry(window)
@@ -1353,6 +1355,7 @@ def login_password():
     forgot_password_button = Button(
         window, text="verify", command=lambda: main(key), bg="#292A2D", fg="white"
     )
+    print('h')
     forgot_password_button.grid(row=5, column=1)
     forgot_password_button.place(x=250, y=170)
     show_both_1 = Button(
@@ -1454,7 +1457,6 @@ def add_account_window(username, window, hashed_password):
             )
             if image_path_loc:
                 file = image.open(image_path_loc)
-                # noinspection PyBroadException
                 tkimage = tk_image.PhotoImage(file)
 
             else:
@@ -1465,6 +1467,7 @@ def add_account_window(username, window, hashed_password):
                 image=tkimage,
                 borderwidth="0",
                 bg="#292A2D",
+                activebackground='#292A2D',
                 command=lambda: change_icon(
                     default_image_button,
                     social_username,
@@ -1564,6 +1567,7 @@ def window_after(username, hash_password, password_new):
         root.geometry("1000x500")
         mainarea.config(bg="#292A2D")
         root.config(menu=emptyMenu)
+        root.iconbitmap(default='transparent.ico')
 
         list = mainarea.pack_slaves()
         for l in list:
@@ -1843,6 +1847,7 @@ def window_after(username, hash_password, password_new):
 
             # Basic tkinter setup
             root.geometry("1000x500")
+            root.iconbitmap(False,'icon.ico')
             root.title("Untitled - Notepad")
             # Add TextArea
             root.resizable(0, 0)
@@ -1865,18 +1870,20 @@ def window_after(username, hash_password, password_new):
 
             # create a menubar
             MenuBar = Menu(root)
-            MenuBar.config(bg="#292A2D", bd="0", activebackground="#292A2D")
+            MenuBar.config(bg="#292A2D", bd=0, activebackground="#292A2D")
             status_name = False
             root.config(bg="red", menu=MenuBar)
             # File Menu Starts
 
             FileMenu = Menu(MenuBar, tearoff=0)
-            FileMenu.config(bg="#292A2D", bd="0", activebackground="#292A2D")
-
+            FileMenu.config(background='black', borderwidth='0', relief=SUNKEN,
+                            activebackground="#292A2D")
+            FileMenu.config(activebackground='#292A2D')
             # To open new file
             FileMenu.add_command(
                 label="New",
                 command=newFile,
+                background="#292A2D",
                 foreground="white",
                 activebackground="#4B4C4F",
             )
@@ -1884,6 +1891,7 @@ def window_after(username, hash_password, password_new):
             FileMenu.add_command(
                 label="Open",
                 command=openFile,
+                background="#292A2D",
                 foreground="white",
                 activebackground="#4B4C4F",
             )
@@ -1891,18 +1899,21 @@ def window_after(username, hash_password, password_new):
             FileMenu.add_command(
                 label="Save",
                 command=lambda: save_file(),
+                background="#292A2D",
                 foreground="white",
                 activebackground="#4B4C4F",
             )
             FileMenu.add_command(
                 label="Save As",
                 command=lambda: save_as_File(),
+                background="#292A2D",
                 foreground="white",
                 activebackground="#4B4C4F",
             )
             FileMenu.add_command(
                 label="Rename",
                 command=lambda: rename_file(),
+                background="#292A2D",
                 foreground="white",
                 activebackground="#4B4C4F",
             )
@@ -1910,6 +1921,7 @@ def window_after(username, hash_password, password_new):
                 label="Exit",
                 command=quitApp,
                 foreground="white",
+                background="#292A2D",
                 activebackground="#4B4C4F",
             )
             MenuBar.add_cascade(
@@ -2603,7 +2615,6 @@ def change_icon(button, usernam, users_username, hashed_password, window):
                 pyAesCrypt.encryptFile(
                     file_name, users_username + ".bin.fenc", hashed_password, bufferSize
                 )
-                im = im.resize((100, 100))
                 new_tk = tk_image.PhotoImage(im)
                 button.config(image=new_tk)
                 button.photo = new_tk
@@ -2751,19 +2762,8 @@ def addaccount(username, hashed_password, window):
                 )
                 messagebox.showinfo("Success", "Your account has been saved")
                 root1.destroy()
-                my_cursor.execute(
-                    "select no_of_accounts from data_input where username = (?)",
-                    (username,),
-                )
-                val = my_cursor.fetchall()
-                real_accounts = 0
-                for i in val:
-                    real_accounts = int(i[0])
-                real_accounts += +1
-                my_cursor.execute(
-                    "update data_input set no_of_accounts =(?) where username =(?)",
-                    (real_accounts, username),
-                )
+
+
                 add_account_window(username, window, hashed_password)
 
     save_button = Button(root1, text="Save", command=save, fg="white", bg="#292A2D")
