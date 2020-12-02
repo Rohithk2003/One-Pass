@@ -69,7 +69,6 @@ exist = False
 cutting_value = False
 file = 0
 
-
 class Login:  # login_class
     def __init__(self, username, password):
         self.username = str(username)
@@ -518,7 +517,6 @@ class Deletion:
         else:
             pass
 
-@classmethod
 class Change_details:
     def __init__(self, real_username, hashed_password, window):
         self.real_username = real_username
@@ -1059,14 +1057,15 @@ def login_password():
 
     running = False
 
-    def generate_key1(file):
+    def generate_key1(file, button):
         print('hgd')
         pyAesCrypt.encryptFile(file, "otp.bin.fenc", key, bufferSize)
         os.unlink(file)
+        button.config(state=DISABLED)
+
         messagebox.showinfo(
             "OTP", f"An OTP has been sent to  {str(recover_email_entry.get())}"
         )
-
     def change_password(email, password1, username12):
         root = Toplevel()
         new_img = tk_image.PhotoImage(image.open("user.png"))
@@ -1077,7 +1076,7 @@ def login_password():
         file_name_reentry = username12 + ".bin.fenc"
 
         width_window = 400
-        height_window = 200
+        height_window = 400
         screen_width = window.winfo_screenwidth()
         screen_height = window.winfo_screenheight()
         x = screen_width / 2 - width_window / 2
@@ -1099,11 +1098,7 @@ def login_password():
         new_username_entry.grid(row=1, column=1)
         new_password_entry.grid(row=2, column=1)
 
-        new_img_label.place(x=110, y=50)
-        new_username.place(x=10, y=70 + 50)
-        new_password.place(x=10, y=100 + 50)
-        new_username_entry.place(x=150 - 40, y=70 + 50)
-        new_password_entry.place(x=150 - 40, y=100 + 50)
+
 
         new_username_entry.bind(
             "<FocusIn>",
@@ -1150,6 +1145,7 @@ def login_password():
             values_password = my_cursor.fetchall()
             password_decrypt = ""
             word = email.split()
+
             for i in word:
                 for a in i:
                     if i == "@":
@@ -1174,48 +1170,55 @@ def login_password():
                 value = decrypted_string + username12
 
                 re_hash = hashlib.sha3_512(value.encode()).hexdigest()
+                pyAesCrypt.decryptFile(
+                    file_name_reentry,
+                    username12 + "decrypted.bin",
+                    re_hash,
+                    bufferSize,
+                )
+                print('gas2')
 
-                def change():
-                    pyAesCrypt.decryptFile(
-                        file_name_reentry,
-                        username12 + "decrypted.bin",
-                        re_hash,
-                        bufferSize,
-                    )
+                os.remove(username12+'.bin.fenc')
+                re_hash_text = str(new_password_entry.get()) + str(
+                    new_username_entry.get()
+                )
+                print('gas')
+                new_salt = str(new_password_entry.get()) + "@" + main_pass
+                re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
+                re_encrypt, new_salt = create_key(main_pass, new_salt)
+                pyAesCrypt.encryptFile(
+                    username12 + "decrypted.bin",
+                    str(new_username_entry.get()) + ".bin.fenc",
+                    re_hash_new,
+                    bufferSize,
+                )
+                print('gas3s2')
 
-                    re_hash_text = str(new_password_entry.get()) + str(
-                        new_username_entry.get()
-                    )
-                    new_salt = str(new_password_entry.get()) + "@" + main_pass
-                    re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
-                    re_encrypt, new_salt = create_key(main_pass, new_salt)
-                    pyAesCrypt.encryptFile(
-                        username12 + "decrypted.bin",
-                        str(new_username_entry.get()) + ".bin.fenc",
-                        re_hash_new,
-                        bufferSize,
-                    )
-
-                    my_cursor.execute(
-                        "update data_input set username = (?) where username = (?)",
-                        (str(new_username_entry.get()), username12),
-                    )
-                    my_cursor.execute(
-                        "update data_input set password = (?) where username = (?)",
-                        (re_encrypt, username12),
-                    )
-
+                my_cursor.execute(
+                    "update data_input set username = (?) where username = (?)",
+                    (str(new_username_entry.get()), username12),
+                )
+                my_cursor.execute(
+                    "update data_input set password = (?) where username = (?)",
+                    (re_encrypt, username12),
+                )
             except:
                 p = Tk()
                 p.withdraw()
                 messagebox.showinfo("Error", "Wrong recovery password")
                 p.destroy()
+            
 
+        # new_img_label.place(x=110, y=50)
+        # new_username.place(x=10, y=70 + 50)
+        # new_password.place(x=10, y=100 + 50)
+        # new_username_entry.place(x=150 - 40, y=70 + 50)
+        # new_password_entry.place(x=150 - 40, y=100 + 50)
         change_button = Button(root, text="Change", command=change)
-        change_button.grid(row=3, column=0, columnspan=1)
-        change_button.place(x=130, y=100 + 100)
+        change_button.grid(row=3, column=0)
+        # change_button.place(x=130, y=100 + 200)
 
-    def Verification(password, otp_entry, email, email_password, username12):
+    def Verification(password, otp_entry, email, email_password, username12, button):
         ot = str(otp_entry)
         if ot != "":
             pyAesCrypt.decryptFile(
@@ -1238,6 +1241,7 @@ def login_password():
                     change_password(email, email_password, username12)
                 else:
                     messagebox.showinfo("Error", "Incorrect OTP Please verify it again")
+                    button.config(state=NORMAL)
                     otp_entry.delete(0, END)
         else:
             messagebox.showinfo("Error", "Please provide the OTP  send to your email")
@@ -1258,7 +1262,7 @@ def login_password():
             a.withdraw()
             messagebox.showwarning('No internet','No internet is available')
 
-    def main(key):
+    def main(key, otp_window, button):
         run = False
         global running
         print('gs')
@@ -1296,64 +1300,82 @@ def login_password():
             a.destroy()
 
         else:
-            verify_password = ""
-            print('h')
-            for i in recover_email_entry_verify:
-                if i == "@":
-                    break
-                else:
-                    verify_password += i
-            verify_password += recover_password_entry_verify
-            my_cursor.execute(
-                "select email_id from data_input where username = (?)",
-                (username_verify,),
-            )
-            values_fetch = my_cursor.fetchall()
-            for i in values_fetch:
-
-                    if i[0] == recover_email_entry_verify:
-                        run = True
-                        print('h')
+            if os.path.exists(username_verify + ".bin.fenc"):
+                verify_password = ""
+                print('h11111111111111111111111')
+                print(recover_email_entry_verify)
+                for i in recover_email_entry_verify:
+                    if i == "@":
+                        break
                     else:
-                        run = False
-                        roo1 = Tk()
-                        roo1.withdraw()
-                        messagebox.showerror("Error", "Wrong Recovey email")
-                        roo1.destroy()
-
-            if run:
-                otp_entry = Entry(window)
-                otp_entry.grid(row=6, column=1)
-                otp_entry_button = Button(
-                    window,
-                    text="verify otp",
-                    command=lambda: Verification(
-                        key,
-                        otp_entry.get(),
-                        recover_email_entry_verify,
-                        recover_password_entry_verify,
-                        username_verify,
-                    ),
-                    fg="white",
-                    bg="#292A2D",
+                        verify_password += i
+                verify_password += recover_password_entry_verify
+                my_cursor.execute(
+                    "select email_id from data_input where username = (?)",
+                    (username_verify,),
                 )
-                otp_entry_button.grid(row=8, column=1)
-                otp_entry_button.place(x=50, y=200)
-                otp_entry.place(x=200, y=200)
-                digits = "1234567890"
-                OTP = ""
-                for i in range(6):
-                    OTP += random.choice(digits)
-                OTP_secure = hashlib.sha512(OTP.encode()).hexdigest()
-                l = list(OTP_secure)
-                with open("otp.bin", "wb") as f:
-                    pickle.dump(l, f)
-                    f.close()
-                generate_key1("otp.bin")
-                forgot_password(OTP, recover_email_entry_verify, username_verify)
+                values_fetch = my_cursor.fetchall()
+                print(values_fetch)
+
+                if values_fetch != []:
+                    for i in values_fetch:
+
+                            if i[0] == recover_email_entry_verify:
+                                run = True
+                                print('h')
+                            else:
+                                run = False
+                                roo1 = Tk()
+                                roo1.withdraw()
+                                messagebox.showerror("Error", "Wrong Recovey email")
+                                roo1.destroy()
+                else:
+                    windowss = Tk()
+                    windowss.withdraw()
+                    messagebox.showerror('Error','No such account exists')
+                    windowss.destroy()
+
+                if run:
+                    
+                    otp_entry = Entry(otp_window)
+                    otp_entry.grid(row=6, column=1)
+                    otp_entry_button = Button(
+                        otp_window,
+                        text="verify otp",
+                        command=lambda: Verification(
+                            key,
+                            otp_entry.get(),
+                            recover_email_entry_verify,
+                            recover_password_entry_verify,
+                            username_verify,
+                            button,
+                        ),
+                        fg="white",
+                        bg="#292A2D",
+                    )
+                    otp_entry_button.grid(row=8, column=1)
+                    otp_entry_button.place(x=50, y=200)
+                    otp_entry.place(x=200, y=200)
+                    digits = "1234567890"
+                    OTP = ""
+                    for i in range(6):
+                        OTP += random.choice(digits)
+                    OTP_secure = hashlib.sha512(OTP.encode()).hexdigest()
+                    l = list(OTP_secure)
+                    with open("otp.bin", "wb") as f:
+                        pickle.dump(l, f)
+                        f.close()
+                    generate_key1("otp.bin",button)
+                    forgot_password(
+                        OTP, recover_email_entry_verify, username_verify)
+            else:
+                    window = Tk()
+                    window.withdraw()
+                    messagebox.showerror('Error','No such account exists')
+                    window.destroy()
 
     forgot_password_button = Button(
-        window, text="verify", command=lambda: main(key), bg="#292A2D", fg="white"
+        window, text="verify", command=lambda: main(key, window, forgot_password_button), bg="#292A2D", fg="white"
     )
     print('h')
     forgot_password_button.grid(row=5, column=1)
