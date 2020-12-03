@@ -53,7 +53,6 @@ if not os.path.exists("DATABASE"):
     os.mkdir("DATABASE")
 connection = sqlite3.connect("DATABASE\\users.db", isolation_level=None)
 my_cursor = connection.cursor()
-for i in range
 my_cursor.execute(
     "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,"
     "salt blob, recovery_password varchar(100), profile_path varchar(100),salt_recovery blob) "
@@ -69,8 +68,7 @@ exist = False
 cutting_value = False
 file = 0
  # login_class
-for i in range(10):
-    if i.isa
+
 class Login:
     def __init__(self, username, password):
         self.username = str(username)
@@ -430,8 +428,8 @@ class Deletion:
         selectaccount.grid(column=1, row=0)
         change_account_label.grid(column=0, row=0)
         delete.grid(row=1, column=1)
-        selectaccount.current() 
-        
+        selectaccount.current()
+
     def change_account_name(self, account_name):
         result = messagebox.askyesno(
             "Confirm", "Are you sure that you want to delete your account"
@@ -1026,13 +1024,15 @@ def testttt(username,window,p111p):
         with open(f'{username}decrypted.bin','rb') as f:
                 val = pickle.load(f)
                 for i in val:
-                    new.append(i[2])
+                            new.append(i[2])
+                d ={}
+                for i in range(len(new)):
+                        d[Button(window, text=f's{i}',command=lambda a=i:actions(a,p111p,username))]=i
+                print(d)
+                for i in d:
+                    print(d[i])
+                    i.grid(row=d[i],column=0)
 
-        for i in range(len(new)):
-                buttons_list.append(Button(window, text=f's{i}',command=lambda:actions(i,p111p,username)))
-        for i in range(len(buttons_list)):
-            buttons_list[i].grid(row=i,column=0)
-            print(i)
 def login_password():
     window = Tk()
     window.config(bg="#292A2D")
@@ -1472,7 +1472,7 @@ def login_password():
 var = 0
 
 
-'''def add_account_window(username, window, hashed_password):
+'''def add_ account_window(username, window, hashed_password):
     d = window.winfo_children()
     no_accounts = 0
     try:
@@ -2867,7 +2867,8 @@ def gameloop(username, hashed_password, window):
     # Scroll_y.config(command=subbar.yview)
     subbar.grid(row=0, column=0)
     subbar.grid_propagate(0)
-    testttt( username,subbar,window)
+    avidyaayaamantare vartamaanaah svayan dheeraah panditammanyamaanaah. dandamyamaanaah pariyanti moodha andhenev neeyamaana yathaandhaah.
+( username,subbar,window)
     add_button = Button(
         subbar,
         text='add',
@@ -2877,7 +2878,7 @@ def gameloop(username, hashed_password, window):
         compound="top",
         command=lambda: addaccount(username, hashed_password, window),
     )
-    add_button.grid(row=1,column=0)
+    add_button.grid(row=5,column=0)
 
 def get(window, name):
     global l
