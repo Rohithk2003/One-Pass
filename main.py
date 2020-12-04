@@ -921,7 +921,7 @@ def retreive_key(password, byte, de):
 
 def checkforupdates():
     # isUpToDate check whether the file ie main.py  is same as the one present in my github repository and it returns true if same else false
-    if isUpToDate(
+    if not isUpToDate(
             "main.py",
             "https://raw.githubusercontent.com/Rohithk2003/One-Pass/develop/main.py",
     ):
