@@ -1500,13 +1500,6 @@ def window_after(username, hash_password, password_new):
         root.config(menu=emptyMenu)
         root.iconbitmap(default="transparent.ico")
 
-        # list = mainarea.pack_slaves()
-        # for l in list:
-        #     l.destroy()
-        # new_val = mainarea.grid_slaves()
-        # print(new_val)
-        # for i in new_val:
-        #     i.destroy()
         for widget in mainarea.winfo_children():
             widget.destroy()
         gameloop(username, hash_password, mainarea)
@@ -2767,8 +2760,11 @@ def verify(social_username, social_media, real_username):
 
 def actions(button, window, username, hashed_password):
     global buttons_list
-    print("getting executed")
+    for widget in window.winfo_children():
+        if str(widget.winfo_class()) != 'Frame':
+            widget.destroy()
     with open(f"{username}decrypted.bin", "rb") as f:
+
         lists = pickle.load(f)
         username_label = Label(
             window, text="Username :", bg="#292A2D", fg="white", font=("Verdana", 15)
@@ -2868,7 +2864,7 @@ def buttons_blit(username, window, mainarea, hashed_password):
             d[
                 Button(
                     window,
-                    text=f"s{i}",
+                    text=f"{new[i]}",
                     bg="#292A2D",
                     fg="white",
                     activeforeground="white",
@@ -2879,11 +2875,11 @@ def buttons_blit(username, window, mainarea, hashed_password):
                     compound="top",
                     command=lambda a=i: actions(a, mainarea, username, hashed_password),
                 )
-            ] = i
+            ] = [i, button_img]
 
         for i in d:
-            i.photo = button_img
-            i.grid(row=d[i], column=0)
+            i.image = d[i][1]
+            i.grid(row=d[i][0], column=0)
 
 
 def gameloop(username, hashed_password, window):
@@ -2917,10 +2913,8 @@ def gameloop(username, hashed_password, window):
             username, add_button, hashed_password, window, subbar
         ),
     )
-<<<<<<< HEAD
-    add_button.grid(row=1,column=0)
-#ss
-=======
+    add_button.grid(row=1, column=0)
+
     add_button.photo = image_load
     values = []
     with open(f"{username}decrypted.bin", "rb") as f:
@@ -2932,7 +2926,6 @@ def gameloop(username, hashed_password, window):
     add_button.grid(row=length_list, column=0)
 
 
->>>>>>> master
 def get(window, name):
     global l
     for i in l:
