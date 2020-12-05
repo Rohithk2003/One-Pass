@@ -470,18 +470,7 @@ class Deletion:
             with open(f"{self.real_username}decrypted.bin", "wb") as f:
                 pickle.dump(values, f)
                 f.close()
-            x = my_cursor.execute(
-                "select no_of_accounts from data_input where username=(?)",
-                (self.real_username,),
-            )
-            new_val = 0
-            for i in x:
-                new_val = i[0]
-            new_val -= 1
-            my_cursor.execute(
-                f"update data_input set no_of_accounts = (?) where username=(?)",
-                (new_val, self.real_username),
-            )
+
             pyAesCrypt.encryptFile(
                 f"{self.real_username}decrypted.bin",
                 f"{self.real_username}.bin.fenc",
@@ -2764,86 +2753,87 @@ def actions(button, window, username, hashed_password):
         if str(widget.winfo_class()) != 'Frame':
             widget.destroy()
     with open(f"{username}decrypted.bin", "rb") as f:
+        try:
+            lists = pickle.load(f)
+            username_label = Label(
+                window, text="Username :", bg="#292A2D", fg="white", font=("Verdana", 15)
+            )
+            password_label = Label(
+                window, text="Password :", bg="#292A2D", fg="white", font=("Verdana", 15)
+            )
+            social_account = Label(
+                window,
+                text="Account Name :",
+                bg="#292A2D",
+                fg="white",
+                font=("Verdana", 15),
+            )
 
-        lists = pickle.load(f)
-        username_label = Label(
-            window, text="Username :", bg="#292A2D", fg="white", font=("Verdana", 15)
-        )
-        password_label = Label(
-            window, text="Password :", bg="#292A2D", fg="white", font=("Verdana", 15)
-        )
-        social_account = Label(
-            window,
-            text="Account Name :",
-            bg="#292A2D",
-            fg="white",
-            font=("Verdana", 15),
-        )
+            username_text = Label(
+                window,
+                text=lists[button][0],
+                bg="#292A2D",
+                fg="white",
+                font=("Verdana", 15),
+            )
+            password_text = Label(
+                window,
+                text=lists[button][1],
+                bg="#292A2D",
+                fg="white",
+                font=("Verdana", 15),
+            )
+            social_account_text = Label(
+                window,
+                text=lists[button][2],
+                bg="#292A2D",
+                fg="white",
+                font=("Verdana", 15),
+            )
 
-        username_text = Label(
-            window,
-            text=lists[button][0],
-            bg="#292A2D",
-            fg="white",
-            font=("Verdana", 15),
-        )
-        password_text = Label(
-            window,
-            text=lists[button][1],
-            bg="#292A2D",
-            fg="white",
-            font=("Verdana", 15),
-        )
-        social_account_text = Label(
-            window,
-            text=lists[button][2],
-            bg="#292A2D",
-            fg="white",
-            font=("Verdana", 15),
-        )
+            if lists[button][3] == "":
+                img = tk_image.PhotoImage(image.open("photo.png"))
+            else:
+                img = tk_image.PhotoImage(image.open(lists[button][3]))
+            img_button = Button(
+                window,
+                image=img,
+                bg="#292A2D",
+                border="0",
+                activebackground="#292A2D",
+                command=lambda: change_icon(
+                    img_button, lists[button][0], username, hashed_password, window
+                ),
+            )
+            img_button.photo = img
 
-        if lists[button][3] == "":
-            img = tk_image.PhotoImage(image.open("photo.png"))
-        else:
-            img = tk_image.PhotoImage(image.open(lists[button][3]))
-        img_button = Button(
-            window,
-            image=img,
-            bg="#292A2D",
-            border="0",
-            activebackground="#292A2D",
-            command=lambda: change_icon(
-                img_button, lists[button][0], username, hashed_password, window
-            ),
-        )
-        img_button.photo = img
+            # putting the labels on to the surface
+            social_account.grid(row=1, column=0)
+            username_label.grid(row=2, column=0)
+            password_label.grid(row=3, column=0)
 
-        # putting the labels on to the surface
-        social_account.grid(row=1, column=0)
-        username_label.grid(row=2, column=0)
-        password_label.grid(row=3, column=0)
+            # account labels
+            social_account_text.grid(row=1, column=1)
+            username_text.grid(row=2, column=1)
+            password_text.grid(row=3, column=1)
 
-        # account labels
-        social_account_text.grid(row=1, column=1)
-        username_text.grid(row=2, column=1)
-        password_text.grid(row=3, column=1)
+            # placing the labels
 
-        # placing the labels
+            social_account.place(x=300 - 50, y=100 + 50)
+            social_account_text.place(x=200 + 300 - 50, y=100 + 50)
 
-        social_account.place(x=300 - 50, y=100 + 50)
-        social_account_text.place(x=200 + 300 - 50, y=100 + 50)
+            username_label.place(x=100 + 200 - 50, y=200 + 50)
+            username_text.place(x=200 + 300 - 50, y=200 + 50)
 
-        username_label.place(x=100 + 200 - 50, y=200 + 50)
-        username_text.place(x=200 + 300 - 50, y=200 + 50)
+            password_label.place(x=100 + 200 - 50, y=300 + 50)
+            password_text.place(x=200 + 300 - 50, y=300 + 50)
 
-        password_label.place(x=100 + 200 - 50, y=300 + 50)
-        password_text.place(x=200 + 300 - 50, y=300 + 50)
+            # image button
+            img_button.grid(row=0, column=0)
+            img_button.place(x=150 + 200 - 50, y=50)
 
-        # image button
-        img_button.grid(row=0, column=0)
-        img_button.place(x=150 + 200 - 50, y=50)
-
-
+        except:
+            pass
 def buttons_blit(username, window, mainarea, hashed_password):
     global buttons_list
     global btn_nr
@@ -2939,10 +2929,10 @@ def handle_focus_in(entry, index):
     val = str(entry.get())
     if val == "Username" or val == "Email ID" or val == "New Email":
         entry.delete(0, END)
-        entry.config(fg="#292A2D")
+        entry.config(fg="black")
     if val == "Password" or val == "Email password" or val == "New Email password":
         entry.delete(0, END)
-        entry.config(fg="#292A2D")
+        entry.config(fg="black")
         entry.config(show="*")
     elif (
             index == 2
@@ -3223,11 +3213,7 @@ def register(window, *a):
     password_entry = Entry(login_window1, show="*")
     email_id_entry = Entry(login_window1)
     email_password_entry = Entry(login_window1, show="*")
-    width = login_window1.winfo_screenwidth()
 
-    len1 = len(username["text"])
-    len2 = len(password["text"])
-    len3 = len(email_id["text"])
     len4 = len(email_password["text"])
     # putting the buttons and entries
 
