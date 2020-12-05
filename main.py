@@ -885,6 +885,29 @@ def create_key(password, message):
     return encrypted, salt
 
 
+def log_out(*window):
+    try:
+        for i in window:
+            i.destroy()
+
+        a = Tk()
+        a.withdraw()
+        messagebox.showinfo('Logged Out', 'You have been successfully logged out')
+        a.destroy()
+        list_file = glob.glob("*decrypted.bin")
+        for i in list_file:
+            converting_str = str(i)
+            try:
+                os.remove(converting_str)
+            except:
+                pass
+        login()
+
+
+    except:
+        pass
+
+
 def retreive_key(password, byte, de):
     password_key = password.encode()
     kdf = PBKDF2HMAC(
@@ -934,12 +957,12 @@ def checkforupdates():
         messagebox.showinfo("Update", "No update is currently available")
 
 
-def settings(real_username, hashed_password, window, password_button):
+def settings(real_username, main_window, hashed_password, window, password_button):
     settings_window = Tk()
     settings_window.resizable(False, False)
 
     width_window = 150
-    height_window = 130
+    height_window = 157
     screen_width = settings_window.winfo_screenwidth()
     screen_height = settings_window.winfo_screenheight()
     x = screen_width / 2 - width_window / 2
@@ -952,6 +975,9 @@ def settings(real_username, hashed_password, window, password_button):
 
     delete_object = Deletion(real_username, hashed_password, window)
     change_object = Change_details(real_username, hashed_password, window)
+
+    log_label = Button(settings_window, text='Log Out', fg="white", bg="#292A2D", width=20,
+                       command=lambda: log_out(settings_window, window, main_window))
 
     check_for_updates = Button(
         settings_window,
@@ -999,6 +1025,8 @@ def settings(real_username, hashed_password, window, password_button):
     Delete_social_button.grid(row=3, column=1, columnspan=2)
     change_account_button.grid(row=4, column=1, columnspan=2)
     change_email_button.grid(row=5, column=1, columnspan=2)
+    log_label.grid(row=6, column=1, columnspan=2)
+
     if os.stat(f"{real_username}decrypted.bin").st_size == 0:
         Delete_social_button.config(state=DISABLED)
     else:
@@ -2500,7 +2528,7 @@ def window_after(username, hash_password, password_new):
         fg="white",
         bg="#292A2D",
         border="0",
-        command=lambda: settings(username, hash_password, mainarea, button),
+        command=lambda: settings(username, root, hash_password, mainarea, button),
         relief=FLAT,
         highlightthickness=0,
         activeforeground="white",
@@ -2994,10 +3022,11 @@ def password_sec(entry, button):
             button["text"] = "Show"
 
 
-def login(window):
+def login(*window):
     login_window = Tk()
     try:
-        window.destroy()
+        for i in window:
+            i.destroy()
     except:
         pass
     login_window.resizable(False, False)
@@ -3005,6 +3034,7 @@ def login(window):
     width_window = 400
     height_window = 400
     login_window.focus_set()
+    login_window.grab_set()
     login_window.config(bg="#292A2D")
     screen_width = login_window.winfo_screenwidth()
     screen_height = login_window.winfo_screenheight()
@@ -3081,12 +3111,17 @@ def login(window):
         if username != "" or password != "":
             check, main_password, passw = login.login_checking()
             if check:
-                root = Tk()
-                root.withdraw()
-                messagebox.showinfo("Success", "You have now logged in ")
-                root.destroy()
-                login_window.destroy()
-                window_after(username, main_password, passw)
+                try:
+                    root = Tk()
+                    root.withdraw()
+                    but.config(state=DISABLED)
+
+                    messagebox.showinfo("Success", "You have now logged in ")
+                    root.destroy()
+                    login_window.destroy()
+                    window_after(username, main_password, passw)
+                except:
+                    pass
             else:
                 pass
 
