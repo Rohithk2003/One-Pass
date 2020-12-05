@@ -5,6 +5,7 @@ import hashlib
 import os.path
 import pickle
 import pyAesCrypt
+
 import random
 import smtplib
 import sqlite3
@@ -37,13 +38,8 @@ from update_check import update
 bufferSize = 64 * 1024
 root = Tk()
 root.title("ONE-PASS")
-width_window = 300
-height_window = 300
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
-x = screen_width / 2 - width_window / 2
-y = screen_height / 2 - height_window / 2
-root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+
+root.geometry("1057x700+0+0")
 
 # database connection
 if not os.path.exists("DATABASE"):
@@ -243,20 +239,13 @@ class Profile_view:
         )
 
         # profile image
-        profile_text = Label(
-            profile,
-            text="Add profile photo",
-            font="Verdana 15",
-            fg="white",
-            bg="#292A2D",
-            highlightcolor="#292A2D",
-            activebackground="#292A2D",
-        )
+
 
         my_cursor.execute(
             "select profile_path from data_input where username = (?)", (self.username,)
         )
-        profile_photo = Button(profile, bg="#292A2D")
+        profile_photo = Button(profile, bg="#292A2D",activebackground='black',activeforeground='white',
+)
 
         value = my_cursor.fetchall()
         if value != []:
@@ -266,7 +255,6 @@ class Profile_view:
                     profile_photo.config(image=profile_image)
                     profile_photo.photo = profile_image
                 else:
-                    profile_text.config(text="")
                     a = image.open(i[0])
                     profile_image = tk_image.PhotoImage(a)
                     profile_photo.config(image=profile_image)
@@ -280,7 +268,8 @@ class Profile_view:
             text="Delete Account",
             fg="white",
             bg="black",
-            font="Verdana 15",
+            activebackground='black',activeforeground='white',
+            font='Helvetiva 10',
             command=lambda: delete_object.delete_main_account(),
         )
 
@@ -301,7 +290,7 @@ class Profile_view:
         email_id_label.place(x=200, y=200 + 100)
         email_password_label.place(x=200, y=250 + 100)
         profile_photo.place(x=350, y=50)
-        delete_this_account.place(x=0, y=440 + 20)
+        delete_this_account.place(x=0, y=440 + 32)
 
         username_label_right.place(x=500, y=100 + 100)
         password_label_right.place(x=500, y=150 + 100)
@@ -414,7 +403,7 @@ class Deletion:
         self.hashed_password = hashed_password
         self.window = window
 
-    def delete_social_media_account(self):
+    def delete_social_media_account(self,password_button):
         delete_med_account = Tk()
         delete_med_account.config(bg="#292A2D")
         delete_med_account.title("Delete Account")
@@ -436,7 +425,7 @@ class Deletion:
             text="Delete",
             fg="white",
             bg="#292A2D",
-            command=lambda: self.change_account_name(str(selectaccount.get())),
+            command=lambda: self.change_account_name(str(selectaccount.get()),password_button),
         )
         selectaccount["values"] = tu
         change_account_label = Label(
@@ -450,7 +439,7 @@ class Deletion:
         delete.grid(row=1, column=1)
         selectaccount.current()
 
-    def change_account_name(self, account_name):
+    def change_account_name(self, account_name, button):
         result = messagebox.askyesno(
             "Confirm", "Are you sure that you want to delete your account"
         )
@@ -485,7 +474,12 @@ class Deletion:
                 values = pickle.load(f)
                 for i in values:
                     print(i[0])
-            add_account_window(self.real_username, self.window, self.hashed_password)
+            #getting whether the password button is pressed or not
+            state_current = button['state']
+            if state_current == DISABLED:
+                gameloop(self.real_username, self.hashed_password,self.window)
+            else:
+                pass
         else:
             a = Tk()
             a.withdraw()
@@ -941,7 +935,7 @@ def checkforupdates():
         messagebox.showinfo("Update", "No update is currently available")
 
 
-def settings(real_username, hashed_password, window):
+def settings(real_username, hashed_password, window, password_button):
     settings_window = Tk()
     settings_window.resizable(False, False)
 
@@ -980,7 +974,7 @@ def settings(real_username, hashed_password, window):
         settings_window,
         text="Delete sub  account",
         width=20,
-        command=lambda: delete_object.delete_social_media_account(),
+        command=lambda: delete_object.delete_social_media_account(password_button),
         fg="white",
         bg="#292A2D",
     )
@@ -1981,9 +1975,9 @@ def window_after(username, hash_password, password_new):
             root.bind("<Control-Key-h>", secondary)
 
             EditMenu = Menu(MenuBar, tearoff=0)
-            EditMenu.config(bg="#292A2D", bd="0", activebackground="#292A2D")
+            EditMenu.config(bg="#292A2D", bd="0", relief='ridge', activebackground="#292A2D")
 
-            my_menu = Menu(mainarea, tearoff=0)
+            my_menu = Menu(mainarea, tearoff=0,)
             my_menu.config(bg="#292A2D", bd="0", activebackground="#292A2D")
             my_menu.add_command(
                 label="Highlight",
@@ -2507,7 +2501,7 @@ def window_after(username, hash_password, password_new):
         fg="white",
         bg="#292A2D",
         border="0",
-        command=lambda: settings(username, hash_password, mainarea),
+        command=lambda: settings(username, hash_password, mainarea,button),
         relief=FLAT,
         highlightthickness=0,
         activeforeground="white",
@@ -2528,11 +2522,13 @@ def window_after(username, hash_password, password_new):
     profile_button = Button(
         sidebar,
         text="Profile",
+        activebackground="#292A2D",
+        activeforeground="white",
         command=lambda: profile_object.profile_window(mainarea, root, profile_button),
         padx=35,
         fg="white",
         bg="black",
-    )
+            )
     profile_button.grid(row=2, column=1)
 
     settings_button.photo = settings_image
@@ -2725,8 +2721,9 @@ def addaccount(username, button, hashed_password, window, sidebar):
                 root1.destroy()
                 with open(f"{username}decrypted.bin", "rb") as f:
                     val = pickle.load(f)
-                    button.grid(row=len(val), column=0)
-                buttons_blit(username, sidebar, window, hashed_password)
+                    button.grid(row=len(val)+1, column=0)
+                    print(val)
+                gameloop(username, hashed_password, window)
 
     save_button = Button(root1, text="Save", command=save, fg="white", bg="#292A2D")
     save_button.grid(row=4, column=1)
@@ -2834,43 +2831,50 @@ def actions(button, window, username, hashed_password):
 
         except:
             pass
-def buttons_blit(username, window, mainarea, hashed_password):
+def buttons_blit(username, window,add_button, mainarea, hashed_password):
     global buttons_list
     global btn_nr
     new = []
 
     with open(f"{username}decrypted.bin", "rb") as f:
-        # image=button_img, compound=TOP,
-        val = pickle.load(f)
-        for i in val:
-            new.append(i[2])
-        d = {}
-        for i in range(len(new)):
-            if val[i][3] == "":
-                button_img = tk_image.PhotoImage(image.open("photo.png"))
-            else:
-                button_img = tk_image.PhotoImage(image.open(val[i][3]))
+            val = pickle.load(f)
+            for i in val:
+                new.append(i[2])
+            d = {}
+            for i in range(len(new)):
+                if val[i][3] == "":
+                    button_img = tk_image.PhotoImage(image.open("photo.png"))
+                else:
+                    button_img = tk_image.PhotoImage(image.open(val[i][3]))
 
-            d[
-                Button(
-                    window,
-                    text=f"{new[i]}",
-                    bg="#292A2D",
-                    fg="white",
-                    activeforeground="white",
-                    activebackground="#292A2D",
-                    padx=21,
-                    font=("Verdana", 9),
-                    image=button_img,
-                    compound="top",
-                    command=lambda a=i: actions(a, mainarea, username, hashed_password),
-                )
-            ] = [i, button_img]
+                d[
+                    Button(
+                        window,
+                        text=f"{new[i]}",
+                        bg="#292A2D",
+                        fg="white",
+                        activeforeground="white",
+                        activebackground="#292A2D",
+                        padx=21,
+                        font=("Verdana", 9),
+                        image=button_img,
+                        compound="top",
+                        command=lambda a=i: actions(a, mainarea, username, hashed_password),
+                    )
+                ] = [i, button_img]
 
-        for i in d:
-            i.image = d[i][1]
-            i.grid(row=d[i][0], column=0)
-
+            for i in d:
+                i.image = d[i][1]
+                i.grid(row=d[i][0], column=0)
+                values = []
+            with open(f"{username}decrypted.bin", "rb") as f:
+                try:
+                    values = pickle.load(f)
+                except:
+                    pass
+            length_list = len(values)
+            print(length_list)
+            add_button.grid(row=length_list+1, column=0)
 
 def gameloop(username, hashed_password, window):
     vals = window.grid_slaves()
@@ -2880,40 +2884,52 @@ def gameloop(username, hashed_password, window):
     subbar = Frame(
         window, bg="black", width=120, height=800, relief="sunken", borderwidth=2
     )
-    subbar.grid(row=0, column=0)
+    subbar.grid(row=0,column=0)
     subbar.grid_propagate(False)
-    subbar.place(x=0, y=0)
-    buttons_blit(username, subbar, window, hashed_password)
     image_load = tk_image.PhotoImage(image.open("add-button.png"))
 
-    add_button = Button(
-        subbar,
-        text="Add",
-        image=image_load,
-        fg="white",
-        activeforeground="white",
-        bg="#292A2D",
-        activebackground="#292A2D",
-        padx=20,
-        # border="0",
-        relief=RAISED,
-        font=("Verdana", 9),
-        compound="top",
-        command=lambda: addaccount(
-            username, add_button, hashed_password, window, subbar
-        ),
-    )
-    add_button.grid(row=1, column=0)
 
-    add_button.photo = image_load
+    canvas = Canvas(subbar,width=120,height=496,bd='0',highlightthickness=0,bg='#292A2D' )
+    canvas.pack(side='left',fill=BOTH)
+
+    scrollbar = Scrollbar(subbar, orient=VERTICAL,highlightthickness=0,bg='#292A2D' ,command=canvas.yview)
+
+    scrollbar.pack(expand=1,fill=Y)
+
+    # configure the canvas
+    canvas.configure(yscrollcommand=scrollbar.set)
+    canvas.bind('<Configure>',lambda event:canvas.configure(scrollregion=canvas.bbox('all')))
+
+    #creating another frame
+    second_frame = Frame(canvas,width=120,height=800,bd ='0',highlightbackground='#292A2D')
+
+    #add that new frame to a new window in the canvas
+    canvas.create_window((0,0),window=second_frame,anchor='ne')
+    image_new = tk_image.PhotoImage(image.open('add-button.png'))
+    add_button = Button(second_frame,text='Add',
+                fg="white",
+                image=image_new,
+                compound='top',
+                activeforeground="white",
+                bg="#292A2D",
+                activebackground="#292A2D",
+                padx=20,
+                relief=RAISED,
+                font=("Verdana", 9),
+                command=lambda: addaccount(
+                    username, add_button, hashed_password, window, subbar
+                ),
+            )
+    add_button.photo = image_new
     values = []
     with open(f"{username}decrypted.bin", "rb") as f:
-        try:
-            values = pickle.load(f)
-        except:
-            pass
+            try:
+                values = pickle.load(f)
+            except:
+                pass
     length_list = len(values)
     add_button.grid(row=length_list, column=0)
+    buttons_blit(username, second_frame,add_button, window, hashed_password)
 
 
 def get(window, name):
@@ -3376,6 +3392,19 @@ def register(window, *a):
     my_label.photo = va
     my_label.place(x=120, y=10)
 
+#---------------------Importing Images------------------
+
+image1 = tk_image.PhotoImage(image.open("background.jpg"))
+imagenew_reg = tk_image.PhotoImage(image.open("s.jpg"))
+imageview_reg = tk_image.PhotoImage(image.open("view.png"))
+iconimage = tk_image.PhotoImage(image.open("icon.png"))
+cancelimage = tk_image.PhotoImage(image.open("cancel.png"))
+
+
+
+image1_label = Label(root, image=image1)
+image1_label.place(x=0, y=0)
+
 
 root.config(bg="#292A2D")
 main = Label(
@@ -3385,46 +3414,22 @@ main = Label(
     fg="white",
     bg="#292A2D",
 )
-login_text = Label(
-    root, text="Login   :", fg="white", bg="#292A2D", font=("Verdana", 15)
-)
-register_text = Label(
-    root, text="Register: ", fg="white", bg="#292A2D", font=("Verdana", 15)
-)
-reg_button = Button(
-    root,
-    text="Register",
-    command=lambda: register(root),
-    font=("Verdana", 15),
-    fg="white",
-    bg="#292A2D",
-    relief=RAISED,
-    highlightthickness=0,
-)
-login_button = Button(
-    root,
-    text="login",
-    command=lambda: login(root),
-    font=("Verdana", 15),
-    fg="white",
-    bg="#292A2D",
-    relief=RAISED,
-    highlightthickness=0,
-)
+labelframe=LabelFrame(root,bg='#292A2D',width=350,height=500,borderwidth=2, relief="solid")
+labelframe.pack(padx=100,pady=100)
 
-main.grid(row=0, column=1, columnspan=2)
-login_button.grid(row=7, column=1, columnspan=2)
-login_text.grid(row=6, column=1, columnspan=2)
-register_text.grid(row=8, column=1, columnspan=2)
-reg_button.grid(row=9, column=1, columnspan=2)
 
-main.place(x=30, y=20)
+icon_label = Label(labelframe, image=iconimage)
+icon_label.place(x=115,y=20)
 
-login_text.place(x=40, y=110)
-login_button.place(x=140, y=102)
+#----------------------Buttons----------------------------
 
-register_text.place(x=40, y=200)
-reg_button.place(x=140, y=200 - 8)
+register_button = Button(labelframe, text='Login',bd=0,activebackground='#292A2D',bg='#292A2D',image=imagenew_reg,command=lambda:login(root)) 
+register_button.place(x=65,y=200)
+view = Button(labelframe, text='Register',bd=0,activebackground='#292A2D',image=imageview_reg,command=lambda: register(root),bg='#292A2D')
+view.place(x=65, y=270)
+close = Button(labelframe, image=cancelimage,activebackground='#292A2D',bd=0,command=root.destroy,bg='#292A2D')
+close.place(x=120, y=340)
+
 
 root.resizable(False, False)
 root.mainloop()
