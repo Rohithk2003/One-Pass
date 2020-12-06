@@ -621,36 +621,52 @@ class Change_details:
     def change_sub_account(
             self, accounttobechanged, new_username, new_password, account_name
     ):
-        with open(f"{self.real_username}decrypted.bin", "rb") as f:
-            value1 = pickle.load(f)
-            f.close()
-        for i in value1:
+        if str(new_username) =='' or str(new_username) == 'Username':
+            a = Tk()
+            a.withdraw()
+            messagebox.showwarning("Warning", 'Cannot have blank username')
+            a.destroy()
+        elif str(new_password) =='' or str(new_password) == 'Password':
+            a = Tk()
+            a.withdraw()
+            messagebox.showwarning("Warning", 'Cannot have blank password')
+            a.destroy()
+        elif str(account_name) == '' or str(account_name) == 'Account Name':
+            a = Tk()
+            a.withdraw()
+            messagebox.showwarning("Warning", 'Cannot have blank Account name')
+            a.destroy()
+        else:
+            with open(f"{self.real_username}decrypted.bin", "rb") as f:
+                value1 = pickle.load(f)
+                f.close()
+            for i in value1:
 
-            if i[0] == str(accounttobechanged):
+                if i[0] == str(accounttobechanged):
 
-                i[0] = str(new_username)
-                i[1] = str(new_password)
-                i[2] = str(account_name)
-                p = Tk()
-                p.config(bg="#292A2D")
-                p.withdraw()
-                messagebox.showinfo(
-                    "Success", "The Account details has been changed"
-                )
-                p.destroy()
-                os.remove(f'{self.real_username}decrypted.bin')
-                with open(f"{self.real_username}decrypted.bin", "wb") as f:
-                    pickle.dump(value1, f)
-                    f.close()
-                os.remove(f"{self.real_username}.bin.fenc")
-                pyAesCrypt.encryptFile(
-                    f"{self.real_username}decrypted.bin",
-                    f"{self.real_username}.bin.fenc",
-                    self.hashed_password,
-                    bufferSize,
-                )
+                    i[0] = str(new_username)
+                    i[1] = str(new_password)
+                    i[2] = str(account_name)
+                    p = Tk()
+                    p.config(bg="#292A2D")
+                    p.withdraw()
+                    messagebox.showinfo(
+                        "Success", "The Account details has been changed"
+                    )
+                    p.destroy()
+                    os.remove(f'{self.real_username}decrypted.bin')
+                    with open(f"{self.real_username}decrypted.bin", "wb") as f:
+                        pickle.dump(value1, f)
+                        f.close()
+                    os.remove(f"{self.real_username}.bin.fenc")
+                    pyAesCrypt.encryptFile(
+                        f"{self.real_username}decrypted.bin",
+                        f"{self.real_username}.bin.fenc",
+                        self.hashed_password,
+                        bufferSize,
+                    )
 
-                gameloop(self.real_username, self.hashed_password, self.window, self.but)
+                    gameloop(self.real_username, self.hashed_password, self.window, self.but)
 
     def save_email(
             self, new_email, old_email, recovery_password, login_window1, another_recovery_password
@@ -853,9 +869,11 @@ class Change_details:
                     val_val, val, index
                 ),
             )
+            private_img = tk_image.PhotoImage(image.open('private.png'))
+            unhide_img = tk_image.PhotoImage(image.open('eye.png'))
             show_both_12 = Button(
                 new_window,
-                text="show",
+                image=unhide_img,
                 command=lambda: password_sec(new_email_password_entry, show_both_12),
                 fg="white",
                 bg="#292A2D",
@@ -864,6 +882,7 @@ class Change_details:
                 activeforeground="white",
                 relief=RAISED,
             )
+            show_both_12.image = unhide_img
             show_both_12.grid(row=0, column=5)
             show_both_12.place(x=250 - 15, y=100 + 50 - 5)
 
@@ -1152,9 +1171,12 @@ def login_password(title1):
                 val_val, val, index
             ),
         )
+
+        private_img = tk_image.PhotoImage(image.open('private.png'))
+        unhide_img = tk_image.PhotoImage(image.open('eye.png'))
         show_both_12 = Button(
             root,
-            text="show",
+            image=unhide_img,
             command=lambda: password_sec(new_password_entry, show_both_12),
             fg="white",
             bg="#292A2D",
@@ -1163,6 +1185,7 @@ def login_password(title1):
             activeforeground="white",
             relief=RAISED,
         )
+        show_both_12.image = unhide_img
         show_both_12.grid(row=0, column=5)
         show_both_12.place(x=250 - 15, y=100 + 50 - 5)
 
@@ -1401,9 +1424,11 @@ def login_password(title1):
     )
     forgot_password_button.grid(row=5, column=1)
     forgot_password_button.place(x=250, y=170)
+    private_img = tk_image.PhotoImage(image.open('private.png'))
+    unhide_img = tk_image.PhotoImage(image.open('eye.png'))
     show_both_1 = Button(
         window,
-        text="Show",
+        image=unhide_img,
         command=lambda: password_sec(recover_password_entry, show_both_1),
         fg="white",
         bg="#292A2D",
@@ -1412,7 +1437,7 @@ def login_password(title1):
         activeforeground="white",
         relief=RAISED,
     )
-
+    show_both_1.image = unhide_img
     show_both_1.grid(row=0, column=0)
     show_both_1.place(x=325, y=95)
     username_forgot_entry.insert(0, "Username")
@@ -3054,7 +3079,6 @@ def login(*window):
     width_window = 1057
     height_window = 700
     login_window.focus_set()
-    login_window.grab_set()
     login_window.config(bg="#292A2D")
     screen_width = login_window.winfo_screenwidth()
     screen_height = login_window.winfo_screenheight()
@@ -3242,7 +3266,6 @@ def register(window, *a):
     login_window1 = Tk()
     login_window1.resizable(False, False)
     login_window1.focus_set()
-    login_window1.grab_set()
 
     login_window1.title("Register")
     login_window1.config(bg='#292A2D')
@@ -3425,10 +3448,11 @@ def register(window, *a):
             val_val, val, index
         ),
     )
-
+    private_img = tk_image.PhotoImage(image.open('private.png'))
+    unhide_img = tk_image.PhotoImage(image.open('eye.png'))
     show_both_1 = Button(
         labelframe1,
-        text="Show",
+        image=unhide_img,
         command=lambda: password_sec(password_entry, show_both_1),
         fg="white",
         bg="#292A2D",
@@ -3439,7 +3463,7 @@ def register(window, *a):
     )
     show_both_12 = Button(
         labelframe1,
-        text="show",
+        image=unhide_img,
         command=lambda: password_sec(email_password_entry, show_both_12),
         fg="white",
         bg="#292A2D",
@@ -3448,7 +3472,8 @@ def register(window, *a):
         activeforeground="white",
         relief=RAISED,
     )
-
+    show_both_12.image = unhide_img
+    show_both_1.image = unhide_img
     show_both_1.place(x=450 + 8, y=220 + 18 + 40 + 7)
     show_both_12.place(x=450 + 8, y=320 + 18 + 40 + 7)
 
