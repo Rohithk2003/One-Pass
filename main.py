@@ -2900,7 +2900,7 @@ def buttons_blit(username, window, add_button, mainarea, hashed_password, bg_img
             try:
                 values = pickle.load(f)
             except:
-                pass
+                values = []
         length_list = len(values)
         add_button.grid(row=length_list + 1, column=0)
 
@@ -3282,11 +3282,11 @@ def register(window, *a):
     email_password.place(x=0, y=320 + 20 + 40)
 
     # ------------------Entry---------------------------
-    username_entry = ttk.Entry(labelframe1, width=20, font=('calibre', 15, 'normal'))  # , bd=6
+    username_entry = Entry(labelframe1, width=20, font=('calibre', 15, 'normal'))  # , bd=6
     username_entry.place(x=230, y=170 + 18 + 40 + 4)
-    password_entry = ttk.Entry(labelframe1, show='*', width=20, font=('calibre', 15, 'normal'))
+    password_entry = Entry(labelframe1, show='*', width=20, font=('calibre', 15, 'normal'))
     password_entry.place(x=230, y=220 + 18 + 40 + 4)
-    email_id_entry = ttk.Entry(labelframe1, width=20, font=('calibre', 15, 'normal'))
+    email_id_entry = Entry(labelframe1, width=20, font=('calibre', 15, 'normal'))
     email_id_entry.place(x=230, y=270 + 18 + 40 + 4)
     email_password_entry = Entry(labelframe1, width=20, font=('calibre', 15, 'normal'))
     email_password_entry.place(x=230, y=320 + 18 + 40 + 4)
