@@ -13,6 +13,7 @@ import pyaes
 import pbkdf2
 import os
 import secrets
+import threading
 
 # tkinter modules
 from PIL import Image as image
@@ -136,26 +137,25 @@ class Login:
 
 class Profile_view:
     def __init__(
-        self,
-        username,
-        password,
-        email_id,
-        email_password,
-        hashed_password,
-        profile,
-        password_button,
-        notepad_button,
+            self,
+            username,
+            password,
+            email_id,
+            email_password,
+            hashed_password,
+            profile,
+            password_button,
+            notepad_button,
     ):
         self.username = username
         self.password = password
         self.email_id = email_id
         self.email_password = email_password
         self.hashed_password = hashed_password
-        try:
-            for widget in profile.winfo_children():
-                widget.destroy()
-        except:
-            pass
+
+        for widget in profile.winfo_children():
+            widget.destroy()
+
         self.password_button = password_button
         self.notepad = notepad_button
 
@@ -170,16 +170,23 @@ class Profile_view:
             pass
         profile.config(bg="#292A2D")
         s.title("Profile")
+        s.title("Passwords")
+
+        emptyMenu = Menu(s)
+
+        s.config(menu=emptyMenu)
+
         s.iconbitmap(default="images\\new_icon.ico")
         profileimg = tk_image.PhotoImage(image.open('images\\profile_image.png'))
         new_canvas = Canvas(
-        profile, width=1270, height=700,  highlightthickness=0)
-        new_canvas.place(x=0 , y=0)
+            profile, width=1270, height=700, highlightthickness=0)
+        new_canvas.place(x=0, y=0)
         new_canvas.background = profileimg
         new_canvas.create_image(0, 0, image=profileimg, anchor="nw")
-        new_s = Frame(new_canvas, bg="#292A2D", highlightcolor='black',highlightbackground='black',width=500, height=500)
+        new_s = Frame(new_canvas, bg="#292A2D", highlightcolor='black', highlightbackground='black', width=560,
+                      height=500)
 
-        MainWindow = new_canvas.create_window(600-30, 300+50, window=new_s, anchor="center")
+        MainWindow = new_canvas.create_window(600 - 30, 300 + 50, window=new_s, anchor="center")
 
         # all labels
         username_label = Label(
@@ -259,11 +266,11 @@ class Profile_view:
             activebackground="#292A2D",
         )
 
-        #dot label
-        dot = Label(new_s,font=(200), text=':',fg='white',bg='black')
-        dot1 = Label(new_s, font=(200),text=':',fg='white',bg='black')
-        dot2= Label(new_s,font=(200), text=':',fg='white',bg='black')
-        dot3= Label(new_s,font=(200), text=':',fg='white',bg='black')
+        # dot label
+        dot = Label(new_s, font=(200), bg="#292A2D", text=':', fg='white')
+        dot1 = Label(new_s, font=(200), bg="#292A2D", text=':', fg='white')
+        dot2 = Label(new_s, font=(200), bg="#292A2D", text=':', fg='white')
+        dot3 = Label(new_s, font=(200), bg="#292A2D", text=':', fg='white')
 
         # profile image
 
@@ -272,10 +279,9 @@ class Profile_view:
         )
         profile_photo = Label(
             new_s,
-            bg="black",
+            bg="#292A2D",
             activebackground="black",
             activeforeground="white",
-            command=lambda:change_icon()
         )
 
         value = my_cursor.fetchall()
@@ -304,26 +310,26 @@ class Profile_view:
             activebackground="black",
             activeforeground="white",
             font="Helvetiva 10",
-            command=lambda: delete_object.delete_main_account(),
+            command=lambda: delete_object.delete_main_account(s),
         )
 
-        username_label.place(x=50, y=100 + 100)
-        password_label.place(x=50, y=150 + 100)
-        email_id_label.place(x=50, y=200 + 100)
-        email_password_label.place(x=50, y=250 + 100)
-        profile_photo.place(x=170, y=50)
-        delete_this_account.place(x=0+2, y=400+50+20)
+        username_label.place(x=5, y=100 + 100)
+        password_label.place(x=5, y=150 + 100)
+        email_id_label.place(x=5, y=200 + 100)
+        email_password_label.place(x=5, y=250 + 100)
+        profile_photo.place(x=170 - 30, y=50)
+        delete_this_account.place(x=0 + 2, y=400 + 50 + 20)
 
-        username_label_right.place(x=300, y=100 + 100)
-        password_label_right.place(x=300, y=150 + 100)
-        email_id_label_right.place(x=300, y=200 + 100)
-        email_password_label_right.place(x=300, y=250 + 100)
+        username_label_right.place(x=300 - 70, y=100 + 100)
+        password_label_right.place(x=300 - 70, y=150 + 100)
+        email_id_label_right.place(x=300 - 70, y=200 + 100)
+        email_password_label_right.place(x=300 - 70, y=250 + 100)
 
-        #putting the dot on the frame
-        dot.place(x=250, y=100 + 100+6)
-        dot1.place(x=250, y=150 + 100+6)
-        dot2.place(x=250, y=200 + 100+6)
-        dot3.place(x=250, y=250 + 100+6)
+        # putting the dot on the frame
+        dot.place(x=200, y=100 + 100 + 6)
+        dot1.place(x=200, y=150 + 100 + 6)
+        dot2.place(x=200, y=200 + 100 + 6)
+        dot3.place(x=200, y=250 + 100 + 6)
 
 
 # for handling registrations
@@ -340,14 +346,14 @@ class Register:
     """to create a file named user and to store his accounts and also add his details to the database"""
 
     def saving(self, object):
-        my_cursor.execute("select username from data_input")
-        values_username = my_cursor.fetchall()
+        object.execute("select username from data_input")
+        values_username = object.fetchall()
         for i in values_username:
             for usernames in i:
                 if usernames == self.username and os.path.exists(
-                    self.username + ".bin.fenc"
+                        self.username + ".bin.fenc"
                 ):
-                    return True  # checking whether the username already exists in the database
+                    return True, None  # checking whether the username already exists in the database
 
         email_split = ""
         word = self.email_id.split()
@@ -376,22 +382,23 @@ class Register:
         key = pbkdf2.PBKDF2(password_recovery_email, passwordSalt).read(32)
         aes = pyaes.AESModeOfOperationCTR(key)
         encrypted_pass = aes.encrypt(message)
-
-        object.execute(
-            "insert into data_input values (?,?,?,?,?,?,?)",
-            (
-                self.username,
-                self.email_id,
-                cipher_text,
-                salt_for_decryption,
-                encrypted_pass,
-                0,
-                passwordSalt,
-            ),
-        )
-
+        try:
+            object.execute(
+                "insert into data_input values (?,?,?,?,?,?,?)",
+                (
+                    self.username,
+                    self.email_id,
+                    cipher_text,
+                    salt_for_decryption,
+                    encrypted_pass,
+                    0,
+                    passwordSalt,
+                ),
+            )
+        except:
+            return True, 'email'
         # so inserting the users details into database
-        return False
+        return False, None
 
     # adding the account
     def creation(self, window):
@@ -404,7 +411,7 @@ class Register:
         hash_pass = hashlib.sha3_512(for_hashing.encode()).hexdigest()
 
         file_name = self.username + ".bin"
-        with open(file_name, "wb") :
+        with open(file_name, "wb"):
             pyAesCrypt.encryptFile(
                 file_name, file_name + ".fenc", hash_pass, bufferSize
             )
@@ -531,7 +538,7 @@ class Deletion:
             messagebox.showinfo("Error", "Please try again")
             a.destroy()
 
-    def delete_main_account(self, window, another_window):
+    def delete_main_account(self, window, *another_window):
         answer = messagebox.askyesno(
             "Delete Account", "Are you sure you want to delete you account"
         )
@@ -554,7 +561,8 @@ class Deletion:
                         "Success your account has been deleted. See you!!",
                     )
                     window.destroy()
-                    another_window.destroy()
+                    for i in another_window:
+                        i.destroy()
                     if not os.path.exists(f"{self.real_username}.bin.fenc"):
                         quit()
                 except:
@@ -577,11 +585,10 @@ class Change_details:
         change_acccount = Toplevel()
         change_acccount.config(bg="#292A2D")
         change_acccount.resizable(False, False)
-        change_acccount.geometry("300x300")
 
         change_acccount.title("Change Account")
 
-        width_window = 400
+        width_window = 450
         height_window = 400
         screen_width = change_acccount.winfo_screenwidth()
         screen_height = change_acccount.winfo_screenheight()
@@ -593,33 +600,24 @@ class Change_details:
         iamge = Label(change_acccount, image=iamge_load, bg="#292A2D")
         iamge.photo = iamge_load
         new_username_label = Label(
-            change_acccount, text="New Username:", fg="white", bg="#292A2D"
+            change_acccount, text="New Username:", fg="white", bg="#292A2D", font=("Sitka Text", 15)
         )
         new_password_label = Label(
-            change_acccount, text="New Password:", fg="white", bg="#292A2D"
+            change_acccount, text="New Password:", fg="white", bg="#292A2D", font=("Sitka Text", 15)
         )
         new_account_name_label = Label(
-            change_acccount, text="New Account Name:", fg="white", bg="#292A2D"
+            change_acccount, text="New Account Name:", fg="white", bg="#292A2D", font=("Sitka Text", 15)
         )
 
-        new_username = Entry(change_acccount)
-        new_password = Entry(change_acccount)
-        new_account_name = Entry(change_acccount)
-
-        new_account_name_label.grid(row=1, column=0)
-        new_account_name.grid(row=1, column=1)
-
-        new_username_label.grid(row=2, column=1)
-        new_username.grid(row=2, column=0)
-
-        new_password_label.grid(row=3, column=0)
-        new_password.grid(row=3, column=1)
+        new_username = Entry(change_acccount, width=13, bg='#292A2D', border=0, bd=0, font=("consolas", 15, "normal"))
+        new_password = Entry(change_acccount, width=13, bg='#292A2D', border=0, bd=0, font=("consolas", 15, "normal"))
+        new_account_name = Entry(change_acccount, width=13, bg='#292A2D', border=0, bd=0,
+                                 font=("consolas", 15, "normal"))
 
         change = Button(
             change_acccount,
-            text="Change",
-            bg="#292A2D",
-            fg="white",
+            width=20, height=2, text='C H A N G E', font=('consolas'), fg='white', bg='#994422',
+            bd=0,
             command=lambda: self.change_sub_account(
                 selectaccount,
                 str(new_username.get()),
@@ -627,22 +625,25 @@ class Change_details:
                 str(new_account_name.get()),
             ),
         )
-
         change.grid(row=5, column=1)
-        change.place(x=200, y=200 + 70)
+        change.place(x=120, y=200 + 120)
 
-        new_account_name_label.place(x=50, y=70 + 100)
-        new_username_label.place(x=50, y=100 + 100)
-        new_password_label.place(x=50, y=130 + 100)
+        new_account_name_label.place(x=0, y=70 + 100 + 3)
+        new_username_label.place(x=0, y=100 + 100 + 15 + 3)
+        new_password_label.place(x=0, y=130 + 100 + 30 + 3)
 
-        new_account_name.place(x=200, y=70 + 100)
-        new_username.place(x=200, y=100 + 100)
-        new_password.place(x=200, y=130 + 100)
+        new_account_name.place(x=250, y=70 + 100 + 5)
+        new_username.place(x=250, y=100 + 100 + 15 + 5)
+        new_password.place(x=250, y=130 + 100 + 30 + 5)
 
-        iamge.place(x=125, y=10)
+        Frame(change_acccount, width=150, height=2, bg='white').place(x=250, y=70 + 100 + 10 + 16 + 5)
+        Frame(change_acccount, width=150, height=2, bg='white').place(x=250, y=130 + 100 + 10 + 16 + 30 + 5)
+        Frame(change_acccount, width=150, height=2, bg='white').place(x=250, y=100 + 100 + 10 + 16 + 15 + 5)
+
+        iamge.place(x=145, y=10)
 
     def change_sub_account(
-        self, accounttobechanged, new_username, new_password, account_name
+            self, accounttobechanged, new_username, new_password, account_name
     ):
         with open(f"{self.real_username}decrypted.bin", "rb") as f:
             value1 = pickle.load(f)
@@ -675,14 +676,14 @@ class Change_details:
                 )
 
     def save_email(
-        self,
-        new_email,
-        old_email,
-        recovery_password,
-        another_recovery_password,
-        user_password
+            self,
+            new_email,
+            old_email,
+            recovery_password,
+            another_recovery_password,
+            user_password
     ):
-        
+
         email_split = ""
         word = new_email.split()
         for i in word:
@@ -699,25 +700,26 @@ class Change_details:
         re_hash_new1 = hashlib.sha3_512(re_hash_text1.encode()).hexdigest()
         re_encrypt, new_salt = create_key(main_password, new_salt1)
 
-       # encrypting the new recovery password
-       
+        # encrypting the new recovery password
+
         password = new_email + re_hash_new1
         message = another_recovery_password
-        passwordSalt = secrets.token_bytes(512)#returns a random 64 byte
-        key = pbkdf2.PBKDF2(password, passwordSalt).read(32)#it creates a key based on the password provided by the user
+        passwordSalt = secrets.token_bytes(512)  # returns a random 64 byte
+        key = pbkdf2.PBKDF2(password, passwordSalt).read(
+            32)  # it creates a key based on the password provided by the user
         aes = pyaes.AESModeOfOperationCTR(key)
-        encrypted_pass = aes.encrypt(message)#aes is mode of encryption for encrypting the password
+        encrypted_pass = aes.encrypt(message)  # aes is mode of encryption for encrypting the password
 
         os.remove(f"{self.real_username}.bin.fenc")
         my_cursor.execute(
             "update data_input set password = (?),  email_id = (?),  salt_recovery=(?), salt = (?), recovery_password = (?) where  username = (?)",
-            (   re_encrypt,
-                new_email,
-                passwordSalt,
-                new_salt,
-                encrypted_pass,
-                self.real_username,
-            ),
+            (re_encrypt,
+             new_email,
+             passwordSalt,
+             new_salt,
+             encrypted_pass,
+             self.real_username,
+             ),
         )
         pyAesCrypt.encryptFile(
             self.real_username + "decrypted.bin",
@@ -731,112 +733,112 @@ class Change_details:
         ad.destroy()
 
     def change_email(self, rec_pass, ogi_pass):
-            self.password = ogi_pass
-            self.recovery = rec_pass
-            new_window = Toplevel()
+        self.password = ogi_pass
+        self.recovery = rec_pass
+        new_window = Toplevel()
 
-            new_img = tk_image.PhotoImage(image.open("images\\user.png"))
-            new_img_label = Label(new_window, image=new_img, bg="#292A2D")
-            new_img_label.photo = new_img
+        new_img = tk_image.PhotoImage(image.open("images\\user.png"))
+        new_img_label = Label(new_window, image=new_img, bg="#292A2D")
+        new_img_label.photo = new_img
 
-            file_name_reentry = self.real_username + ".bin.fenc"
+        file_name_reentry = self.real_username + ".bin.fenc"
 
-            width_window = 400
-            height_window = 200
-            screen_width = new_window.winfo_screenwidth()
-            screen_height = new_window.winfo_screenheight()
-            x = screen_width / 2 - width_window / 2
-            y = screen_height / 2 - height_window / 2
-            new_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-            new_window.title("Change Recovery details")
-            new_window.geometry("300x300")
-            new_window.config(bg="#292A2D")
+        width_window = 400
+        height_window = 200
+        screen_width = new_window.winfo_screenwidth()
+        screen_height = new_window.winfo_screenheight()
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        new_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+        new_window.title("Change Recovery details")
+        new_window.geometry("300x300")
+        new_window.config(bg="#292A2D")
 
-            new_email = Label(new_window, text="New Email", fg="white", bg="#292A2D")
-            new_email_password = Label(
-                new_window, text="New Password", fg="white", bg="#292A2D"
-            )
+        new_email = Label(new_window, text="New Email", fg="white", bg="#292A2D")
+        new_email_password = Label(
+            new_window, text="New Password", fg="white", bg="#292A2D"
+        )
 
-            new_email_entry = Entry(new_window)
-            new_email_password_entry = Entry(new_window, show="*")
+        new_email_entry = Entry(new_window)
+        new_email_password_entry = Entry(new_window, show="*")
 
-            new_img_label.grid(row=0, column=1)
-            new_email.grid(row=1, column=0)
-            new_email_password.grid(row=2, column=0)
-            new_email_entry.grid(row=1, column=1)
-            new_email_password_entry.grid(row=2, column=1)
+        new_img_label.grid(row=0, column=1)
+        new_email.grid(row=1, column=0)
+        new_email_password.grid(row=2, column=0)
+        new_email_entry.grid(row=1, column=1)
+        new_email_password_entry.grid(row=2, column=1)
 
-            new_img_label.place(x=110, y=50)
-            new_email.place(x=10, y=70 + 50)
-            new_email_password.place(x=10, y=100 + 50)
-            new_email_entry.place(x=150 - 40, y=70 + 50)
-            new_email_password_entry.place(x=150 - 40, y=100 + 50)
+        new_img_label.place(x=110, y=50)
+        new_email.place(x=10, y=70 + 50)
+        new_email_password.place(x=10, y=100 + 50)
+        new_email_entry.place(x=150 - 40, y=70 + 50)
+        new_email_password_entry.place(x=150 - 40, y=100 + 50)
 
-            new_email_password_entry.config(show="")
+        new_email_password_entry.config(show="")
 
-            new_email_password_entry.config(fg="grey")
-            new_email_password_entry.insert(0, "New Email password")
+        new_email_password_entry.config(fg="grey")
+        new_email_password_entry.insert(0, "New Email password")
 
-            new_email_entry.config(fg="grey")
-            new_email_entry.insert(0, "New Email")
-            my_cursor.execute('select email_id from data_input where username=(?)',(self.real_username,))
-            for i in my_cursor.fetchall():
-                save = Button(
-                    new_window,
-                    text="Save",
-                    command=lambda: self.save_email(
-                        str(new_email_entry.get()),
-                        i[0],
-                        self.recovery,
-                        str(new_email_password_entry.get()),
-                        self.password,
-                    ),
-                )
-            save.place(x=150 - 40, y=200)
-
-            new_email_entry.bind(
-                "<FocusIn>",
-                lambda event, val_val=new_email_entry, index=1: handle_focus_in(
-                    val_val, index
-                ),
-            )
-            new_email_entry.bind(
-                "<FocusOut>",
-                lambda event, val_val=new_email_entry, val="Email", index=1: handle_focus_out(
-                    val_val, val, index
-                ),
-            )
-
-            new_email_password_entry.bind(
-                "<FocusIn>",
-                lambda event, val_val=new_email_password_entry, index=2: handle_focus_in(
-                    val_val, index
-                ),
-            )
-            new_email_password_entry.bind(
-                "<FocusOut>",
-                lambda event, val_val=new_email_password_entry, val="New Email password", index=2: handle_focus_out(
-                    val_val, val, index
-                ),
-            )
-
-            private_img = tk_image.PhotoImage(image.open("images\\private.png"))
-            unhide_img = tk_image.PhotoImage(image.open("images\\eye.png"))
-
-            show_both_12 = Button(
+        new_email_entry.config(fg="grey")
+        new_email_entry.insert(0, "New Email")
+        my_cursor.execute('select email_id from data_input where username=(?)', (self.real_username,))
+        for i in my_cursor.fetchall():
+            save = Button(
                 new_window,
-                image=unhide_img,
-                command=lambda: password_sec(new_email_password_entry, show_both_12),
-                fg="white",
-                bd='0',
-                bg="#292A2D",
-                highlightcolor="#292A2D",
-                activebackground="#292A2D",
-                activeforeground="white",
-                relief=RAISED,
+                text="Save",
+                command=lambda: self.save_email(
+                    str(new_email_entry.get()),
+                    i[0],
+                    self.recovery,
+                    str(new_email_password_entry.get()),
+                    self.password,
+                ),
             )
-            show_both_12.image = unhide_img
-            show_both_12.place(x=250 - 15, y=100 + 50 - 5)
+        save.place(x=150 - 40, y=200)
+
+        new_email_entry.bind(
+            "<FocusIn>",
+            lambda event, val_val=new_email_entry, index=1: handle_focus_in(
+                val_val, index
+            ),
+        )
+        new_email_entry.bind(
+            "<FocusOut>",
+            lambda event, val_val=new_email_entry, val="Email", index=1: handle_focus_out(
+                val_val, val, index
+            ),
+        )
+
+        new_email_password_entry.bind(
+            "<FocusIn>",
+            lambda event, val_val=new_email_password_entry, index=2: handle_focus_in(
+                val_val, index
+            ),
+        )
+        new_email_password_entry.bind(
+            "<FocusOut>",
+            lambda event, val_val=new_email_password_entry, val="New Email password", index=2: handle_focus_out(
+                val_val, val, index
+            ),
+        )
+
+        private_img = tk_image.PhotoImage(image.open("images\\private.png"))
+        unhide_img = tk_image.PhotoImage(image.open("images\\eye.png"))
+
+        show_both_12 = Button(
+            new_window,
+            image=unhide_img,
+            command=lambda: password_sec(new_email_password_entry, show_both_12),
+            fg="white",
+            bd='0',
+            bg="#292A2D",
+            highlightcolor="#292A2D",
+            activebackground="#292A2D",
+            activeforeground="white",
+            relief=RAISED,
+        )
+        show_both_12.image = unhide_img
+        show_both_12.place(x=250 - 15, y=100 + 50 - 5)
 
 
 def create_key(password, message):
@@ -899,8 +901,8 @@ def retreive_key(password, byte, de):
 def checkforupdates():
     # isUpToDate check whether the file ie main.py  is same as the one present in my github repository and it returns true if same else false
     if isUpToDate(
-        "main.py",
-        "https://raw.githubusercontent.com/Rohithk2003/One-Pass/develop/main.py",
+            "main.py",
+            "https://raw.githubusercontent.com/Rohithk2003/One-Pass/develop/main.py",
     ):
         result = messagebox.askyesno(
             "Update Available", "Do you want to update the app?"
@@ -928,7 +930,8 @@ def checkforupdates():
     else:
         messagebox.showinfo("Update", "No update is currently available")
 
-def settings(real_username, main_window, hashed_password, window, password_button, rec_pas,original_password):
+
+def settings(real_username, main_window, hashed_password, window, password_button, rec_pas, original_password):
     settings_window = Tk()
     settings_window.resizable(False, False)
     width_window = 150
@@ -948,54 +951,45 @@ def settings(real_username, main_window, hashed_password, window, password_butto
 
     log_label = Button(
         settings_window,
-        text="Log Out",
-        fg="white",
-        bg="#292A2D",
-        width=20,
-        command=lambda: log_out(settings_window, window, main_window),
+        text='Log out', font=('consolas'), fg='white', bg='#994422',
+        bd=0, command=lambda: log_out(settings_window, window, main_window),
     )
 
     check_for_updates = Button(
         settings_window,
-        text="Check for updates",
         command=checkforupdates,
-        fg="white",
-        bg="#292A2D",
-        width=20,
+        text='Check for updates', font=('consolas'), fg='white', bg='#994422',
+        bd=0,
     )
     Delete_account_button = Button(
         settings_window,
         text="Delete main account",
-        width=20,
         command=lambda: delete_object.delete_main_account(main_window, settings_window),
-        fg="white",
-        bg="#292A2D",
+        font=('consolas'), fg='white', bg='#994422',
+        bd=0,
     )
     Delete_social_button = Button(
         settings_window,
         text="Delete sub  account",
-        width=20,
         command=lambda: delete_object.delete_social_media_account(
             password_button, True
         ),
-        fg="white",
-        bg="#292A2D",
+        font=('consolas'), fg='white', bg='#994422',
+        bd=0,
     )
     change_account_button = Button(
         settings_window,
         text="Change Details",
-        width=20,
         command=lambda: login_password("Change Details"),
-        fg="white",
-        bg="#292A2D",
+        font=('consolas'), fg='white', bg='#994422',
+        bd=0,
     )
     change_email_button = Button(
         settings_window,
         text="Change recovery email",
-        command=lambda: change_object.change_email(rec_pas,original_password),
-        fg="white",
-        bg="#292A2D",
-        width=20,
+        command=lambda: change_object.change_email(rec_pas, original_password),
+        font=('consolas'), fg='white', bg='#994422',
+        bd=0,
     )
 
     Delete_account_button.grid(row=1, column=1, columnspan=2)
@@ -1016,7 +1010,7 @@ def settings(real_username, main_window, hashed_password, window, password_butto
 
 
 def login_password(title1):
-    window = Tk()
+    window = Toplevel()
     window.config(bg="#292A2D")
     window.resizable(False, False)
 
@@ -1027,7 +1021,7 @@ def login_password(title1):
     )
     text_label = Label(window, text=text, fg="white", bg="#292A2D")
     width_window = 400
-    height_window = 400
+    height_window = 300
     screen_width = window.winfo_screenwidth()
     screen_height = window.winfo_screenheight()
     x = screen_width / 2 - width_window / 2
@@ -1041,27 +1035,17 @@ def login_password(title1):
     recover_password_entry = Entry(window)
     username_forgot_entry = Entry(window)
 
-    text_label.grid(row=0, column=0, columnspan=2)
-    recover_email.grid(row=2, column=0)
-    recover_password.grid(row=3, column=0)
-    recover_email_entry.grid(row=2, column=1)
-    recover_password_entry.grid(row=3, column=1)
-    username_forgot_entry.grid(row=1, column=1)
-    username_forgot.grid(row=1, column=0)
-
     username_forgot.place(x=50, y=70)
     recover_password.place(x=50, y=100)
     recover_email.place(x=50, y=130)
     username_forgot_entry.place(x=200, y=70)
     recover_password_entry.place(x=200, y=100)
     recover_email_entry.place(x=200, y=130)
-
+    text_label.place(x=20, y=0)
     key = ""
     l = "abcdefghijklmnopqrstuvwxyz"
     for i in range(7):
         key += random.choice(l)
-
-    running = False
 
     def generate_key1(file, button):
         pyAesCrypt.encryptFile(file, "otp.bin.fenc", key, bufferSize)
@@ -1071,6 +1055,7 @@ def login_password(title1):
         messagebox.showinfo(
             "OTP", f"An OTP has been sent to  {str(recover_email_entry.get())}"
         )
+        window.focus_set()
 
     def change_password(email, password1, username12):
         root = Toplevel()
@@ -1129,9 +1114,12 @@ def login_password(title1):
                 val_val, val, index
             ),
         )
+
+        unhide_img = tk_image.PhotoImage(image.open("images\\eye.png"))
+
         show_both_12 = Button(
             root,
-            text="show",
+            image=unhide_img, bd=0,
             command=lambda: password_sec(new_password_entry, show_both_12),
             fg="white",
             bg="#292A2D",
@@ -1165,23 +1153,25 @@ def login_password(title1):
             for i in values_password:
                 has = i[0]
                 salt = i[1]
-            try:
-                string = retreive_key(main_pass, has, salt)
-                for i in string:
-                    if i == "@":
-                        break
-                    else:
-                        decrypted_string += i
-                value = decrypted_string + username12
+            string = retreive_key(main_pass, has, salt)
+            for i in string:
+                if i == "@":
+                    break
+                else:
+                    decrypted_string += i
+            value = decrypted_string + username12
 
-                re_hash = hashlib.sha3_512(value.encode()).hexdigest()
+            re_hash = hashlib.sha3_512(value.encode()).hexdigest()
+            try:
                 pyAesCrypt.decryptFile(
                     file_name_reentry,
                     username12 + "decrypted.bin",
                     re_hash,
                     bufferSize,
                 )
-
+            except:
+                pass
+            if os.path.exists(f'{username12}decrypted.bin'):
                 os.remove(username12 + ".bin.fenc")
                 re_hash_text = str(new_password_entry.get()) + str(
                     new_username_entry.get()
@@ -1195,26 +1185,27 @@ def login_password(title1):
                     re_hash_new,
                     bufferSize,
                 )
+                my_cursor.execute('select email_id from data_input where username=(?)', (username12,))
+                for i in my_cursor.fetchall():
+                    password_recovery_email = i[0] + re_hash_new
+                    passwordSalt = secrets.token_bytes(512)
+                    key = pbkdf2.PBKDF2(password_recovery_email, passwordSalt).read(32)
+                    aes = pyaes.AESModeOfOperationCTR(key)
+                    encrypted_pass = aes.encrypt(password1)
 
                 my_cursor.execute(
-                    "update data_input set username = (?),password=(?) where username = (?)",
-                    (str(new_username_entry.get()),re_encrypt, username12),
+                    "update data_input set username = (?),password=(?),recovery_password = (?),salt_recovery=(?) "
+                    "where email_id = (?)",
+                    (str(new_username_entry.get()), re_encrypt, encrypted_pass, passwordSalt, email),
                 )
+                messagebox.showinfo('Success', 'Your username and password has been changed')
 
-            except:
-                p = Tk()
-                p.withdraw()
-                messagebox.showinfo("Error", "Wrong recovery password")
-                p.destroy()
 
-        # new_img_label.place(x=110, y=50)
-        # new_username.place(x=10, y=70 + 50)
-        # new_password.place(x=10, y=100 + 50)
-        # new_username_entry.place(x=150 - 40, y=70 + 50)
-        # new_password_entry.place(x=150 - 40, y=100 + 50)
+            else:
+                messagebox.showinfo('Error', 'Wrong recovery password')
+
         change_button = Button(root, text="Change", command=change)
         change_button.grid(row=3, column=0)
-        # change_button.place(x=130, y=100 + 200)
 
     def Verification(password, otp_entry, email, email_password, username12, button):
         ot = str(otp_entry)
@@ -1267,9 +1258,9 @@ def login_password(title1):
         recover_email_entry_verify = str(recover_email_entry.get())
         recover_password_entry_verify = str(recover_password_entry.get())
         if (
-            username_verify == "Username"
-            and recover_email_entry_verify == "Email ID"
-            and recover_password_entry_verify == "Password"
+                username_verify == "Username"
+                and recover_email_entry_verify == "Email ID"
+                and recover_password_entry_verify == "Password"
         ):
             roo21 = Tk()
             roo21.withdraw()
@@ -1318,15 +1309,10 @@ def login_password(title1):
                             run = True
                         else:
                             run = False
-                            roo1 = Tk()
-                            roo1.withdraw()
+
                             messagebox.showerror("Error", "Wrong Recovey email")
-                            roo1.destroy()
                 else:
-                    windowss = Tk()
-                    windowss.withdraw()
                     messagebox.showerror("Error", "No such account exists")
-                    windowss.destroy()
 
                 if run:
 
@@ -1361,10 +1347,7 @@ def login_password(title1):
                     generate_key1("otp.bin", button)
                     forgot_password(OTP, recover_email_entry_verify, username_verify)
             else:
-                window = Tk()
-                window.withdraw()
                 messagebox.showerror("Error", "No such account exists")
-                window.destroy()
 
     forgot_password_button = Button(
         window,
@@ -1376,12 +1359,11 @@ def login_password(title1):
     forgot_password_button.grid(row=5, column=1)
     forgot_password_button.place(x=250, y=170)
 
-    private_img = tk_image.PhotoImage(image.open("images\\private.png"))
     unhide_img = tk_image.PhotoImage(image.open("images\\eye.png"))
 
     show_both_1 = Button(
         window,
-        image=unhide_img,bd=0,
+        image=unhide_img, bd=0,
         command=lambda: password_sec(recover_password_entry, show_both_1),
         fg="white",
         bg="#292A2D",
@@ -1390,7 +1372,7 @@ def login_password(title1):
         activeforeground="white",
         relief=RAISED,
     )
-
+    show_both_1.photo = unhide_img
     show_both_1.grid(row=0, column=0)
     show_both_1.place(x=325, y=95)
     username_forgot_entry.insert(0, "Username")
@@ -1443,13 +1425,12 @@ def login_password(title1):
 
 
 var = 0
-password =''
+
 
 def window_after(username, hash_password, password_new):
     # sidebar
     root = Tk()
     root.resizable(False, False)
-    global password
 
     root.focus_set()
     global var
@@ -1461,7 +1442,7 @@ def window_after(username, hash_password, password_new):
     sidebar.pack(expand=False, fill="both", side="left")
     file = None
     root.title("ONE-PASS")
-
+    print('')
     width_window = 1300
     height_window = 700
     screen_width = root.winfo_screenwidth()
@@ -1470,6 +1451,7 @@ def window_after(username, hash_password, password_new):
     y = screen_height / 2 - height_window / 2
 
     root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+    print('fsd')
 
     def testing(root, mainarea, username, hash_password, password_button):
         button["state"] = DISABLED
@@ -1490,14 +1472,12 @@ def window_after(username, hash_password, password_new):
 
     def note_pad_sec():
         global status_name
-        global password
         global var
         notes_buttons["state"] = DISABLED
         button["state"] = NORMAL
         profile_button["state"] = NORMAL
-        list = mainarea.pack_slaves()
-        for i in list:
-            i.forget()
+        for widget in root.winfo_children():
+            widget.destroy()
 
         if __name__ == "__main__":
             emptyMenu = Menu(root)
@@ -1510,7 +1490,6 @@ def window_after(username, hash_password, password_new):
                 pass
 
             def newFile():
-                global password
                 root.title("Untitled - Notepad")
                 TextArea.delete(1.0, END)
 
@@ -1521,45 +1500,18 @@ def window_after(username, hash_password, password_new):
                     defaultextension=".txt",
                     filetypes=[("All Files", "*.*"), ("Text Documents", "*.txt")],
                 )
-                if file != None:
-                    if file.endswith(".txt.aes"):
-                        password = str(
-                            simpledialog.askstring(
-                                title="Password Required",
-                                prompt="Please provide the password",
-                            )
-                        )
-                        if password == "":
-                            messagebox.showerror("Error", "Password cannot be empty")
-                        else:
-                            print(filename)
-                            try:
-                                pyAesCrypt.decryptFile(
-                                    file, filename, password, bufferSize
-                                )
-                                if os.path.exists()
-                                root.title(os.path.basename(file) + " - Notepad")
-                                TextArea.delete(1.0, END)
-                                with open(filename, "r") as f:
-                                        TextArea.insert(1.0, f.read())
-                                        f.close()
-                            except:
-                                messagebox.showerror("Error", "Wrong password")
 
                 # check to if there is a file_name
-                try:
-                    global status_name
-                    status_name = file
-                    if file == "":
-                        file = None
-                    else:
-                        root.title(os.path.basename(file) + " - Notepad")
-                        TextArea.delete(1.0, END)
-                        with open(file, "r") as f:
-                            TextArea.insert(1.0, f.read())
-                            f.close()
-                except:
-                    pass
+                global status_name
+                status_name = file
+                if file == "":
+                    file = None
+                else:
+                    root.title(os.path.basename(file) + " - Notepad")
+                    TextArea.delete(1.0, END)
+                    with open(file, "r") as f:
+                        TextArea.insert(1.0, f.read())
+                        f.close()
 
             def rename_file():
                 global file
@@ -1572,9 +1524,6 @@ def window_after(username, hash_password, password_new):
                     application_window.destroy()
                     if file != None or file != 0:
                         new_file, file_extension = os.path.splitext(file)
-                        b = os.path.basename(new_file)
-                        new_d = os.path.basename(b)
-                        new_file_name = os.path.basename(b)
                         f = open(file, "r")
                         dir = os.path.dirname(file)
                         values = f.read()
@@ -1604,139 +1553,53 @@ def window_after(username, hash_password, password_new):
                 global password
                 global file
                 if file == None:
-                    result = messagebox.askyesno(
-                        "Confirm", "Do you want to encrypt your file?"
+
+                    file = fd.asksaveasfilename(
+                        initialfile="Untitled.txt",
+                        defaultextension=".txt",
+                        filetypes=[
+                            ("All Files", "*.*"),
+                            ("Text Documents", "*.txt"),
+                        ],
                     )
-                    if not result:
-                        file = fd.asksaveasfilename(
-                            initialfile="Untitled.txt",
-                            defaultextension=".txt",
-                            filetypes=[
-                                ("All Files", "*.*"),
-                                ("Text Documents", "*.txt"),
-                            ],
-                        )
-                        if file == "":
-                            file = None
+                    if file == "":
+                        file = None
 
-                        else:
-                            # Save as a new file
-                            with open(file, "w") as f:
-                                f.write(TextArea.get(1.0, END))
-                                f.close()
-                            root.title(os.path.basename(file) + " - Notepad")
-                            file = file
                     else:
-                        application_window = Tk()
-                        a = simpledialog.askstring(
-                            "Input",
-                            "What is  the password for the file?",
-                            parent=application_window,
-                        )
-                        if a == "":
-                            messagebox.showerror("Error", "Password cannot be empty")
-                        else:
-                            application_window.destroy()
-                            file = fd.asksaveasfilename(
-                                initialfile="Untitled.txt",
-                                defaultextension=".txt",
-                                filetypes=[("Text Documents", "*.txt")],
-                            )
-                            gmm = str(file)
-                            password = "testing"
-                            status_name = file
-                            if file == "":
-                                file = None
-
-                            else:
-                                # Save as a new file
-                                with open(file, "w") as f:
-                                    f.write(TextArea.get(1.0, END))
-                                    f.close()
-                                root.title(os.path.basename(file) + " - Notepad")
-                                file = file
-                            file_name = str(file)
-                            f_encrypt = file_name + ".aes"
-                            try:
-                                pyAesCrypt.encryptFile(
-                                    file_name, f_encrypt, a, 64 * 1024
-                                )
-                                os.remove(file)
-                            except:
-                                pass
+                        # Save as a new file
+                        with open(file, "w") as f:
+                            f.write(TextArea.get(1.0, END))
+                            f.close()
+                        root.title(os.path.basename(file) + " - Notepad")
+                        file = file
 
             def save_file():
                 global status_name
-                global password
-                print(os.path.basename(status_name))
+                global file
                 if status_name:
-                    if (os.path.basename(status_name)).endswith('.txt.aes') or (os.path.basename(status_name)).endswith('decrypted.txt'):
-                            text_Val = TextArea.get(1.0, END)
-
-                            os.remove(status_name)
-                            pyAesCrypt.encrypt()
-                    with open(status_name, "w") as f:
+                    with open(file, "w") as f:
                         f.write(TextArea.get(1.0, END))
                         f.close()
                 else:
-                    result = messagebox.askyesno(
-                        "Confirm", "Do you want to encrypt your file?"
+                    file = fd.asksaveasfilename(
+                        initialfile="Untitled.txt",
+                        defaultextension=".txt",
+                        filetypes=[
+                            ("All Files", "*.*"),
+                            ("Text Documents", "*.txt"),
+                        ],
                     )
-                    if result == False:
-                        file = fd.asksaveasfilename(
-                            initialfile="Untitled.txt",
-                            defaultextension=".txt",
-                            filetypes=[
-                                ("All Files", "*.*"),
-                                ("Text Documents", "*.txt"),
-                            ],
-                        )
-                        gmm = str(file)
-                        status_name = file
-                        if file == "":
-                            file = None
+                    status_name = file
+                    if file == "":
+                        file = None
 
-                        else:
-                            # Save as a new file
-                            with open(file, "w") as f:
-                                status_name = True
-                                f.write(TextArea.get(1.0, END))
-                                f.close()
-                            root.title(os.path.basename(file) + " - Notepad")
                     else:
-                        file = fd.asksaveasfilename(
-                            initialfile="Untitled.txt",
-                            defaultextension=".txt",
-                            filetypes=[
-                                ("All Files", "*.*"),
-                                ("Text Documents", "*.txt"),
-                            ],
-                        )
-                        gmm = str(file)
-                        password = str(
-                            simpledialog.askstring(
-                                title="Password", prompt="Please provide the password"
-                            )
-                        )
-                        status_name = file
-                        if file == "":
-                            file = None
-
-                        else:
-                            # Save as a new file
-                            with open(file, "w") as f:
-                                f.write(TextArea.get(1.0, END))
-                                f.close()
-                            root.title(os.path.basename(file) + " - Notepad")
-                            file = file
-                        file_name = str(file)
-                        try:
-                            pyAesCrypt.encryptFile(
-                                file_name, file_name + ".aes", password, 64 * 1024
-                            )
-                            os.remove(file)
-                        except:
-                            pass
+                        # Save as a new file
+                        with open(file, "w") as f:
+                            status_name = True
+                            f.write(TextArea.get(1.0, END))
+                            f.close()
+                        root.title(os.path.basename(file) + " - Notepad")
 
             def quitApp():
                 try:
@@ -1871,6 +1734,7 @@ def window_after(username, hash_password, password_new):
                 real_size = int(num)
                 new_font_size = (font, real_size)
                 TextArea.config(font=new_font_size)
+
             def size_change(event):
 
                 original_font = TextArea["font"]
@@ -1884,13 +1748,13 @@ def window_after(username, hash_password, password_new):
                 find_font = var.rstrip()
                 new_str = original_font.split()
                 for i in new_str:
-                    for a  in i:
+                    for a in i:
                         if a in '0123456789':
                             size = int(i)
-                if size !=60 and event.delta==120:
-                    size+=1
-                if size !=6 and event.delta==-120:
-                    size-=1
+                if size != 60 and event.delta == 120:
+                    size += 1
+                if size != 6 and event.delta == -120:
+                    size -= 1
                 new_font = (find_font, size)
                 TextArea.configure(font=new_font)
 
@@ -2014,12 +1878,12 @@ def window_after(username, hash_password, password_new):
             EditMenu.config(
                 bg="#292A2D", bd="0", relief="ridge", activebackground="#292A2D"
             )
-            TextArea.bind('<Control-MouseWheel>',size_change)
+            TextArea.bind('<Control-MouseWheel>', size_change)
 
             my_menu = Menu(
                 mainarea,
                 tearoff=0,
-                bd='0',borderwidth='0',background='#292A2D'
+                bd='0', borderwidth='0', background='#292A2D'
             )
             my_menu.config(bg="#292A2D", bd="0", activebackground="#292A2D")
             my_menu.add_command(
@@ -2416,7 +2280,6 @@ def window_after(username, hash_password, password_new):
                 foreground="white",
                 activebackground="#4B4C4F",
             )
- 
 
             EditMenu.add_command(
                 label="Text Color",
@@ -2535,10 +2398,12 @@ def window_after(username, hash_password, password_new):
             root.config(menu=MenuBar)
 
     # main content area
+    # main content area
     pass_img = tk_image.PhotoImage(image.open("images\\password.png"))
     notes_img = tk_image.PhotoImage(image.open("images\\notes.png"))
     mainarea = Frame(root, bg="#292A2D", width=500, height=500)
     mainarea.pack(expand=True, fill="both", side="right")
+    print('fsd')
 
     button = Button(
         sidebar,
@@ -2551,13 +2416,11 @@ def window_after(username, hash_password, password_new):
         command=lambda: testing(root, mainarea, username, hash_password, button),
     )
 
-    # profile sidebar functions and objects
-
-    # fetching the email from database
     my_cursor.execute(
         "select email_id,salt_recovery from data_input where username = (?)",
         (username,),
     )
+
     email_id = ""
     for email in my_cursor.fetchall():
         email_id = email[0]
@@ -2581,11 +2444,18 @@ def window_after(username, hash_password, password_new):
     )
     encrypted_pass = ""
     d = my_cursor.fetchall()
-    for i in d :
+    print(d)
+    print('fsffsdf')
+
+    for i in d:
+        print(i[0])
         password = email_id + hash_password
+
         key = pbkdf2.PBKDF2(password, i[1]).read(32)
+
         aes = pyaes.AESModeOfOperationCTR(key)
-        encrypted_pass = (aes.decrypt(i[0])).decode()
+        encrypted_pass = aes.decrypt(i[0])
+        print(encrypted_pass)
 
     notes_buttons = Button(
         sidebar,
@@ -2597,7 +2467,6 @@ def window_after(username, hash_password, password_new):
         fg="white",
         bg="black",
     )
-
     button.grid(row=0, column=1)
     notes_buttons.grid(row=1, column=1)
     # profile_button.grid(row=2,column=1)
@@ -2667,37 +2536,37 @@ def change_icon(button, usernam, users_username, hashed_password, window, passwo
 
     im = image.open(image_path)
     try:
-        if im: 
+        if im:
 
-                if im.size in l:
-                    for i in pad:
-                        if i[0] == usernam:
-                            i[3] = image_path
-                    f.close()
-                    with open(file_name, "wb") as f1:
-                        pickle.dump(pad, f1)
-                        f1.close()
-                    os.remove(users_username + ".bin.fenc")
+            if im.size in l:
+                for i in pad:
+                    if i[0] == usernam:
+                        i[3] = image_path
+                f.close()
+                with open(file_name, "wb") as f1:
+                    pickle.dump(pad, f1)
+                    f1.close()
+                os.remove(users_username + ".bin.fenc")
 
-                    pyAesCrypt.encryptFile(
-                        file_name, users_username + ".bin.fenc", hashed_password, bufferSize
-                    )
-                    new_tk = tk_image.PhotoImage(im)
-                    button.config(image=new_tk)
-                    button.photo = new_tk
-                    gameloop(users_username, hashed_password, window, password_button)
-                else:
-                    messagebox.showerror(
-                        "Error", "Please provide icon size of 32x32 or 16x16 "
-                    )
-                    im = image.open("images\\camera.png")
-                    new_tk = tk_image.PhotoImage(im)
-                    button.config(image=new_tk)
-                    button.photo = new_tk
-                    image_path = fd.askopenfilename(
-                        filetypes=[("image", "*.png")], title="Add icon"
-                    )
-                    gameloop(users_username, hashed_password, window, password_button)
+                pyAesCrypt.encryptFile(
+                    file_name, users_username + ".bin.fenc", hashed_password, bufferSize
+                )
+                new_tk = tk_image.PhotoImage(im)
+                button.config(image=new_tk)
+                button.photo = new_tk
+                gameloop(users_username, hashed_password, window, password_button)
+            else:
+                messagebox.showerror(
+                    "Error", "Please provide icon size of 32x32 or 16x16 "
+                )
+                im = image.open("images\\camera.png")
+                new_tk = tk_image.PhotoImage(im)
+                button.config(image=new_tk)
+                button.photo = new_tk
+                image_path = fd.askopenfilename(
+                    filetypes=[("image", "*.png")], title="Add icon"
+                )
+                gameloop(users_username, hashed_password, window, password_button)
 
     except:
         new_tk = tk_image.PhotoImage(path_im)
@@ -2862,7 +2731,6 @@ def actions(button, window, username, hashed_password, bg_img, password_button):
         dot_text1 = Label(new_s, text=":", bg="#292A2D", fg="white", font=(20))
         dot_text2 = Label(new_s, text=":", bg="#292A2D", fg="white", font=(20))
 
-
         delete_account = Button(
             new_s,
             text="Delete Account",
@@ -2961,7 +2829,7 @@ def actions(button, window, username, hashed_password, bg_img, password_button):
 
 
 def buttons_blit(
-    username, window, add_button, mainarea, hashed_password, bg_img, password_button
+        username, window, add_button, mainarea, hashed_password, bg_img, password_button
 ):
     global buttons_list
     global btn_nr
@@ -3007,7 +2875,8 @@ def buttons_blit(
             length_list = len(values)
             add_button.grid(row=length_list + 1, column=0)
         except:
-           pass
+            pass
+
 
 def gameloop(username, hashed_password, window, password_button):
     bg_img = tk_image.PhotoImage(image.open("images\\log.jpg"))
@@ -3027,7 +2896,7 @@ def gameloop(username, hashed_password, window, password_button):
     new_l = Label(window, image=bg_img, bd=0)
     new_l.image = bg_img
     new_l.place(x=120 + 20, y=0)
-    canvas = Canvas(subbar, width=120, height=1027,bg='black', bd="0", highlightthickness=0)
+    canvas = Canvas(subbar, width=120, height=1027, bg='black', bd="0", highlightthickness=0)
     canvas.pack(side="left", fill=BOTH)
 
     scrollbar = Scrollbar(
@@ -3052,7 +2921,7 @@ def gameloop(username, hashed_password, window, password_button):
 
     # creating another frame
     second_frame = Frame(
-        canvas, width=120, height=1027, bd="0",bg='black', highlightbackground="black"
+        canvas, width=120, height=1027, bd="0", bg='black', highlightbackground="black"
     )
 
     # add that new frame to a new window in the canvas
@@ -3116,12 +2985,12 @@ def handle_focus_in(entry, index):
         entry.config(foreground="black")
         entry.config(show="*")
     elif (
-        index == 2
-        and val == "Password"
-        or index == 4
-        and val == "Email password"
-        or index == 2
-        and val == "New Email password"
+            index == 2
+            and val == "Password"
+            or index == 4
+            and val == "Email password"
+            or index == 2
+            and val == "New Email password"
     ):
         entry.config(foreground="#292A2D")
         state_entry = entry["show"]
@@ -3177,7 +3046,7 @@ def login(*window):
     height_window = 700
     login_window.focus_set()
     login_window.grab_set()
-    login_window.config(bg="#292A2D")
+    login_window.config(bg="white")
     screen_width = login_window.winfo_screenwidth()
     screen_height = login_window.winfo_screenheight()
     x = screen_width / 2 - width_window / 2
@@ -3190,7 +3059,7 @@ def login(*window):
     image1_label.place(x=0, y=0)
 
     labelframe = LabelFrame(
-        login_window, bg="#292A2D", width=500, height=550, borderwidth=2, relief="solid"
+        login_window, bg="white", width=500, height=550, borderwidth=2, relief="solid"
     )
     labelframe.place(x=270, y=100)
     # ---------------------Label Frame------------------------
@@ -3201,34 +3070,32 @@ def login(*window):
 
     # ------------------Labels---------------------------
     username_label = Label(
-        labelframe, text="Username", bd=5, fg="white", bg="#292A2D", font=("ariel", 18)
+        labelframe, text="Username", bd=5, fg="black", bg="white", font=("Yu Gothic", 15)
     )
     username_label.place(x=30, y=200 + 30 - 2)
     password_label = Label(
-        labelframe, text="Password", fg="white", bd=5, bg="#292A2D", font=("ariel", 18)
+        labelframe, text="Password", fg="black", bd=5, bg="white", font=("Yu Gothic", 15)
     )
     password_label.place(x=30, y=250 + 30 - 5 - 2)
 
     dot_label = Label(
-        labelframe, text=":", bd=5, fg="white", bg="#292A2D", font=("ariel", 18)
+        labelframe, text=":", bd=5, fg="black", bg="white", font=("Sitka Text", 15)
     )
     dot_label1 = Label(
-        labelframe, text=":", bd=5, fg="white", bg="#292A2D", font=("ariel", 18)
+        labelframe, text=":", bd=5, fg="black", bg="white", font=("Sitka Text", 15)
     )
 
     # ------------------Entry---------------------------
-    input_entry = Entry(labelframe, width=20, font=("consolas", 15, "normal"))
-    input_entry.place(x=200, y=200 + 30 + 2)
-    pass_entry = Entry(
-        labelframe,
-        width=20,
-        foreground="black",
-        show="*",
-        font=("consolas", 15, "normal"),
-    )
-    pass_entry.place(x=200, y=250 - 2 + 30)
+    input_entry = Entry(labelframe, width=20, border=0, bd=0, font=("consolas", 15, "normal"))
+    pass_entry = Entry(labelframe, borderwidth=0, show="*", font=("consolas", 15, "normal"))
 
-    login_icon = Label(labelframe, image=login_img, bg="#292A2D")
+    pass_entry.place(x=200, y=250 - 2 + 30)
+    input_entry.place(x=200, y=200 + 30 + 2)
+
+    Frame(labelframe, width=220, height=2, bg='black').place(x=200, y=250 - 2 + 30 + 20 + 7)
+    Frame(labelframe, width=220, height=2, bg='black').place(x=200, y=200 + 30 + 2 + 20 + 7)
+
+    login_icon = Label(labelframe, image=login_img, bg="white", )
     login_icon.image = login_img
     login_icon.place(x=180, y=50)
     # dot label
@@ -3243,10 +3110,10 @@ def login(*window):
         text="Forgot Password?",
         command=lambda: login_password("Forgot Password"),
         border="0",
-        fg="white",
-        bg="#292A2D",
-        highlightcolor="#292A2D",
-        activebackground="#292A2D",
+        fg="red",
+        bg="white",
+        highlightcolor="white",
+        activebackground="white",
         activeforeground="white",
         relief=RAISED,
         font=("consolas", 18),
@@ -3255,11 +3122,11 @@ def login(*window):
         labelframe,
         text="Register",
         command=lambda: register(window, login_window),
-        fg="white",
-        bg="#292A2D",
+        fg="red",
+        bg="white",
         border="0",
-        highlightcolor="#292A2D",
-        activebackground="#292A2D",
+        highlightcolor="white",
+        activebackground="white",
         activeforeground="white",
         relief=RAISED,
         font=("consolas", 18),
@@ -3267,7 +3134,7 @@ def login(*window):
 
     register_button.place(x=70, y=470 - 20)
     forgot.place(x=230, y=470 - 20)
-    bar_label = Label(labelframe, text="|", bg="#292A2D", fg="white", font=(100))
+    bar_label = Label(labelframe, text="|", bg="white", fg="black", font=(100))
 
     bar_label.place(x=200, y=470 - 10 + 2)
 
@@ -3276,10 +3143,10 @@ def login(*window):
     show_both_1 = Button(
         labelframe,
         fg="white",
-        bg="#292A2D",
+        bg="white",
         command=lambda: password_sec(pass_entry, show_both_1),
-        highlightcolor="#292A2D",
-        activebackground="#292A2D",
+        highlightcolor="white",
+        activebackground="white",
         activeforeground="white",
         bd=0,
         relief=RAISED,
@@ -3313,6 +3180,7 @@ def login(*window):
                         login_window.destroy()
                     except:
                         pass
+                    print('y')
                     window_after(username, main_password, passw)
                 except:
                     pass
@@ -3334,8 +3202,8 @@ def login(*window):
 
     sub_button = Button(
         labelframe,
-        bg="#292A2D",
-        activebackground="#292A2D",
+        bg="white",
+        activebackground="white",
         image=submit_button,
         bd=0,
         command=login_checking_1,
@@ -3347,12 +3215,12 @@ def login(*window):
 
     def on_enter(event, button):
         button.configure(
-            font=("consolas", 18, "underline"), fg="#0000ff", activeforeground="#0000ff"
+            font=("consolas", 18, "underline"), fg="red", activeforeground="red"
         )
 
     def on_leave(enter, button):
         button.configure(
-            font=("consolas", 18, "normal"), fg="white", activeforeground="white"
+            font=("consolas", 18, "normal"), fg="red", activeforeground="red"
         )
 
     forgot.bind("<Enter>", lambda event, a=forgot: on_enter(event, a))
@@ -3397,7 +3265,7 @@ def register(window, *a):
     login_window1.focus_set()
 
     login_window1.title("Register")
-    login_window1.config(bg="#292A2D")
+    login_window1.config(bg='#292A2D')
     width_window = 1057
     height_window = 700
     screen_width = login_window1.winfo_screenwidth()
@@ -3411,13 +3279,13 @@ def register(window, *a):
     back_button = tk_image.PhotoImage(image.open("images\\cancel.png"))
     submit_button = tk_image.PhotoImage(image.open("images\\submit.png"))
 
-    image1_label = Label(login_window1, image=image1)
+    image1_label = Label(login_window1, bd=0, image=image1)
     image1_label.image = image1
     image1_label.place(x=0, y=0)
     iconimage = tk_image.PhotoImage(image.open("images\\icon.png"))
     labelframe1 = LabelFrame(
         login_window1,
-        bg="#292A2D",
+        bg='#292A2D',
         width=500,
         height=550,
         borderwidth=2,
@@ -3432,45 +3300,53 @@ def register(window, *a):
     # ------------------Labels---------------------------
 
     username = Label(
-        labelframe1, fg="white", text="Username", bd=5, bg="#292A2D", font=("ariel", 18)
+        labelframe1, fg="#ebebeb", text="Username", bd=5, bg='#292A2D', font=("Sitka Text", 15),
+
     )
-    username.place(x=0, y=170 + 20 + 40)
     password = Label(
-        labelframe1, fg="white", text="Password", bd=5, bg="#292A2D", font=("ariel", 18)
+        labelframe1, fg="#ebebeb", text="Password", bd=5, bg='#292A2D', font=("Sitka Text", 15),
     )
-    password.place(x=0, y=220 + 20 + 40)
     email_id = Label(
         labelframe1,
-        fg="white",
+        fg="#ebebeb",
         text="Recovery Email",
-        bg="#292A2D",
+        bg='#292A2D',
         bd=5,
-        font=("ariel", 18),
+        font=("Sitka Text", 15),
     )
-    email_id.place(x=0, y=270 + 20 + 40)
     email_password = Label(
         labelframe1,
-        fg="white",
+        fg="#ebebeb",
         text="Recovery Password",
-        bg="#292A2D",
+        bg='#292A2D',
         bd=5,
-        font=("ariel", 18),
+        font=("Sitka Text", 15),
     )
-    email_password.place(x=0, y=320 + 20 + 40)
+    # placing the labels
+    username.place(x=0, y=170 + 20 + 40 - 2)
+    password.place(x=0, y=220 + 20 + 40 - 2)
+    email_id.place(x=0, y=270 + 20 + 40 - 2)
+    email_password.place(x=0, y=320 + 20 + 40 - 2)
 
     # ------------------Entry---------------------------
-    username_entry = Entry(
-        labelframe1, width=20, font=("consolas", 15, "normal")
-    )  # , bd=6
+    username_entry = Entry(labelframe1, width=20, borderwidth=0, fg="#ebebeb", bg='#292A2D', relief=SUNKEN,
+                           font=("consolas", 15, "normal"))
+    password_entry = Entry(labelframe1, show="*", fg="#ebebeb", bg='#292A2D', borderwidth=0, width=20,
+                           font=("consolas", 15, "normal"))
+    email_id_entry = Entry(labelframe1, borderwidth=0, fg="#ebebeb", bg='#292A2D', width=20,
+                           font=("consolas", 15, "normal"))
+    email_password_entry = Entry(labelframe1, borderwidth=0, fg="#ebebeb", bg='#292A2D', width=20,
+                                 font=("consolas", 15, "normal"))
+
     username_entry.place(x=230, y=170 + 18 + 40 + 4)
-    password_entry = Entry(
-        labelframe1, show="*", width=20, font=("consolas", 15, "normal")
-    )
     password_entry.place(x=230, y=220 + 18 + 40 + 4)
-    email_id_entry = Entry(labelframe1, width=20, font=("consolas", 15, "normal"))
     email_id_entry.place(x=230, y=270 + 18 + 40 + 4)
-    email_password_entry = Entry(labelframe1, width=20, font=("consolas", 15, "normal"))
     email_password_entry.place(x=230, y=320 + 18 + 40 + 4)
+
+    Frame(labelframe1, width=220, height=2, bg='#ebebeb').place(x=230, y=170 + 18 + 40 + 4 + 20 + 7)
+    Frame(labelframe1, width=220, height=2, bg='#ebebeb').place(x=230, y=220 + 18 + 40 + 4 + 20 + 7)
+    Frame(labelframe1, width=220, height=2, bg='#ebebeb').place(x=230, y=270 + 18 + 40 + 4 + 20 + 7)
+    Frame(labelframe1, width=220, height=2, bg='#ebebeb').place(x=230, y=320 + 18 + 40 + 4 + 20 + 7)
 
     # putting the buttons and entries
 
@@ -3487,17 +3363,16 @@ def register(window, *a):
     email_password_entry.insert(0, "Email password")
 
     # register function
-    def register_saving():
-
-        username_register = str(username_entry.get())
-        password_register = str(password_entry.get())
-        email_id_register = str(email_id_entry.get())
-        email_password_register = str(email_password_entry.get())
+    def register_saving(a, b, c, d):
+        username_register = a
+        password_register = b
+        email_id_register = c
+        email_password_register = d
+        connection = sqlite3.connect("DATABASE\\users.db", isolation_level=None)
+        my_cursora = connection.cursor()
         if username_register == "Username" or password_register == "Password":
-            root2 = Tk()
-            root2.withdraw()
             messagebox.showinfo("Fields Empty", "Fields cannot be empty")
-            root2.destroy()
+            flag = False
         else:
             register_user = Register(
                 username_register,
@@ -3507,13 +3382,14 @@ def register(window, *a):
             )
             checking = register_user.check_pass_length()
             if checking:
-                registering = register_user.saving(my_cursor)
-                if registering:
-                    root2 = Tk()
-                    root2.withdraw()
-                    messagebox.showinfo("Error", "Username and email already exists")
-                    root2.destroy()
+                registering, value = register_user.saving(my_cursora)
+                if registering and value != None:
+                    messagebox.showinfo("Error", "Username  already exists")
+                    flag = False
 
+                if registering and value == 'email':
+                    messagebox.showinfo("Error", "Email already exists")
+                    flag = False
                 if not registering:
                     register_user.creation(login_window1)
 
@@ -3523,12 +3399,14 @@ def register(window, *a):
                 messagebox.showinfo(
                     "Error", "Please provide password greater than 6 characters"
                 )
+                flag = False
                 root2.destroy()
 
-    submit_but = Button(
-        labelframe1, image=submit_button, bd=0,activebackground="#292A2D", command=register_saving, bg="#292A2D"
-    )
-    submit_but.image = submit_button
+    submit_but = Button(labelframe1, bd=0, width=20, height=2, text='R E G I S T E R', font=('consolas'), fg='#292A2D',
+                        bg='#994422', activebackground="#292A2D",
+                        command=lambda: register_saving(str(username_entry.get()), str(password_entry.get()),
+                                                        str(email_id_entry.get()), str(email_password_entry.get())))
+
     username_entry.bind(
         "<FocusIn>",
         lambda event, val_val=username_entry, index=1: handle_focus_in(val_val, index),
@@ -3582,13 +3460,12 @@ def register(window, *a):
         labelframe1,
         image=unhide_img,
         command=lambda: password_sec(password_entry, show_both_1),
-        fg="white",
-        bg="#292A2D",
+        fg="#292A2D",
+        bg='#292A2D',
         bd=0,
-        font="consolas 10",
         highlightcolor="#292A2D",
         activebackground="#292A2D",
-        activeforeground="white",
+        activeforeground="#292A2D",
         relief=RAISED,
     )
     show_both_1.image = unhide_img
@@ -3596,54 +3473,44 @@ def register(window, *a):
         labelframe1,
         image=unhide_img,
         command=lambda: password_sec(email_password_entry, show_both_12),
-        fg="white",
-        bg="#292A2D",
-        font="consolas 10",
+        fg="#292A2D",
+        bg='#292A2D',
         bd=0,
         highlightcolor="#292A2D",
         activebackground="#292A2D",
-        activeforeground="white",
+        activeforeground="#292A2D",
         relief=RAISED,
     )
     show_both_12.image = unhide_img
 
     show_both_1.place(x=450 + 8, y=220 + 18 + 40)
     show_both_12.place(x=450 + 8, y=320 + 18 + 40)
+
     login_button = Button(
+
         labelframe1,
-        text="Login",
-        fg="white",
-        font="consolas 18",
-        bg="#292A2D",
+        text='L O G I N', width=22, height=2, font=('consolas'), fg='#292A2D', bg='#994422',
         bd=0,
+        relief=SUNKEN,
         command=lambda: login(login_window1),
     )
-    login_button.place(x=210, y=430 - 5)
+    login_button.place(x=30, y=470)
 
     def on_enter(event, button):
         button.configure(
-            font=("consolas", 18, "underline"), fg="#0000ff", activeforeground="#0000ff"
+            font=("consolas", 18, "underline"),
         )
 
     def on_leave(enter, button):
         button.configure(
-            font=("consolas", 18, "normal"), fg="white", activeforeground="white"
+            font=("consolas", 18, "normal")
         )
 
     login_button.bind("<Enter>", lambda event, a=login_button: on_enter(event, a))
     login_button.bind("<Leave>", lambda event, a=login_button: on_leave(event, a))
 
     submit_but.place(x=300 - 20, y=470)
-    cancel = Button(
-        labelframe1,
-        bg="#292A2D",
-        image=back_button,
-        activebackground="#292A2D", 
-        bd=0,
-        command=login_window1.destroy,
-    )
-    cancel.image = back_button
-    cancel.place(x=30, y=470)
+    login_window1.mainloop()
 
 
 # ---------------------Importing Images------------------
