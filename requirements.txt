@@ -1,7 +1,0 @@
-secure-smtplib
-pyAesCrypt
-pyaes
-pbkdf2
-pillow
-cryptography
-update_check
