@@ -97,14 +97,16 @@ class Login:
             # checking for blank password
             root_error = Tk()
             for_hashing_both = self.password + self.username
-            main_password = hashlib.sha3_512(for_hashing_both.encode()).hexdigest()
+            main_password = hashlib.sha3_512(
+                for_hashing_both.encode()).hexdigest()
             root_error.withdraw()
             messagebox.showerror("Error", "Password cannot be empty ")
             root_error.destroy()
             return False, main_password, self.password
         else:
             for_hashing_both = self.password + self.username
-            main_password = hashlib.sha3_512(for_hashing_both.encode()).hexdigest()
+            main_password = hashlib.sha3_512(
+                for_hashing_both.encode()).hexdigest()
             if os.path.exists(f"{self.username}.bin.fenc"):
                 try:
                     # trying to decrypt the users file to check whether the password entered is valid
@@ -180,8 +182,10 @@ class Profile_view:
         # profile window image
         member = tk_image.PhotoImage(image.open("images\\member.png"))
 
-        profileimg = tk_image.PhotoImage(image.open("images\\profile_image.png"))
-        new_canvas = Canvas(profile, width=1270, height=700, highlightthickness=0)
+        profileimg = tk_image.PhotoImage(
+            image.open("images\\profile_image.png"))
+        new_canvas = Canvas(profile, width=1270,
+                            height=700, highlightthickness=0)
         new_canvas.place(x=0, y=0)
         new_canvas.background = profileimg
         new_canvas.create_image(0, 0, image=profileimg, anchor="nw")
@@ -416,7 +420,8 @@ class Register:
         windows.destroy()
         # for opening the main section where he can store his passwords and use notepad so the file has to be decrypted
         pyAesCrypt.decryptFile(
-            file_name + ".fenc", f"{self.username}decrypted.bin", hash_pass, bufferSize
+            file_name +
+            ".fenc", f"{self.username}decrypted.bin", hash_pass, bufferSize
         )
         window_after(self.username, hash_pass, self.password)
 
@@ -477,7 +482,8 @@ class Deletion:
             a.destroy()
             if result:
 
-                self.change_account_name(account_name[0], password_button, False)
+                self.change_account_name(
+                    account_name[0], password_button, False)
             else:
                 pass
 
@@ -513,13 +519,15 @@ class Deletion:
             )
             a = Tk()
             a.withdraw()
-            messagebox.showinfo("Success", f"{account_name}  has been  deleted")
+            messagebox.showinfo(
+                "Success", f"{account_name}  has been  deleted")
             a.destroy()
 
             # getting whether the password button is pressed or not
             state_current = button["state"]
             if state_current == DISABLED:
-                gameloop(self.real_username, self.hashed_password, self.window, button)
+                gameloop(self.real_username, self.hashed_password,
+                         self.window, button)
             else:
                 pass
         else:
@@ -584,7 +592,8 @@ class Change_details:
         screen_height = change_acccount.winfo_screenheight()
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
-        change_acccount.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+        change_acccount.geometry("%dx%d+%d+%d" %
+                                 (width_window, height_window, x, y))
 
         iamge_load = tk_image.PhotoImage(image.open("images\\member.png"))
         iamge = Label(change_acccount, image=iamge_load, bg="#292A2D")
@@ -696,7 +705,8 @@ class Change_details:
                 p = Tk()
                 p.config(bg="#292A2D")
                 p.withdraw()
-                messagebox.showinfo("Success", "The Account details has been changed")
+                messagebox.showinfo(
+                    "Success", "The Account details has been changed")
                 p.destroy()
                 os.remove(f"{self.real_username}decrypted.bin")
                 with open(f"{self.real_username}decrypted.bin", "wb") as f:
@@ -794,12 +804,14 @@ class Change_details:
         screen_height = new_window.winfo_screenheight()
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
-        new_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+        new_window.geometry("%dx%d+%d+%d" %
+                            (width_window, height_window, x, y))
         new_window.title("Change Recovery details")
         new_window.geometry("300x300")
         new_window.config(bg="#292A2D")
 
-        new_email = Label(new_window, text="New Email", fg="white", bg="#292A2D")
+        new_email = Label(new_window, text="New Email",
+                          fg="white", bg="#292A2D")
         new_email_password = Label(
             new_window, text="New Password", fg="white", bg="#292A2D"
         )
@@ -827,7 +839,8 @@ class Change_details:
         new_email_entry.config(fg="grey")
         new_email_entry.insert(0, "New Email")
         my_cursor.execute(
-            "select email_id from data_input where username=(?)", (self.real_username,)
+            "select email_id from data_input where username=(?)", (
+                self.real_username,)
         )
         for i in my_cursor.fetchall():
             save = Button(
@@ -875,7 +888,8 @@ class Change_details:
         show_both_12 = Button(
             new_window,
             image=unhide_img,
-            command=lambda: password_sec(new_email_password_entry, show_both_12),
+            command=lambda: password_sec(
+                new_email_password_entry, show_both_12),
             fg="white",
             bd="0",
             bg="#292A2D",
@@ -914,7 +928,8 @@ def log_out(*window):
 
         a = Tk()
         a.withdraw()
-        messagebox.showinfo("Logged Out", "You have been successfully logged out")
+        messagebox.showinfo(
+            "Logged Out", "You have been successfully logged out")
         a.destroy()
         list_file = glob.glob("*decrypted.bin")
         for i in list_file:
@@ -996,7 +1011,8 @@ def settings(
     x = screen_width / 2 - width_window / 2
     y = screen_height / 2 - height_window / 2
 
-    settings_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+    settings_window.geometry("%dx%d+%d+%d" %
+                             (width_window, height_window, x, y))
 
     settings_window.title("Settings")
     settings_window.config(bg="#292A2D")
@@ -1032,7 +1048,8 @@ def settings(
     Delete_account_button = Button(
         settings_window,
         text="Delete main account",
-        command=lambda: delete_object.delete_main_account(main_window, settings_window),
+        command=lambda: delete_object.delete_main_account(
+            main_window, settings_window),
         font=("consolas"),
         width=20,
         fg="black",
@@ -1165,8 +1182,10 @@ def login_password(title1):
         root.geometry("300x300")
         root.config(bg="#292A2D")
 
-        new_username = Label(root, text="New Username", fg="white", bg="#292A2D")
-        new_password = Label(root, text="New Password", fg="white", bg="#292A2D")
+        new_username = Label(root, text="New Username",
+                             fg="white", bg="#292A2D")
+        new_password = Label(root, text="New Password",
+                             fg="white", bg="#292A2D")
 
         new_username_entry = Entry(root)
         new_password_entry = Entry(root, show="*")
@@ -1222,7 +1241,8 @@ def login_password(title1):
 
         def change():
             my_cursor.execute(
-                "select password,salt from data_input where email_id = (?)", (email,)
+                "select password,salt from data_input where email_id = (?)", (
+                    email,)
             )
             values_password = my_cursor.fetchall()
             password_decrypt = ""
@@ -1266,7 +1286,8 @@ def login_password(title1):
                     new_username_entry.get()
                 )
                 new_salt = str(new_password_entry.get()) + "@" + main_pass
-                re_hash_new = hashlib.sha3_512(re_hash_text.encode()).hexdigest()
+                re_hash_new = hashlib.sha3_512(
+                    re_hash_text.encode()).hexdigest()
                 re_encrypt, new_salt = create_key(main_pass, new_salt)
                 pyAesCrypt.encryptFile(
                     username12 + "decrypted.bin",
@@ -1275,12 +1296,14 @@ def login_password(title1):
                     bufferSize,
                 )
                 my_cursor.execute(
-                    "select email_id from data_input where username=(?)", (username12,)
+                    "select email_id from data_input where username=(?)", (
+                        username12,)
                 )
                 for i in my_cursor.fetchall():
                     password_recovery_email = i[0] + re_hash_new
                     passwordSalt = secrets.token_bytes(512)
-                    key = pbkdf2.PBKDF2(password_recovery_email, passwordSalt).read(32)
+                    key = pbkdf2.PBKDF2(
+                        password_recovery_email, passwordSalt).read(32)
                     aes = pyaes.AESModeOfOperationCTR(key)
                     encrypted_pass = aes.encrypt(password1)
 
@@ -1327,11 +1350,13 @@ def login_password(title1):
                     os.remove("otp.bin.fenc")
                     change_password(email, email_password, username12)
                 else:
-                    messagebox.showinfo("Error", "Incorrect OTP Please verify it again")
+                    messagebox.showinfo(
+                        "Error", "Incorrect OTP Please verify it again")
                     button.config(state=NORMAL)
                     otp_entry.delete(0, END)
         else:
-            messagebox.showinfo("Error", "Please provide the OTP  send to your email")
+            messagebox.showinfo(
+                "Error", "Please provide the OTP  send to your email")
 
     def forgot_password(OTP, email, username):
         try:
@@ -1376,7 +1401,8 @@ def login_password(title1):
             messagebox.showwarning("Warning", f"Password cannot be blank")
         elif not os.path.exists(username_verify + ".bin.fenc"):
 
-            messagebox.showwarning("Warning", f"Cannot find user {username_verify}")
+            messagebox.showwarning(
+                "Warning", f"Cannot find user {username_verify}")
 
         else:
             if os.path.exists(username_verify + ".bin.fenc"):
@@ -1401,7 +1427,8 @@ def login_password(title1):
                         else:
                             run = False
 
-                            messagebox.showerror("Error", "Wrong Recovey email")
+                            messagebox.showerror(
+                                "Error", "Wrong Recovey email")
                 else:
                     messagebox.showerror("Error", "No such account exists")
 
@@ -1436,7 +1463,8 @@ def login_password(title1):
                         pickle.dump(l, f)
                         f.close()
                     generate_key1("otp.bin", button)
-                    forgot_password(OTP, recover_email_entry_verify, username_verify)
+                    forgot_password(
+                        OTP, recover_email_entry_verify, username_verify)
             else:
                 messagebox.showerror("Error", "No such account exists")
 
@@ -1595,7 +1623,8 @@ def window_after(username, hash_password, password_new, *window):
                 global file
                 file = fd.askopenfilename(
                     defaultextension=".txt",
-                    filetypes=[("All Files", "*.*"), ("Text Documents", "*.txt")],
+                    filetypes=[("All Files", "*.*"),
+                               ("Text Documents", "*.txt")],
                 )
 
                 # check to if there is a file_name
@@ -2054,7 +2083,8 @@ def window_after(username, hash_password, password_new, *window):
             submenu = Menu(EditMenu, tearoff=0)
             submenu_size = Menu(EditMenu, tearoff=0)
             submenu.config(bg="#292A2D", bd="0", activebackground="#292A2D")
-            submenu_size.config(bg="#292A2D", bd="0", activebackground="#292A2D")
+            submenu_size.config(bg="#292A2D", bd="0",
+                                activebackground="#292A2D")
 
             submenu.add_command(
                 label="MS Sans Serif",
@@ -2506,7 +2536,8 @@ def window_after(username, hash_password, password_new, *window):
         compound="left",
         fg="white",
         bg="black",
-        command=lambda: testing(root, mainarea, username, hash_password, button),
+        command=lambda: testing(
+            root, mainarea, username, hash_password, button),
     )
 
     my_cursor.execute(
@@ -2597,7 +2628,8 @@ def window_after(username, hash_password, password_new, *window):
         text="Profile",
         activebackground="#292A2D",
         activeforeground="white",
-        command=lambda: profile_object.profile_window(mainarea, root, profile_button),
+        command=lambda: profile_object.profile_window(
+            mainarea, root, profile_button),
         padx=46,
         fg="white",
         bg="black",
@@ -2617,7 +2649,8 @@ def change_icon(
     file_name = users_username + "decrypted.bin"
     l = [(32, 32), (16, 16)]
     image_path = fd.askopenfilename(
-        filetypes=[("image", "*.png"), ("image", "*.jpeg"), ("image", "*.jpg")],
+        filetypes=[("image", "*.png"), ("image", "*.jpeg"),
+                   ("image", "*.jpg")],
         title="Add icon",
     )
     f = open(file_name, "rb")
@@ -2653,7 +2686,8 @@ def change_icon(
                 new_tk = tk_image.PhotoImage(im)
                 button.config(image=new_tk)
                 button.photo = new_tk
-                gameloop(users_username, hashed_password, window, password_button)
+                gameloop(users_username, hashed_password,
+                         window, password_button)
             else:
                 messagebox.showerror(
                     "Error", "Please provide icon size of 32x32 or 16x16 "
@@ -2665,7 +2699,8 @@ def change_icon(
                 image_path = fd.askopenfilename(
                     filetypes=[("image", "*.png")], title="Add icon"
                 )
-                gameloop(users_username, hashed_password, window, password_button)
+                gameloop(users_username, hashed_password,
+                         window, password_button)
 
     except:
         new_tk = tk_image.PhotoImage(path_im)
@@ -2688,7 +2723,8 @@ def addaccount(username, button, hashed_password, window, sidebar, password_butt
     y = screen_height / 2 - height_window / 2
     root1.config(bg="#292A2D")
     root1.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-    name_of_social = Label(root1, text="Name of the account", fg="white", bg="#292A2D")
+    name_of_social = Label(
+        root1, text="Name of the account", fg="white", bg="#292A2D")
     name_of_social_entry = Entry(root1)
     username_window = Label(root1, text="Username:", fg="white", bg="#292A2D")
     password_window = Label(root1, text="Password:", fg="white", bg="#292A2D")
@@ -2751,7 +2787,8 @@ def addaccount(username, button, hashed_password, window, sidebar, password_butt
         elif str(password_entry.get()) == "":
             messagebox.showwarning("Warning", "Password cannot be empty")
         elif str(name_of_social_entry.get()) == "":
-            messagebox.showwarning("Warning", "Name of the account cannot be empty")
+            messagebox.showwarning(
+                "Warning", "Name of the account cannot be empty")
         else:
             verifying = verify(
                 username_window_entry.get(), name_of_social_entry.get(), username
@@ -2782,7 +2819,8 @@ def addaccount(username, button, hashed_password, window, sidebar, password_butt
                     button.grid(row=len(val) + 1, column=0)
                 gameloop(username, hashed_password, window, password_button)
 
-    save_button = Button(root1, text="Save", command=save, fg="white", bg="#292A2D")
+    save_button = Button(root1, text="Save", command=save,
+                         fg="white", bg="#292A2D")
     save_button.grid(row=4, column=1)
     save_button.place(x=250, y=170 + 100)
     add_icon_button.place(x=150, y=50)
@@ -2821,7 +2859,8 @@ def actions(button, window, username, hashed_password, bg_img, password_button):
     new_canvas.place(x=120 + 20, y=0)
     new_canvas.create_image(0, 0, image=bg_img, anchor="nw")
     new_s = Frame(new_canvas, bg="#292A2D", width=450, height=400, bd=0)
-    MainWindow = new_canvas.create_window(650 + 60, 600 - 60, window=new_s, anchor="se")
+    MainWindow = new_canvas.create_window(
+        650 + 60, 600 - 60, window=new_s, anchor="se")
 
     with open(f"{username}decrypted.bin", "rb") as f:
 
@@ -2947,7 +2986,8 @@ def buttons_blit(
             d = {}
             for i in range(len(new)):
                 if val[i][3] == "":
-                    button_img = tk_image.PhotoImage(image.open("images\\photo.png"))
+                    button_img = tk_image.PhotoImage(
+                        image.open("images\\photo.png"))
                 else:
                     button_img = tk_image.PhotoImage(image.open(val[i][3]))
                 d[
@@ -3027,7 +3067,8 @@ def gameloop(username, hashed_password, window, password_button):
     # configure the canvas
     canvas.configure(yscrollcommand=scrollbar.set)
     canvas.bind(
-        "<Configure>", lambda event: canvas.configure(scrollregion=canvas.bbox("all"))
+        "<Configure>", lambda event: canvas.configure(
+            scrollregion=canvas.bbox("all"))
     )
 
     # creating another frame
@@ -3163,7 +3204,8 @@ def splash_screen(fn, username, main_password, passw):
         screen_height = splash_screen.winfo_screenheight()
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
-        splash_screen.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+        splash_screen.geometry("%dx%d+%d+%d" %
+                               (width_window, height_window, x, y))
 
         splash_screen.overrideredirect(True)
         splash_screen.after(
@@ -3304,8 +3346,10 @@ def login(*window):
 
     # dot label
 
-    Frame(labelframe, width=280, height=2, bg="black").place(x=50 + 3, y=230 + 30)
-    Frame(labelframe, width=280, height=2, bg="black").place(x=50 + 3, y=150 + 30)
+    Frame(labelframe, width=280, height=2,
+          bg="black").place(x=50 + 3, y=230 + 30)
+    Frame(labelframe, width=280, height=2,
+          bg="black").place(x=50 + 3, y=150 + 30)
 
     # ------------------Button---------------------------
 
@@ -3381,13 +3425,15 @@ def login(*window):
                         root = Tk()
                         root.withdraw()
 
-                        messagebox.showinfo("Success", "You have now logged in ")
+                        messagebox.showinfo(
+                            "Success", "You have now logged in ")
                         root.destroy()
                         try:
                             login_window.destroy()
                         except:
                             pass
-                        splash_screen(window_after, username, main_password, passw)
+                        splash_screen(window_after, username,
+                                      main_password, passw)
                     except:
                         pass
                 else:
@@ -3396,7 +3442,8 @@ def login(*window):
                 if username == "":
                     messagebox.showwarning("Error", "Cannot have username")
                 elif password == "":
-                    messagebox.showwarning("Error", "Cannot have blank password")
+                    messagebox.showwarning(
+                        "Error", "Cannot have blank password")
         except:
             pass
 
@@ -3429,7 +3476,8 @@ def login(*window):
 
     input_entry.bind(
         "<FocusIn>",
-        lambda event, val_val=input_entry, index=1: handle_focus_in(val_val, index),
+        lambda event, val_val=input_entry, index=1: handle_focus_in(
+            val_val, index),
     )
     input_entry.bind(
         "<FocusOut>",
@@ -3440,7 +3488,8 @@ def login(*window):
 
     pass_entry.bind(
         "<FocusIn>",
-        lambda event, val_val=pass_entry, index=2: handle_focus_in(val_val, index),
+        lambda event, val_val=pass_entry, index=2: handle_focus_in(
+            val_val, index),
     )
     pass_entry.bind(
         "<FocusOut>",
@@ -3613,7 +3662,8 @@ def register(window, *a):
             if checking:
                 registering = register_user.saving(my_cursor)
                 if registering:
-                    messagebox.showinfo("Error", "Username  or email already exists")
+                    messagebox.showinfo(
+                        "Error", "Username  or email already exists")
                 if not registering:
                     register_user.creation(login_window1)
 
@@ -3723,33 +3773,33 @@ icon_label.place(x=110, y=20)
 
 register_button = Button(
     labelframe,
-    text="Login",
+    text="L O G I N",
+    width=22,
+    height=2,
+    font=("consolas"),
+    fg="#292A2D",
+    bg="#356745",
+    activebackground="#356745",
+    activeforeground="black",
     bd=0,
-    activebackground="#292A2D",
-    bg="#292A2D",
-    image=login_window,
     command=lambda: login(root),
 )
-register_button.place(x=80, y=210)
+register_button.place(x=70, y=210)
 view = Button(
     labelframe,
-    text="Register",
+    text="R E G I S T E R",
+    width=22,
+    height=2,
+    font=("consolas"),
+    fg="#292A2D",
+    bg="#356745",
+    activebackground="#356745",
+    activeforeground="black",
     bd=0,
-    activebackground="#292A2D",
-    image=imagelogin_windoweg,
     command=lambda: register(root),
-    bg="#292A2D",
 )
-view.place(x=80, y=300 - 10)
-close = Button(
-    labelframe,
-    image=cancelimage,
-    activebackground="#292A2D",
-    bd=0,
-    command=root.destroy,
-    bg="#292A2D",
-)
-close.place(x=80, y=370)
+view.place(x=70, y=300 + 20)
+
 
 root.resizable(False, False)
 root.mainloop()
