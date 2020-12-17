@@ -421,9 +421,6 @@ class Register:
         window_after(self.username, hash_pass, self.password)
 
 
-# for hashing-encryting and decrypting password and for (forgot_password)
-
-
 class Deletion:
     def __init__(self, real_username, hashed_password, window):
         self.real_username = real_username
@@ -774,7 +771,10 @@ class Change_details:
         )
         ad = Toplevel()
         ad.withdraw()
-        messagebox.showinfo("Success", "Your email and password has been changed")
+        messagebox.showinfo(
+            "Success",
+            "Your email and password has been changed.Please restart the program ",
+        )
         ad.destroy()
 
     def change_email(self, rec_pass, ogi_pass):
@@ -1369,21 +1369,14 @@ def login_password(title1):
             roo21.destroy()
 
         elif username_verify == "Username":
-            a = Tk()
-            a.withdraw()
+
             messagebox.showwarning("Warning", f"Username cannot be blank")
-            a.destroy()
 
         elif recover_password_entry_verify == "Password":
-            a = Tk()
-            a.withdraw()
             messagebox.showwarning("Warning", f"Password cannot be blank")
-            a.destroy()
         elif not os.path.exists(username_verify + ".bin.fenc"):
-            a = Tk()
-            a.withdraw()
+
             messagebox.showwarning("Warning", f"Cannot find user {username_verify}")
-            a.destroy()
 
         else:
             if os.path.exists(username_verify + ".bin.fenc"):
