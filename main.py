@@ -75,13 +75,12 @@ y = screen_height / 2 - height_window / 2
 root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
-key  = 5
+key  = 6
 def simple_encrypt(message):
     a = ''
     for i in message:
         position = alphabet.find(i)
         newpos = (position + key)%26
-        print(newpos)
         a += alphabet[newpos]
     return (base64.urlsafe_b64encode(a.encode())).decode()
 def simple_decrypt(message):
