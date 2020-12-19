@@ -45,7 +45,7 @@ connection = sqlite3.connect("DATABASE\\users.db", isolation_level=None)
 my_cursor = connection.cursor()
 my_cursor.execute(
     "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,"
-    "salt blob, recovery_password varchar(100), profile_path varchar(100),salt_recovery blob) "
+    "salt blob, recovery_password varchar(100), salt_recovery blob) "
 )
 # for image loading
 l = [{"1": "images\\member.png"}]
@@ -65,7 +65,7 @@ root = Tk()
 root.title("ONE-PASS")
 
 width_window = 1057
-height_window = 700
+height_window = 661
 
 root.config(bg="#292A2D")
 screen_width = root.winfo_screenwidth()
@@ -74,7 +74,24 @@ x = screen_width / 2 - width_window / 2
 y = screen_height / 2 - height_window / 2
 root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 
-
+alphabet = 'abcdefghijklmnopqrstuvwxyz'
+key  = 5
+def simple_encrypt(message):
+    a = ''
+    for i in message:
+        position = alphabet.find(i)
+        newpos = (position + key)%26
+        print(newpos)
+        a += alphabet[newpos]
+    return (base64.urlsafe_b64encode(a.encode())).decode()
+def simple_decrypt(message):
+    a = ''
+    msg = (base64.urlsafe_b64decode(message.encode())).decode()
+    for i in msg:
+        position = alphabet.find(i)
+        newpos = (position -key)%26
+        a += alphabet[newpos]
+    return a
 class Login:
     def __init__(self, username, password):
         self.username = str(username)
@@ -334,7 +351,16 @@ class Register:
         self.password = str(password)
         self.email_id = str(email_id)
         self.email_password = str(email_password)
-
+    def check_password_integrity(self, passw):
+        self.p = passw
+        with open("pass.txt",'r') as file:
+            data = file.read().split()
+            for i in data:
+                if i == self.p : 
+                    return False
+        return True
+    def email_exists(self):
+        return self.email_id.endswith(("@yahoo.com","@outlook.com","@gmail.com"))
     def check_pass_length(self):  # checking if the entered password is lesser than 5
         return len(self.password) >= 5 and len(self.email_password) >= 5
 
@@ -345,7 +371,7 @@ class Register:
         values_username = object.fetchall()
         for i in values_username:
             for usernames in i:
-                if usernames == self.username and os.path.exists(
+                if simple_decrypt(usernames) == self.username and os.path.exists(
                     self.username + ".bin.fenc"
                 ):
                     return (
@@ -383,8 +409,8 @@ class Register:
             object.execute(
                 "insert into data_input values (?,?,?,?,?,?,?)",
                 (
-                    self.username,
-                    self.email_id,
+                    simple_encrypt(self.username),
+                    simple_encrypt(self.email_id),
                     cipher_text,
                     salt_for_decryption,
                     encrypted_pass,
@@ -552,7 +578,7 @@ class Deletion:
 
                     my_cursor.execute(
                         "delete from data_input where username = (?)",
-                        (self.real_username,),
+                        (simple_encrypt(self.real_username),),
                     )
                     messagebox.showinfo(
                         "Account deletion",
@@ -766,11 +792,11 @@ class Change_details:
             "update data_input set password = (?),  email_id = (?),  salt_recovery=(?), salt = (?), recovery_password = (?) where  username = (?)",
             (
                 re_encrypt,
-                new_email,
+                simple_encrypt(new_email),
                 passwordSalt,
                 new_salt,
                 encrypted_pass,
-                self.real_username,
+                simple_encrypt(self.real_username),
             ),
         )
         pyAesCrypt.encryptFile(
@@ -840,7 +866,7 @@ class Change_details:
         new_email_entry.insert(0, "New Email")
         my_cursor.execute(
             "select email_id from data_input where username=(?)", (
-                self.real_username,)
+                simple_encrypt(self.real_username),)
         )
         for i in my_cursor.fetchall():
             save = Button(
@@ -848,7 +874,7 @@ class Change_details:
                 text="Save",
                 command=lambda: self.save_email(
                     str(new_email_entry.get()),
-                    i[0],
+                    simple_decrypt(i[0]),
                     self.recovery,
                     str(new_email_password_entry.get()),
                     self.password,
@@ -1242,7 +1268,7 @@ def login_password(title1):
         def change():
             my_cursor.execute(
                 "select password,salt from data_input where email_id = (?)", (
-                    email,)
+                    simple_encrypt(email),)
             )
             values_password = my_cursor.fetchall()
             password_decrypt = ""
@@ -1297,10 +1323,10 @@ def login_password(title1):
                 )
                 my_cursor.execute(
                     "select email_id from data_input where username=(?)", (
-                        username12,)
+                        simple_encrypt(username12),)
                 )
                 for i in my_cursor.fetchall():
-                    password_recovery_email = i[0] + re_hash_new
+                    password_recovery_email = simple_decrypt(i[0]) + re_hash_new
                     passwordSalt = secrets.token_bytes(512)
                     key = pbkdf2.PBKDF2(
                         password_recovery_email, passwordSalt).read(32)
@@ -1311,11 +1337,11 @@ def login_password(title1):
                         "update data_input set username = (?),password=(?),recovery_password = (?),salt_recovery=(?) "
                         "where email_id = (?)",
                         (
-                            str(new_username_entry.get()),
+                            simple_encrypt(str(new_username_entry.get())),
                             re_encrypt,
                             encrypted_pass,
                             passwordSalt,
-                            email,
+                            simple_encrypt(email),
                         ),
                     )
                 messagebox.showinfo(
@@ -1415,14 +1441,14 @@ def login_password(title1):
                 verify_password += recover_password_entry_verify
                 my_cursor.execute(
                     "select email_id from data_input where username = (?)",
-                    (username_verify,),
+                    (simple_encrypt(username_verify),),
                 )
                 values_fetch = my_cursor.fetchall()
 
                 if values_fetch != []:
                     for i in values_fetch:
 
-                        if i[0] == recover_email_entry_verify:
+                        if simple_decrypt(i[0]) == recover_email_entry_verify:
                             run = True
                         else:
                             run = False
@@ -2542,12 +2568,12 @@ def window_after(username, hash_password, password_new, *window):
 
     my_cursor.execute(
         "select email_id,salt_recovery from data_input where username = (?)",
-        (username,),
+        (simple_encrypt(username),),
     )
 
     email_id = ""
     for email in my_cursor.fetchall():
-        email_id = email[0]
+        email_id = simple_decrypt(email[0])
     # getting password
     # generating the static salt and decrypting the password
     email_split = ""
@@ -2564,7 +2590,7 @@ def window_after(username, hash_password, password_new, *window):
     # decrypting the recovery passworwd using pbkdf2
     my_cursor.execute(
         "select recovery_password,salt_recovery from data_input where username = (?)",
-        (username,),
+        (simple_encrypt(username),),
     )
     encrypted_pass = ""
     d = my_cursor.fetchall()
@@ -3410,11 +3436,6 @@ def login(*window):
 
     def login_checking_1(*event):
         try:
-            my_cursor.execute(
-                "select email_id from data_input where username = (?)",
-                (str(input_entry.get()),),
-            )
-            val_list = my_cursor.fetchall()
             password = str(pass_entry.get())
             username = str(input_entry.get())
             login = Login(username, password)
@@ -3649,7 +3670,7 @@ def register(window, *a):
         password_register = b
         email_id_register = c
         email_password_register = d
-        if username_register == "Username" or password_register == "Password":
+        if username_register == "" or password_register == "":
             messagebox.showinfo("Fields Empty", "Fields cannot be empty")
         else:
             register_user = Register(
@@ -3658,14 +3679,39 @@ def register(window, *a):
                 email_id_register,
                 email_password_register,
             )
-            checking = register_user.check_pass_length()
-            if checking:
-                registering = register_user.saving(my_cursor)
-                if registering:
+            if register_user.check_pass_length():
+                if register_user.check_password_integrity(password_register):
+                    if register_user.email_exists():
+                        if register_user.check_password_integrity(password_register):
+
+                            registering = register_user.saving(my_cursor)
+                            if registering:
+                                messagebox.showinfo(
+                                    "Error", "Username or email is unavailable")
+                            if not registering:
+                                register_user.creation(login_window1)
+                        else:
+                            root2 = Tk()
+                            root2.withdraw()
+                            messagebox.showinfo(
+                                "Error", "Please provide a stronger recovery password"
+                            )
+                            root2.destroy()
+
+                    else:
+                        root2 = Tk()
+                        root2.withdraw()
+                        messagebox.showinfo(
+                            "Error", "Invalid Email"
+                        )
+                        root2.destroy()
+                else:
+                    root2 = Tk()
+                    root2.withdraw()
                     messagebox.showinfo(
-                        "Error", "Username  or email already exists")
-                if not registering:
-                    register_user.creation(login_window1)
+                        "Error", "Please provide a stronger password"
+                    )
+                    root2.destroy()              
 
             else:
                 root2 = Tk()
@@ -3695,6 +3741,7 @@ def register(window, *a):
             str(email_password_entry.get()),
         ),
     )
+
 
     private_img = tk_image.PhotoImage(image.open("images\\private.png"))
     unhide_img = tk_image.PhotoImage(image.open("images\\eye.png"))
@@ -3732,7 +3779,7 @@ def register(window, *a):
     login_button = Button(
         labelframe1,
         text="L O G I N",
-        width=22,
+        width=20,
         height=2,
         font=("consolas"),
         fg="#292A2D",
@@ -3747,13 +3794,12 @@ def register(window, *a):
     submit_but.place(x=300 - 20, y=470)
     login_window1.mainloop()
 
-
 # ---------------------Importing Images------------------
 
 image1 = tk_image.PhotoImage(image.open("images\\background.jpg"))
 login_window = tk_image.PhotoImage(image.open("images\\login_but.png"))
 imagelogin_windoweg = tk_image.PhotoImage(image.open("images\\reg_button.png"))
-iconimage = tk_image.PhotoImage(image.open("images\\icon.png"))
+iconimage = tk_image.PhotoImage(image.open("images\\icon2.png"))
 cancelimage = tk_image.PhotoImage(image.open("images\\cancel.png"))
 
 image1_label = Label(root, image=image1, bd=0)
@@ -3762,11 +3808,11 @@ image1_label.place(x=0, y=0)
 root.config(bg="black")
 
 labelframe = LabelFrame(
-    root, bg="#2B2B2B", width=350, height=500, borderwidth=2, relief="solid"
+    root, bg="#28292A", width=350,bd=0,highlightthickness=0, height=500, borderwidth=0, relief="solid"
 )
-labelframe.pack(padx=100, pady=100)
+labelframe.pack(padx=100, pady=80)
 
-icon_label = Label(labelframe, bg="#2B2B2B", image=iconimage)
+icon_label = Label(labelframe, bg="#28292A", image=iconimage)
 icon_label.place(x=110, y=20)
 
 # ----------------------Buttons----------------------------
@@ -3780,11 +3826,11 @@ register_button = Button(
     fg="#292A2D",
     bg="#356745",
     activebackground="#356745",
-    activeforeground="black",
+    activeforeground="#292A2D",
     bd=0,
     command=lambda: login(root),
 )
-register_button.place(x=70, y=210)
+register_button.place(x=75, y= 190+40)
 view = Button(
     labelframe,
     text="R E G I S T E R",
@@ -3794,11 +3840,11 @@ view = Button(
     fg="#292A2D",
     bg="#356745",
     activebackground="#356745",
-    activeforeground="black",
+    activeforeground="#292A2D",
     bd=0,
     command=lambda: register(root),
 )
-view.place(x=70, y=300 + 20)
+view.place(x=75, y=300+40)
 
 
 root.resizable(False, False)
