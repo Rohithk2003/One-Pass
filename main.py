@@ -34,6 +34,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 # for updating the file
 from update_check import isUpToDate
 from update_check import update
+import string
 
 # main window
 bufferSize = 64 * 1024
@@ -74,23 +75,33 @@ x = screen_width / 2 - width_window / 2
 y = screen_height / 2 - height_window / 2
 root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 
-alphabet = 'abcdefghijklmnopqrstuvwxyz'
-key  = 6
+alphabet = string.ascii_lowercase
+key = 6
+
+
 def simple_encrypt(message):
     a = ''
     for i in message:
-        position = alphabet.find(i)
-        newpos = (position + key)%26
-        a += alphabet[newpos]
+        if i.isalpha():
+            position = alphabet.find(i)
+            news = (position + key) % 26
+            a += alphabet[news]
+        else:a+=i
     return (base64.urlsafe_b64encode(a.encode())).decode()
+
+
 def simple_decrypt(message):
     a = ''
     msg = (base64.urlsafe_b64decode(message.encode())).decode()
     for i in msg:
-        position = alphabet.find(i)
-        newpos = (position -key)%26
-        a += alphabet[newpos]
+        if i.isalpha():
+            position = alphabet.find(i)
+            news = (position - key) % 26
+            a += alphabet[news]
+        else:a+=i
     return a
+
+
 class Login:
     def __init__(self, username, password):
         self.username = str(username)
@@ -155,15 +166,15 @@ class Login:
 
 class Profile_view:
     def __init__(
-        self,
-        username,
-        password,
-        email_id,
-        email_password,
-        hashed_password,
-        profile,
-        password_button,
-        notepad_button,
+            self,
+            username,
+            password,
+            email_id,
+            email_password,
+            hashed_password,
+            profile,
+            password_button,
+            notepad_button,
     ):
         self.username = username
         self.password = password
@@ -350,28 +361,32 @@ class Register:
         self.password = str(password)
         self.email_id = str(email_id)
         self.email_password = str(email_password)
+
     def check_password_integrity(self, passw):
         self.p = passw
-        with open("pass.txt",'r') as file:
+        with open("pass.txt", 'r') as file:
             data = file.read().split()
             for i in data:
-                if i == self.p : 
+                if i == self.p:
                     return False
         return True
+
     def email_exists(self):
-        return self.email_id.endswith(("@yahoo.com","@outlook.com","@gmail.com"))
+        return self.email_id.endswith(("@yahoo.com", "@outlook.com", "@gmail.com"))
+
     def check_pass_length(self):  # checking if the entered password is lesser than 5
         return len(self.password) >= 5 and len(self.email_password) >= 5
 
     """to create a file named user and to store his accounts and also add his details to the database"""
 
     def saving(self, object):
+
         object.execute("select username from data_input")
         values_username = object.fetchall()
         for i in values_username:
             for usernames in i:
                 if simple_decrypt(usernames) == self.username and os.path.exists(
-                    self.username + ".bin.fenc"
+                        self.username + ".bin.fenc"
                 ):
                     return (
                         True,
@@ -399,21 +414,22 @@ class Register:
         # for encrypting the recovery password
 
         password_recovery_email = self.email_id + hash_pass
-        message = self.email_password
+        with open('a.txt', 'w') as f:
+            f.write(password_recovery_email)
+            f.write('\n')
         passwordSalt = secrets.token_bytes(512)
         key = pbkdf2.PBKDF2(password_recovery_email, passwordSalt).read(32)
         aes = pyaes.AESModeOfOperationCTR(key)
-        encrypted_pass = aes.encrypt(message)
+        encrypted_pass = aes.encrypt(self.email_password)
         try:
             object.execute(
-                "insert into data_input values (?,?,?,?,?,?,?)",
+                "insert into data_input values (?,?,?,?,?,?)",
                 (
                     simple_encrypt(self.username),
                     simple_encrypt(self.email_id),
                     cipher_text,
                     salt_for_decryption,
                     encrypted_pass,
-                    0,
                     passwordSalt,
                 ),
             )
@@ -716,7 +732,7 @@ class Change_details:
         iamge.place(x=145, y=10)
 
     def change_sub_account(
-        self, accounttobechanged, new_username, new_password, account_name
+            self, accounttobechanged, new_username, new_password, account_name
     ):
         with open(f"{self.real_username}decrypted.bin", "rb") as f:
             value1 = pickle.load(f)
@@ -750,12 +766,12 @@ class Change_details:
                 )
 
     def save_email(
-        self,
-        new_email,
-        old_email,
-        recovery_password,
-        another_recovery_password,
-        user_password,
+            self,
+            new_email,
+            old_email,
+            recovery_password,
+            another_recovery_password,
+            user_password,
     ):
 
         email_split = ""
@@ -988,8 +1004,8 @@ def retreive_key(password, byte, de):
 def checkforupdates():
     # isUpToDate check whether the file ie main.py  is same as the one present in my github repository and it returns true if same else false
     if isUpToDate(
-        "main.py",
-        "https://raw.githubusercontent.com/Rohithk2003/One-Pass/develop/main.py",
+            "main.py",
+            "https://raw.githubusercontent.com/Rohithk2003/One-Pass/develop/main.py",
     ):
         result = messagebox.askyesno(
             "Update Available", "Do you want to update the app?"
@@ -1019,13 +1035,13 @@ def checkforupdates():
 
 
 def settings(
-    real_username,
-    main_window,
-    hashed_password,
-    window,
-    password_button,
-    rec_pas,
-    original_password,
+        real_username,
+        main_window,
+        hashed_password,
+        window,
+        password_button,
+        rec_pas,
+        original_password,
 ):
     settings_window = Tk()
     settings_window.resizable(False, False)
@@ -1406,9 +1422,9 @@ def login_password(title1):
         recover_email_entry_verify = str(recover_email_entry.get())
         recover_password_entry_verify = str(recover_password_entry.get())
         if (
-            username_verify == "Username"
-            and recover_email_entry_verify == "Email ID"
-            and recover_password_entry_verify == "Password"
+                username_verify == "Username"
+                and recover_email_entry_verify == "Email ID"
+                and recover_password_entry_verify == "Password"
         ):
             roo21 = Tk()
             roo21.withdraw()
@@ -1581,13 +1597,12 @@ def window_after(username, hash_password, password_new, *window):
     # sidebar
     root = Tk()
     root.resizable(False, False)
-
     root.focus_set()
     global var
     global file
     status_name = False
     sidebar = Frame(
-        root, width=30, bg="#292A2D", height=500, relief="sunken", borderwidth=1
+        root, width=5, bg="#292A2D", height=500, relief="sunken", borderwidth=1
     )
     sidebar.pack(expand=False, fill="both", side="left")
     file = None
@@ -1600,7 +1615,8 @@ def window_after(username, hash_password, password_new, *window):
     y = screen_height / 2 - height_window / 2
 
     root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-
+    main_ic = tk_image.PhotoImage(image.open('images\\main_icon.png'))
+    sidebar_icon = Label(sidebar, image=main_ic, bg='#292A2D')
     def testing(root, mainarea, username, hash_password, password_button):
         button["state"] = DISABLED
         notes_buttons["state"] = NORMAL
@@ -2552,24 +2568,26 @@ def window_after(username, hash_password, password_new, *window):
     notes_img = tk_image.PhotoImage(image.open("images\\notes.png"))
     mainarea = Frame(root, bg="#292A2D", width=500, height=500)
     mainarea.pack(expand=True, fill="both", side="right")
-
+    new_button = tk_image.PhotoImage(image.open("images\\new_but.jpg"))
     button = Button(
         sidebar,
-        image=pass_img,
-        text="Passwords",
-        padx=20,
-        compound="left",
-        fg="white",
-        bg="black",
+        image=new_button,
+        text='Passwords',
+        bg='#292A2D',
+        compound=CENTER,
+        border=0,
+        bd=0,
+        borderwidth=0,
+        highlightthickness=0,
+        highlightcolor='#292A2D',
         command=lambda: testing(
             root, mainarea, username, hash_password, button),
     )
-
     my_cursor.execute(
         "select email_id,salt_recovery from data_input where username = (?)",
         (simple_encrypt(username),),
     )
-
+    hash_password = hashlib.sha3_512((password_new + username).encode()).hexdigest()
     email_id = ""
     for email in my_cursor.fetchall():
         email_id = simple_decrypt(email[0])
@@ -2593,26 +2611,35 @@ def window_after(username, hash_password, password_new, *window):
     )
     encrypted_pass = ""
     d = my_cursor.fetchall()
+    encrypt,salt='',''
     for i in d:
-        password = email_id + hash_password
-
-        key = pbkdf2.PBKDF2(password, i[1]).read(32)
-
-        aes = pyaes.AESModeOfOperationCTR(key)
-        encrypted_pass = aes.decrypt(i[0])
+        salt = i[1]
+        encrypt = i[0]
+    password = email_id + hash_password
+    key = pbkdf2.PBKDF2(password, salt).read(32)
+    aes = pyaes.AESModeOfOperationCTR(key)
+    encrypted_pass = aes.decrypt(encrypt)
 
     notes_buttons = Button(
         sidebar,
-        image=notes_img,
-        text="Notes",
-        padx=27,
-        compound="left",
+        image=new_button,
+        text='Notes',
+        bg='#292A2D',
+        compound=CENTER,
+        border=0,
+        bd=0,
+        borderwidth=0,
+        highlightthickness=0,
+        highlightcolor='#292A2D',
         command=note_pad_sec,
-        fg="white",
-        bg="black",
+
     )
-    button.grid(row=0, column=1)
-    notes_buttons.grid(row=1, column=1)
+    sidebar_icon.grid(row=0,column=1)
+    button.grid(row=1, column=1)
+    button.place(x=0,y=150+20)
+    notes_buttons.grid(row=2, column=1)
+    notes_buttons.place(x=0, y=140+20+20+17)
+
     # profile_button.grid(row=2,column=1)
     settings_image = tk_image.PhotoImage(image.open("images\\settings.png"))
     settings_button = Button(
@@ -2650,16 +2677,22 @@ def window_after(username, hash_password, password_new, *window):
 
     profile_button = Button(
         sidebar,
-        text="Profile",
-        activebackground="#292A2D",
-        activeforeground="white",
+        image=new_button,
+        text=f'Profile',
+        bg='#292A2D',
+        compound=CENTER,
+        border=0,
+        bd=0,
+        borderwidth=0,
+        highlightthickness=0,
+        highlightcolor='#292A2D',
         command=lambda: profile_object.profile_window(
             mainarea, root, profile_button),
-        padx=46,
-        fg="white",
-        bg="black",
+
     )
-    profile_button.grid(row=2, column=1)
+    profile_button.photo = new_button
+    profile_button.grid(row=3, column=1)
+    profile_button.place(x=0, y=140+20+20+30+14)
 
     settings_button.photo = settings_image
     settings_button.grid(row=10, column=1, columnspan=1)
@@ -2669,7 +2702,7 @@ def window_after(username, hash_password, password_new, *window):
 
 
 def change_icon(
-    button, usernam, users_username, hashed_password, window, password_button
+        button, usernam, users_username, hashed_password, window, password_button
 ):
     file_name = users_username + "decrypted.bin"
     l = [(32, 32), (16, 16)]
@@ -2997,7 +3030,7 @@ def actions(button, window, username, hashed_password, bg_img, password_button):
 
 
 def buttons_blit(
-    username, window, add_button, mainarea, hashed_password, bg_img, password_button
+        username, window, add_button, mainarea, hashed_password, bg_img, password_button
 ):
     global buttons_list
     global btn_nr
@@ -3162,22 +3195,21 @@ def handle_focus_in(entry, index, *number):
         entry.config(foreground="black")
         entry.config(show="*")
     elif (
-        index == 2
-        and val == "Password"
-        or index == 4
-        and val == "Email password"
-        or index == 2
-        and val == "New Email password"
+            index == 2
+            and val == "Password"
+            or index == 4
+            and val == "Email password"
+            or index == 2
+            and val == "New Email password"
     ):
         entry.config(foreground="white")
         state_entry = entry["show"]
         entry.config(show=state_entry)
     try:
         for i in number:
-            if i == 0:
+            if i in (0,1):
                 entry.config(foreground="white")
-            elif i == 1:
-                entry.config(foreground="white")
+
     except:
         pass
 
@@ -3262,7 +3294,6 @@ def password_sec(entry, button):
 
 
 def login(*window):
-    global private_img
     global unhide_img
     try:
         for i in window:
@@ -3291,7 +3322,7 @@ def login(*window):
     image1_label.place(x=0, y=0)
 
     labelframe = LabelFrame(
-        login_window, bg="white", width=900, height=450, borderwidth=2, relief="solid"
+        login_window, bg="#06090F", width=900, height=450,  relief="solid"
     )
     labelframe.place(x=80, y=125)
 
@@ -3305,52 +3336,51 @@ def login(*window):
 
     create_text = Label(
         labelframe,
-        fg="black",
-        bg="white",
+        fg="#CACBC7",
+        bg="#06090F",
         font=("Yu Gothic Ui", 15),
         text="If you don't already have an account click\nthe button below to create your account.",
         justify=LEFT,
     )
-    create_text.place(x=500, y=50, anchor="w")
+    create_text.place(x=485, y=50, anchor="w")
 
     or_text = Label(
-        labelframe, text="OR", fg="black", bg="white", font=("Yu Gothic Ui", 15)
+        labelframe, text="OR",fg="#CACBC7",
+        bg="#06090F", font=("Yu Gothic Ui", 15)
     )
-    or_text.place(x=670, y=165)
+    or_text.place(x=655, y=195)
 
     forgot_text = Label(
         labelframe,
-        fg="black",
-        bg="white",
-        text="So you can't get in your account?Did you \nforget your password?",
+        fg="#CACBC7",
+        bg="#06090F",
+        text="Can't login to the account ?",
         font=("Yu Gothic Ui", 15),
         justify=LEFT,
     )
-    forgot_text.place(x=500, y=240, anchor="w")
+    forgot_text.place(x=485, y=300, anchor="w")
 
     # ------------------Entry---------------------------
     input_entry = Entry(
         labelframe,
         width=20 + 5,
-        foreground="white",
-        bg="white",
+        fg="#CACBC7",
+        bg="#06090F",
         relief=RAISED,
         selectforeground="white",
-        fg="white",
         bd=0,
-        insertbackground="black",
+        insertbackground="#CACBC7",
         font=("consolas", 15, "normal"),
     )
 
     pass_entry = Entry(
         labelframe,
-        fg="white",
-        bg="white",
-        width=17 + 5,
+        fg="#CACBC7",
+        bg="#06090F",
         relief=RAISED,
-        show="*",
+        selectforeground="#CACBC7",
         bd=0,
-        insertbackground="black",
+        insertbackground="#CACBC7",
         font=("consolas", 15, "normal"),
     )
 
@@ -3363,8 +3393,8 @@ def login(*window):
     login_label = Label(
         labelframe,
         text="Login",
-        fg="black",
-        bg="white",
+        fg="#CACBC7",
+        bg="#06090F",
         font=("Cascadia Mono SemiBold", 20, "bold"),
     )
     login_label.place(x=50, y=70)
@@ -3372,9 +3402,9 @@ def login(*window):
     # dot label
 
     Frame(labelframe, width=280, height=2,
-          bg="black").place(x=50 + 3, y=230 + 30)
+          bg="#CACBC7").place(x=50 + 3, y=230 + 30)
     Frame(labelframe, width=280, height=2,
-          bg="black").place(x=50 + 3, y=150 + 30)
+          bg="#CACBC7").place(x=50 + 3, y=150 + 30)
 
     # ------------------Button---------------------------
 
@@ -3398,32 +3428,31 @@ def login(*window):
         width=33,
         command=lambda: register(window, login_window),
         fg="white",
-        bg="black",
+        bg="orange",
         border="0",
         highlightcolor="white",
-        activebackground="black",
+        activebackground="orange",
         activeforeground="white",
         relief=RAISED,
         font=("Segoe UI Semibold", 15),
     )
 
-    register_button.place(x=500 + 2, y=100)
+    register_button.place(x=485 + 2, y=100)
 
-    forgot.place(x=500, y=280)
+    forgot.place(x=485, y=340)
     bar_label = Label(labelframe, text="|", bg="white", fg="white", font=(100))
 
     bar_label.place(x=200, y=470 - 10 + 2)
 
-    private_img = tk_image.PhotoImage(image.open("images\\private.png"))
     unhide_img = tk_image.PhotoImage(image.open("images\\eye.png"))
     show_both_1 = Button(
         labelframe,
         fg="white",
-        bg="white",
+        bg="#06090F",
         command=lambda: password_sec(pass_entry, show_both_1),
-        highlightcolor="white",
-        activebackground="white",
-        activeforeground="white",
+        highlightcolor="#06090F",
+        activebackground="#06090F",
+        activeforeground="#06090F",
         bd=0,
         relief=RAISED,
         font=("consolas", 18),
@@ -3497,7 +3526,7 @@ def login(*window):
     input_entry.bind(
         "<FocusIn>",
         lambda event, val_val=input_entry, index=1: handle_focus_in(
-            val_val, index),
+            val_val, index,0),
     )
     input_entry.bind(
         "<FocusOut>",
@@ -3509,7 +3538,7 @@ def login(*window):
     pass_entry.bind(
         "<FocusIn>",
         lambda event, val_val=pass_entry, index=2: handle_focus_in(
-            val_val, index),
+            val_val, index,0),
     )
     pass_entry.bind(
         "<FocusOut>",
@@ -3613,7 +3642,7 @@ def register(window, *a):
         bg="#292A2D",
         relief=SUNKEN,
         insertbackground="white",
-        font=("Leelawadee", 15, "normal"),
+        font=("segoe ui", 15, "normal"),
     )
     password_entry = Entry(
         labelframe1,
@@ -3623,7 +3652,7 @@ def register(window, *a):
         borderwidth=0,
         width=20,
         insertbackground="white",
-        font=("Leelawadee", 15, "normal"),
+        font=("segoe ui", 15, "normal"),
     )
     email_id_entry = Entry(
         labelframe1,
@@ -3632,7 +3661,7 @@ def register(window, *a):
         bg="#292A2D",
         width=20,
         insertbackground="white",
-        font=("Leelawadee", 15, "normal"),
+        font=("segoe ui", 15, "normal"),
     )
     email_password_entry = Entry(
         labelframe1,
@@ -3642,7 +3671,7 @@ def register(window, *a):
         width=20,
         show="*",
         insertbackground="white",
-        font=("Leelawadee", 15, "normal"),
+        font=("segoe ui", 15, "normal"),
     )
 
     username_entry.place(x=230, y=170 + 18 + 40 + 4)
@@ -3710,7 +3739,7 @@ def register(window, *a):
                     messagebox.showinfo(
                         "Error", "Please provide a stronger password"
                     )
-                    root2.destroy()              
+                    root2.destroy()
 
             else:
                 root2 = Tk()
@@ -3740,7 +3769,6 @@ def register(window, *a):
             str(email_password_entry.get()),
         ),
     )
-
 
     private_img = tk_image.PhotoImage(image.open("images\\private.png"))
     unhide_img = tk_image.PhotoImage(image.open("images\\eye.png"))
@@ -3793,13 +3821,11 @@ def register(window, *a):
     submit_but.place(x=300 - 20, y=470)
     login_window1.mainloop()
 
+
 # ---------------------Importing Images------------------
 
 image1 = tk_image.PhotoImage(image.open("images\\background.jpg"))
-login_window = tk_image.PhotoImage(image.open("images\\login_but.png"))
-imagelogin_windoweg = tk_image.PhotoImage(image.open("images\\reg_button.png"))
 iconimage = tk_image.PhotoImage(image.open("images\\icon2.png"))
-cancelimage = tk_image.PhotoImage(image.open("images\\cancel.png"))
 
 image1_label = Label(root, image=image1, bd=0)
 image1_label.place(x=0, y=0)
@@ -3807,12 +3833,12 @@ image1_label.place(x=0, y=0)
 root.config(bg="black")
 
 labelframe = LabelFrame(
-    root, bg="#28292A", width=350,bd=0,highlightthickness=0, height=500, borderwidth=0, relief="solid"
+    root, bg="#28292A", width=350, bd=0, highlightthickness=0, height=500, borderwidth=0, relief="solid"
 )
 labelframe.pack(padx=100, pady=80)
 
 icon_label = Label(labelframe, bg="#28292A", image=iconimage)
-icon_label.place(x=110, y=20)
+icon_label.place(x=115, y=20)
 
 # ----------------------Buttons----------------------------
 
@@ -3829,7 +3855,7 @@ register_button = Button(
     bd=0,
     command=lambda: login(root),
 )
-register_button.place(x=75, y= 190+40)
+register_button.place(x=75, y=190 + 40)
 view = Button(
     labelframe,
     text="R E G I S T E R",
@@ -3843,8 +3869,7 @@ view = Button(
     bd=0,
     command=lambda: register(root),
 )
-view.place(x=75, y=300+40)
-
+view.place(x=75, y=300 + 40)
 
 root.resizable(False, False)
 root.mainloop()
