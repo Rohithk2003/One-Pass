@@ -89,12 +89,24 @@ def simple_encrypt(message):
             a += alphabet[news]
         else:
             a += i
-    return (base64.urlsafe_b64encode(a.encode())).decode()
+    l = []
+    for i in range(key):
+        if len(l) == 0:
+            l.append((base64.urlsafe_b64encode(a.encode())).decode())
+        else:
+            l[0] = (base64.urlsafe_b64encode(l[0].encode())).decode()
+    return l[0]
 
 
 def simple_decrypt(message):
     a = ''
-    msg = (base64.urlsafe_b64decode(message.encode())).decode()
+    l = []
+    for i in range(key):
+        if len(l) == 0:
+            l.append((base64.urlsafe_b64decode(message.encode())).decode())
+        else:
+            l[0] = (base64.urlsafe_b64decode(l[0].encode())).decode()
+    msg = l[0]
     for i in msg:
         if i in alphabet or i in upper_alpha:
             position = alphabet.find(i)
@@ -379,7 +391,7 @@ class Register:
         return True
 
     def email_exists(self):
-        return self.email_id.endswith(("@yahoo.com", "@outlook.com", "@gmail.com"))
+        return self.email_id.endswith("gmail.com")
 
     def check_pass_length(self):  # checking if the entered password is lesser than 5
         return len(self.password) >= 5 and len(self.email_password) >= 5
@@ -3331,7 +3343,7 @@ def login(*window):
     image1_label.place(x=0, y=0)
 
     labelframe = LabelFrame(
-        login_window, bg="#06090F", width=900, height=450,  relief="solid"
+        login_window, bg="#06090F", width=900, height=450, relief="solid"
     )
     labelframe.place(x=80, y=125)
 
@@ -3720,7 +3732,6 @@ def register(window, *a):
                                 "Error", "Username or email is unavailable")
                             submit_but.config(state=NORMAL)
                         if not registering:
-
                             register_user.creation(login_window1)
 
                     else:
@@ -3763,7 +3774,8 @@ def register(window, *a):
         fg="#292A2D",
         bg="#994422",
         activebackground="#994422",
-        command=lambda: register_saving(str(username_entry.get()), str(password_entry.get()), str(email_id_entry.get()), str(email_password_entry.get())))
+        command=lambda: register_saving(str(username_entry.get()), str(password_entry.get()), str(email_id_entry.get()),
+                                        str(email_password_entry.get())))
 
     unhide_img = tk_image.PhotoImage(image.open("images\\eye.png"))
 
