@@ -7,7 +7,7 @@ import hashlib
 import pyAesCrypt
 import os
 
-from profile_class import *
+from data.profile_class import *
 
 bufferSize = 64 * 1024
 if platform.system() == "Windows":

@@ -15,12 +15,12 @@ import os
 import secrets
 import threading
 import platform
-from string_en import *
+from data.string_en import *
 
-from focus_pass import *
-from main_encryption import *
-from login_class import *
-from string_en import *
+from data.focus_pass import *
+from data.main_encryption import *
+from data.login_class import *
+from data.string_en import *
 # tkinter modules
 from PIL import Image as image
 from PIL import ImageTk as tk_image
@@ -31,7 +31,7 @@ from tkinter import simpledialog
 from tkinter.ttk import *
 from tkinter import *
 
-from register_class import *
+from data.register_class import *
 
 # for updating the file
 from update_check import isUpToDate

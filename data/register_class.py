@@ -6,8 +6,8 @@ from tkinter import *
 import hashlib
 import pyAesCrypt
 import os
-from main_encryption import *
-from string_en import *
+from data.main_encryption import *
+from data.string_en import *
 import secrets
 import pyaes
 import pbkdf2

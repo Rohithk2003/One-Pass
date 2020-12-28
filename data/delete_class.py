@@ -2,12 +2,12 @@ from tkinter import messagebox
 from tkinter import simpledialog
 from tkinter.ttk import *
 from tkinter import *
-from string_en import simple_encrypt
+from data.string_en import simple_encrypt
 import pickle
 import pyAesCrypt
 import os
 import platform
-from change_class import *
+from data.change_class import *
 path = ''
 #finding the os so tha  the images are displayed properly
 if platform.system() == "Windows":

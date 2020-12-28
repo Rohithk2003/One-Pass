@@ -9,8 +9,8 @@ import pyaes
 import pbkdf2
 import os
 import secrets
-from string_en import  simple_encrypt, simple_decrypt
-from focus_pass import handle_focus_in, password_sec, handle_focus_out
+from data.string_en import  *
+from data.focus_pass import *
 
 # tkinter modules
 from PIL import Image as image
@@ -18,8 +18,8 @@ from PIL import ImageTk as tk_image
 from tkinter import messagebox
 from tkinter.ttk import *
 from tkinter import *
-from apploop import *
-from main_encryption import create_key
+from data.apploop import *
+from data.main_encryption import create_key
 
 
 path = ''

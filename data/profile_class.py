@@ -6,7 +6,7 @@ from PIL import Image as image
 
 import os
 import platform
-from delete_class import *
+from data.delete_class import *
 
 path = ''
 #finding the os so tha  the images are displayed properly

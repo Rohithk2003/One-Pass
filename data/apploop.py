@@ -5,12 +5,12 @@ from PIL import ImageTk as tk_image
 from PIL import Image as image
 from tkinter import filedialog as fd
 from tkinter import messagebox
-from delete_class import *
+from data.delete_class import *
 import pickle
 import pyAesCrypt
 import os
 import platform
-from change_class import *
+from data.change_class import *
 buttons_list = {}
 btn_nr = -1
 path = ''
