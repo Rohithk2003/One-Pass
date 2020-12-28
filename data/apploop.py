@@ -1,15 +1,6 @@
-from tkinter.ttk import *
-from tkinter import *
-from PIL import ImageTk as tk_image
-from PIL import Image as image
+import pickle,pyAesCrypt
 from tkinter import filedialog as fd
-from tkinter import messagebox
 from data.delete_class import *
-import pickle
-import pyAesCrypt
-import os
-import platform
-from data.change_class import *
 buttons_list = {}
 btn_nr = -1
 path = ''

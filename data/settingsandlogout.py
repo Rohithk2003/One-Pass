@@ -1,5 +1,4 @@
 from data.delete_class import *
-from data.forgot_pass import *
 import glob
 from data.update_checker import *
 from data.login_class import *

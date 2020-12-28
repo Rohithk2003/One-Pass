@@ -1,5 +1,4 @@
 
-
 from data.apploop import *
 from data.for_encryption import *
 from data.settingsandlogout import settings

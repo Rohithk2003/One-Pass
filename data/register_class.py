@@ -1,6 +1,5 @@
 
 from data.for_encryption import *
-
 from data.login_class import *
 from data.focus_pass import *
 bufferSize= 64*1024

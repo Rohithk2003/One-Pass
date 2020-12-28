@@ -1,10 +1,5 @@
-
-from data.register_class import *
-from data.focus_pass import *
+from data.register_class import register
 from data.forgot_pass import *
-
-
-from data.profile_class import *
 
 bufferSize = 64 * 1024
 if platform.system() == "Windows":

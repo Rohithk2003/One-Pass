@@ -1,4 +1,3 @@
-from tkinter import simpledialog
 
 from data.change_class import *
 path = ''
