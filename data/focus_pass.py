@@ -13,6 +13,8 @@ if platform.system() == 'Darwin':
     dir_path = os.getcwd()
     path = dir_path + "/images/"
 
+
+
 def handle_focus_in(entry, index, *number):
     val = str(entry.get())
     if val == "Username" or val == "Email ID" or val == "New Email":

@@ -1,11 +1,4 @@
 
-from tkinter.ttk import *
-from tkinter import *
-from PIL import ImageTk as tk_image
-from PIL import Image as image
-
-import os
-import platform
 from data.delete_class import *
 
 path = ''

@@ -1,25 +1,7 @@
-# all required modules
-
-import platform
-import hashlib
-import os.path
-import pickle
-import pyAesCrypt
-import pyaes
-import pbkdf2
-import os
 import secrets
-from data.string_en import  *
+from data.for_encryption import  *
 from data.focus_pass import *
-
-# tkinter modules
-from PIL import Image as image
-from PIL import ImageTk as tk_image
-from tkinter import messagebox
-from tkinter.ttk import *
-from tkinter import *
 from data.apploop import *
-from data.main_encryption import create_key
 
 
 path = ''
