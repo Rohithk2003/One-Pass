@@ -3,6 +3,7 @@ from update_check import update
 from tkinter import *
 from tkinter import messagebox
 
+
 def checkforupdates():
     # isUpToDate check whether the file ie main.py  is same as the one present in my github repository and it returns true if same else false
     if isUpToDate(

@@ -1,8 +1,26 @@
-
+import platform
+import os
 from data.for_encryption import *
 from data.login_class import *
 from data.focus_pass import *
-bufferSize= 64*1024
+
+bufferSize = 64 * 1024
+path = ''
+if platform.system() == "Windows":
+    l = os.path.dirname(os.path.realpath(__file__)).split("\\")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '\\'
+    path = dir_path + "images\\"
+if platform.system() == 'Darwin':
+    l = os.path.dirname(os.path.realpath(__file__)).split("/")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '/'
+    path = dir_path + "/images/"
+
 
 class Register:
     def __init__(self, username, password, email_id, email_password, window_after):
@@ -11,6 +29,7 @@ class Register:
         self.email_id = str(email_id)
         self.email_password = str(email_password)
         self.window = window_after
+
     def check_password_integrity(self, passw):
         self.p = passw
         if self.username == self.password:
@@ -26,7 +45,7 @@ class Register:
     def email_exists(self):
         print(self.email_id)
         print(type(self.email_id))
-        return self.email_id.endswith(("gmail.com","yahho.com"))
+        return self.email_id.endswith(("gmail.com", "yahho.com"))
 
     def check_pass_length(self):  # checking if the entered password is lesser than 5
         return len(self.password) >= 5
@@ -119,7 +138,7 @@ class Register:
         self.window(self.username, hash_pass, self.password)
 
 
-def register(window,window_after,object, *a):
+def register(window, window_after, object, *a):
     try:
         for wins in a:
 
@@ -245,22 +264,22 @@ def register(window,window_after,object, *a):
         font=("segoe ui", 15, "normal"),
     )
 
-    username_entry.place(x=230-20, y=170 + 18 + 40 + 4-2)
-    password_entry.place(x=230-20, y=220 + 18 + 40 + 4-2)
-    email_id_entry.place(x=230-20, y=270 + 18 + 40 + 4-2)
-    email_password_entry.place(x=230-20, y=320 + 18 + 40 + 4-2)
+    username_entry.place(x=230 - 20, y=170 + 18 + 40 + 4 - 2)
+    password_entry.place(x=230 - 20, y=220 + 18 + 40 + 4 - 2)
+    email_id_entry.place(x=230 - 20, y=270 + 18 + 40 + 4 - 2)
+    email_password_entry.place(x=230 - 20, y=320 + 18 + 40 + 4 - 2)
 
     Frame(labelframe1, width=220, height=2, bg="#ebebeb").place(
-        x=230-20, y=170 + 18 + 40 + 4 + 20 + 7-2
+        x=230 - 20, y=170 + 18 + 40 + 4 + 20 + 7 - 2
     )
     Frame(labelframe1, width=220, height=2, bg="#ebebeb").place(
-        x=230-20, y=220 + 18 + 40 + 4 + 20 + 7-2
+        x=230 - 20, y=220 + 18 + 40 + 4 + 20 + 7 - 2
     )
     Frame(labelframe1, width=220, height=2, bg="#ebebeb").place(
-        x=230-20, y=270 + 18 + 40 + 4 + 20 + 7-2
+        x=230 - 20, y=270 + 18 + 40 + 4 + 20 + 7 - 2
     )
     Frame(labelframe1, width=220, height=2, bg="#ebebeb").place(
-        x=230-20, y=320 + 18 + 40 + 4 + 20 + 7-2
+        x=230 - 20, y=320 + 18 + 40 + 4 + 20 + 7 - 2
     )
 
     # register function
@@ -366,8 +385,8 @@ def register(window,window_after,object, *a):
     )
     show_both_12.image = unhide_img
 
-    show_both_1.place(x=420-20, y=220 + 18 + 34)
-    show_both_12.place(x=420-20, y=320 + 18 + 34)
+    show_both_1.place(x=420 - 20, y=220 + 18 + 34)
+    show_both_12.place(x=420 - 20, y=320 + 18 + 34)
 
     login_button = Button(
         labelframe1,
@@ -404,5 +423,5 @@ def register(window,window_after,object, *a):
                        bd=0,
                        relief=SUNKEN,
                        command=lambda: pass_generator(email_password_entry))
-    generate1.place(x=440, y=320 + 18 + 40 + 4-2)
+    generate1.place(x=440, y=320 + 18 + 40 + 4 - 2)
     login_window1.mainloop()

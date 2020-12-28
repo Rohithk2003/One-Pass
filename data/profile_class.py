@@ -2,12 +2,22 @@
 from data.delete_class import *
 
 path = ''
-#finding the os so tha  the images are displayed properly
+# finding the os so tha  the images are displayed properly
 if platform.system() == "Windows":
-    path = "images\\"
+    l = os.path.dirname(os.path.realpath(__file__)).split("\\")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '\\'
+    path = dir_path + "images\\"
 if platform.system() == 'Darwin':
-    dir_path = os.getcwd()
+    l = os.path.dirname(os.path.realpath(__file__)).split("/")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '/'
     path = dir_path + "/images/"
+
 
 class Profile_view:
     def __init__(
@@ -170,7 +180,8 @@ class Profile_view:
             activeforeground="white",
         )
         profile_photo.photo = member
-        delete_object = Deletion(self.username, self.hashed_password, profile, self.object)
+        delete_object = Deletion(
+            self.username, self.hashed_password, profile, self.object)
         delete_this_account = Button(
             new_s,
             text="Delete Account",
@@ -199,4 +210,3 @@ class Profile_view:
         dot1.place(x=200, y=150 + 100 + 6)
         dot2.place(x=200, y=200 + 100 + 6)
         dot3.place(x=200, y=250 + 100 + 6)
-

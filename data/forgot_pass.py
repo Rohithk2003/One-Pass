@@ -1,21 +1,31 @@
 import smtplib
 import pyAesCrypt
-import secrets,pickle
+import secrets
+import pickle
 
 from data.focus_pass import *
 from data.for_encryption import *
 
 # set the buffer size
 
-bufferSize = 64*1024
+bufferSize = 64 * 1024
 
-#finding the os
-
-if platform.system == 'Windows':
-    path = "images\\"
-elif platform.system == 'Darwin':
-    dir_path = os.getcwd()
+# finding the os
+if platform.system() == "Windows":
+    l = os.path.dirname(os.path.realpath(__file__)).split("\\")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '\\'
+    path = dir_path + "images\\"
+if platform.system() == 'Darwin':
+    l = os.path.dirname(os.path.realpath(__file__)).split("/")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '/'
     path = dir_path + "/images/"
+
 
 def forgot_password(email, *OTP):
     try:
@@ -34,7 +44,7 @@ def forgot_password(email, *OTP):
         messagebox.showwarning("No internet", "No internet is available")
 
 
-def login_password(title1,object):
+def login_password(title1, object):
     window = Toplevel()
     window.config(bg="#292A2D")
     window.resizable(False, False)

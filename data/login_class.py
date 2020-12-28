@@ -3,16 +3,26 @@ from data.forgot_pass import *
 
 bufferSize = 64 * 1024
 if platform.system() == "Windows":
-    path = "images\\"
+    l = os.path.dirname(os.path.realpath(__file__)).split("\\")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '\\'
+    path = dir_path + "images\\"
 if platform.system() == 'Darwin':
-    dir_path = os.getcwd()
+    l = os.path.dirname(os.path.realpath(__file__)).split("/")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '/'
     path = dir_path + "/images/"
+
 
 class Login:
     def __init__(self, username, password):
         self.username = str(username)
         self.password = str(password)
-        
+
     def login_checking(self):  # verifying the user
         for_hashing_both = self.password + self.username
         main_password = hashlib.sha3_512(
@@ -64,7 +74,7 @@ class Login:
             return True, main_password, self.password
 
 
-def login(window_after,object,*window):
+def login(window_after, object, *window):
     global unhide_img
     try:
         for i in window:
@@ -197,7 +207,7 @@ def login(window_after,object,*window):
         labelframe,
         text="CREATE ACCOUNT",
         width=33,
-        command=lambda: register(window_after,object,window, login_window),
+        command=lambda: register(window_after, object, window, login_window),
         fg="white",
         bg="orange",
         border="0",
@@ -251,8 +261,8 @@ def login(window_after,object,*window):
                             login_window.destroy()
                         except:
                             pass
-                        window_after(window_after, username,
-                                      main_password, passw,object)
+                        window_after(username,
+                                     main_password, password, object)
                     except:
                         pass
                 else:

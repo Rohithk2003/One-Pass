@@ -6,13 +6,21 @@ from PIL import ImageTk as tk_image
 from PIL import Image as image
 import platform
 import os
-#finding the os so tha  the images are displayed properly
+# finding the os so tha  the images are displayed properly
 if platform.system() == "Windows":
-    path = "images\\"
+    l = os.path.dirname(os.path.realpath(__file__)).split("\\")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '\\'
+    path = dir_path + "images\\"
 if platform.system() == 'Darwin':
-    dir_path = os.getcwd()
+    l = os.path.dirname(os.path.realpath(__file__)).split("/")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '/'
     path = dir_path + "/images/"
-
 
 
 def handle_focus_in(entry, index, *number):

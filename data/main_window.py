@@ -4,26 +4,37 @@ from data.for_encryption import *
 from data.settingsandlogout import settings
 from data.note_pad import note_pad_sec
 from data.profile_class import Profile_view
+
 var = 0
 
 
-
-#finding the os
+# finding the os
 bufferSize = 64 * 1024
 if platform.system() == "Windows":
-    path = "D:\\Computer Project\\One-Pass\\"
+    l = os.path.dirname(os.path.realpath(__file__)).split("\\")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '\\'
+    path = dir_path + "images\\"
 if platform.system() == 'Darwin':
-    dir_path = os.getcwd()
+    l = os.path.dirname(os.path.realpath(__file__)).split("/")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '/'
     path = dir_path + "/images/"
 
 
-def window_after(username, hash_password, password_new,object, *window):
+def window_after(username, hash_password, password_new, object, *window):
+    print(object)
     try:
         for i in window:
             i.destroy()
     except:
         pass
     # sidebar
+
     root = Tk()
     root.resizable(False, False)
     root.focus_set()
@@ -34,6 +45,25 @@ def window_after(username, hash_password, password_new,object, *window):
         root, width=5, bg="#292A2D", height=500, relief="sunken", borderwidth=1
     )
     sidebar.pack(expand=False, fill="both", side="left")
+
+    def testing(root, mainarea, username, hash_password, object,password_button):
+        button["state"] = DISABLED
+        notes_buttons["state"] = NORMAL
+        profile_button["state"] = NORMAL
+        root.title("Passwords")
+        emptyMenu = Menu(root)
+        root.geometry("1300x700")
+        mainarea.config(bg="#292A2D")
+        root.config(menu=emptyMenu)
+        root.iconbitmap(f"{path}\\password.ico")
+        list = mainarea.pack_slaves()
+        for l in list:
+            l.destroy()
+        list = mainarea.grid_slaves()
+        for l in list:
+            l.destroy()
+        gameloop(username, hash_password, mainarea, password_button,object)
+
     file = None
     root.title("ONE-PASS")
     width_window = 1300
@@ -44,34 +74,17 @@ def window_after(username, hash_password, password_new,object, *window):
     y = screen_height / 2 - height_window / 2
 
     root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-    main_ic = tk_image.PhotoImage(image.open('images\\main_icon.png'))
+    main_ic = tk_image.PhotoImage(image.open(f'{path}\\main_icon.png'))
     sidebar_icon = Label(sidebar, image=main_ic, bg='#292A2D')
 
-    def testing(root, mainarea, username, hash_password, password_button):
-        button["state"] = DISABLED
-        notes_buttons["state"] = NORMAL
-        profile_button["state"] = NORMAL
-        root.title("Passwords")
-        emptyMenu = Menu(root)
-        root.geometry("1300x700")
-        mainarea.config(bg="#292A2D")
-        root.config(menu=emptyMenu)
-        root.iconbitmap(f"{path}password.ico")
-        list = mainarea.pack_slaves()
-        for l in list:
-            l.destroy()
-        list = mainarea.grid_slaves()
-        for l in list:
-            l.destroy()
-        gameloop(username, hash_password, mainarea, password_button)
+    pass_img = tk_image.PhotoImage(image.open(f"{path}\\password.png"))
+    notes_img = tk_image.PhotoImage(image.open(f"{path}\\_notes.png"))
 
-    # main content area
-    # main content area
-    pass_img = tk_image.PhotoImage(image.open(f"{path}password.png"))
-    notes_img = tk_image.PhotoImage(image.open(f"{path}notes.png"))
     mainarea = Frame(root, bg="#292A2D", width=500, height=500)
+
     mainarea.pack(expand=True, fill="both", side="right")
-    new_button = tk_image.PhotoImage(image.open(f"{path}new_but.jpg"))
+    new_button = tk_image.PhotoImage(image.open(f"{path}\\_new_but.jpg"))
+
     button = Button(
         sidebar,
         image=new_button,
@@ -84,21 +97,29 @@ def window_after(username, hash_password, password_new,object, *window):
         highlightthickness=0,
         highlightcolor='#292A2D',
         command=lambda: testing(
-            root, mainarea, username, hash_password, button),
+            root, mainarea, username, hash_password,object, button),
     )
+
     object.execute(
         "select email_id,salt_recovery from data_input where username = (?)",
         (simple_encrypt(username),),
     )
+
     hash_password = hashlib.sha3_512(
         (password_new + username).encode()).hexdigest()
+
     email_id = ""
+
     for email in object.fetchall():
         email_id = simple_decrypt(email[0])
     # getting password
+
     # generating the static salt and decrypting the password
+
     email_split = ""
+
     decrypted_string = ""
+
     word = email_id.split()
     for i in word:
         for a in i:
@@ -113,6 +134,7 @@ def window_after(username, hash_password, password_new,object, *window):
         "select recovery_password,salt_recovery from data_input where username = (?)",
         (simple_encrypt(username),),
     )
+
     encrypted_pass = ""
     d = object.fetchall()
     encrypt, salt = '', ''
@@ -124,6 +146,7 @@ def window_after(username, hash_password, password_new,object, *window):
     key = pbkdf2.PBKDF2(password, salt).read(32)
     aes = pyaes.AESModeOfOperationCTR(key)
     encrypted_pass = aes.decrypt(encrypt)
+
     notes_buttons = Button(
         sidebar,
         image=new_button,
@@ -146,7 +169,7 @@ def window_after(username, hash_password, password_new,object, *window):
     notes_buttons.place(x=0, y=140 + 20 + 20 + 17)
 
     # profile_button.grid(row=2,column=1)
-    settings_image = tk_image.PhotoImage(image.open(f"{path}settings.png"))
+    settings_image = tk_image.PhotoImage(image.open(f"{path}\\settings.png"))
     settings_button = Button(
         sidebar,
         activebackground="#292A2D",
@@ -170,6 +193,7 @@ def window_after(username, hash_password, password_new,object, *window):
         bd=0,
         borderwidth=0,
     )
+
     profile_object = Profile_view(
         username,
         password_new,

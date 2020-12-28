@@ -31,11 +31,11 @@ my_cursor.execute(
 path = ''
 #finding the os so tha  the images are displayed properly
 if platform.system() == "Windows":
-    path = "images\\"
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    path = dir_path+"\images\\"
 if platform.system() == 'Darwin':
-    dir_path = os.getcwd()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     path = dir_path + "/images/"
-
 # for image loading
 l = [{"1": f"{path}member.png"}]
 

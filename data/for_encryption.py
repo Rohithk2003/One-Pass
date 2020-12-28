@@ -2,17 +2,22 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import string,random,threading,base64,os,hashlib,pyaes,pbkdf2 
+import string
+import random
+import threading
+import base64
+import os
+import hashlib
+import pyaes
+import pbkdf2
 from tkinter import *
 from tkinter import messagebox
-
-
 
 
 alphabet = string.ascii_lowercase
 upper_alpha = string.ascii_uppercase
 key = 6
-#password generator
+# password generator
 
 
 def retreive_key(password, byte, de):
@@ -29,6 +34,7 @@ def retreive_key(password, byte, de):
 
     decrypted = f.decrypt(byte)
     return decrypted.decode("utf-8")
+
 
 def pass_generator(entry):
     import pyperclip
@@ -53,21 +59,21 @@ def pass_generator(entry):
     length.place(x=160, y=60)
 
     def pd(value):
-            ok.config(command=lambda: threading.Thread(
-                target=display, args=(length.get(), value)).start())
+        ok.config(command=lambda: threading.Thread(
+            target=display, args=(length.get(), value)).start())
 
-        # Dictionary to create multiple buttons
+    # Dictionary to create multiple buttons
     var = StringVar()
-        # Loop is used to create multiple Radiobuttons
-        # rather than creating each button separately
+    # Loop is used to create multiple Radiobuttons
+    # rather than creating each button separately
     d = Radiobutton(de, text='Strong', variable=var, tristatevalue=0,
-                        value='HIGH', command=lambda p='HIGH': pd(p))
+                    value='HIGH', command=lambda p='HIGH': pd(p))
     d.place(x=160, y=100)
     d1 = Radiobutton(de, text='Medium', variable=var, tristatevalue=0,
-                        value='MEDIUM', command=lambda p='MEDIUM': pd(p))
+                     value='MEDIUM', command=lambda p='MEDIUM': pd(p))
     d1.place(x=220, y=100)
     d2 = Radiobutton(de,  text='Low', variable=var, tristatevalue=0,
-                        value='LOW', command=lambda p='LOW': pd(p))
+                     value='LOW', command=lambda p='LOW': pd(p))
     d2.place(x=290, y=100)
     de.grab_set()
     ok = Button(de, text="Generate", fg='white', bg='black')
@@ -181,6 +187,7 @@ def simple_decrypt(message):
         else:
             a += i
     return a
+
 
 def create_key(password, message):
     password_key = password.encode()  # convert string to bytes

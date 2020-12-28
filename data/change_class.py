@@ -1,15 +1,23 @@
 import secrets
-from data.for_encryption import  *
+from data.for_encryption import *
 from data.focus_pass import *
 from data.apploop import *
 
 
 path = ''
-
 if platform.system() == "Windows":
-    path = "images\\"
+    l = os.path.dirname(os.path.realpath(__file__)).split("\\")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '\\'
+    path = dir_path + "images\\"
 if platform.system() == 'Darwin':
-    dir_path = os.getcwd()
+    l = os.path.dirname(os.path.realpath(__file__)).split("/")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '/'
     path = dir_path + "/images/"
 buttons_list = {}
 btn_nr = -1
@@ -18,12 +26,14 @@ exist = False
 
 bufferSize = 64 * 1024
 
+
 class Change_details:
     def __init__(self, real_username, hashed_password, window, object):
         self.real_username = real_username
         self.hashed_password = hashed_password
         self.window = window
         self.object = object
+
     def change_window_creation(self, selectaccount, pass_button):
         self.but = pass_button
         change_acccount = Toplevel()

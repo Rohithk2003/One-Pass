@@ -2,6 +2,8 @@ from data.delete_class import *
 import glob
 from data.update_checker import *
 from data.login_class import *
+
+
 def log_out(*window):
     try:
         for i in window:

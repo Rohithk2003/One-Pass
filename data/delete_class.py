@@ -1,15 +1,24 @@
-
 from data.change_class import *
+from data.apploop import gameloop
 path = ''
 
-#finding the os so tha  the images are displayed properly
+# finding the os so tha  the images are displayed properly
 if platform.system() == "Windows":
-    path = "images\\"
+    l = os.path.dirname(os.path.realpath(__file__)).split("\\")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '\\'
+    path = dir_path + "images\\"
 if platform.system() == 'Darwin':
-    dir_path = os.getcwd()
+    l = os.path.dirname(os.path.realpath(__file__)).split("/")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '/'
     path = dir_path + "/images/"
 
-#buffer size
+# buffer size
 
 bufferSize = 64 * 1024
 
@@ -20,6 +29,7 @@ class Deletion:
         self.hashed_password = hashed_password
         self.window = window
         self.object = object
+
     def delete_social_media_account(self, password_button, Value, *account_name):
 
         if Value:
@@ -114,7 +124,7 @@ class Deletion:
             state_current = button["state"]
             if state_current == DISABLED:
                 gameloop(self.real_username, self.hashed_password,
-                         self.window, button)
+                         self.window, button, self.object)
             else:
                 pass
         else:

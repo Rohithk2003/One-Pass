@@ -1,4 +1,5 @@
-import pickle,pyAesCrypt
+import pickle
+import pyAesCrypt,pyperclip
 from tkinter import filedialog as fd
 from data.delete_class import *
 buttons_list = {}
@@ -8,11 +9,20 @@ image_path = ""
 exist = False
 bufferSize = 64 * 1024
 
-#finding the os so tha  the images are displayed properly
+# finding the os so tha  the images are displayed properly
 if platform.system() == "Windows":
-    path = "images\\"
+    l = os.path.dirname(os.path.realpath(__file__)).split("\\")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '\\'
+    path = dir_path + "images\\"
 if platform.system() == 'Darwin':
-    dir_path = os.getcwd()
+    l = os.path.dirname(os.path.realpath(__file__)).split("/")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '/'
     path = dir_path + "/images/"
 
 
@@ -28,7 +38,7 @@ def verify(social_username, social_media, real_username):
             return False
 
 
-def addaccount(username, button, hashed_password, window, sidebar, password_button):
+def addaccount(username, button, hashed_password, window, sidebar, password_button,object):
     root1 = Toplevel()
     root1.geometry("400x300")
     root1.title("Add Account")
@@ -137,7 +147,7 @@ def addaccount(username, button, hashed_password, window, sidebar, password_butt
                 with open(f"{username}decrypted.bin", "rb") as f:
                     val = pickle.load(f)
                     button.grid(row=len(val) + 1, column=0)
-                gameloop(username, hashed_password, window, password_button)
+                gameloop(username, hashed_password, window, password_button,object)
 
     save_button = Button(root1, text="Save", command=save,
                          fg="white", bg="#292A2D")
@@ -148,7 +158,7 @@ def addaccount(username, button, hashed_password, window, sidebar, password_butt
 
 
 def change_icon(
-        button, usernam, users_username, hashed_password, window, password_button
+        button, usernam, users_username, hashed_password, window, password_button,object
 ):
     file_name = users_username + "decrypted.bin"
     l = [(32, 32), (16, 16)]
@@ -160,14 +170,14 @@ def change_icon(
     f = open(file_name, "rb")
     pad = pickle.load(f)
     f.close()
-    path = ""
+    path2 = ""
     for i in pad:
         if i[0] == usernam:
-            path = i[3]
-    if path == "":
+            path2 = i[3]
+    if path2 == "":
         path_im = image.open(f"{path}camera.png")
     else:
-        path_im = image.open(path)
+        path_im = image.open(path2)
 
     try:
         im = image.open(image_path)
@@ -191,7 +201,7 @@ def change_icon(
                 button.config(image=new_tk)
                 button.photo = new_tk
                 gameloop(users_username, hashed_password,
-                         window, password_button)
+                         window, password_button,object)
             else:
                 messagebox.showerror(
                     "Error", "Please provide icon size of 32x32 or 16x16 "
@@ -204,19 +214,20 @@ def change_icon(
                     filetypes=[("image", "*.png")], title="Add icon"
                 )
                 gameloop(users_username, hashed_password,
-                         window, password_button)
+                         window, password_button,object)
 
     except:
         new_tk = tk_image.PhotoImage(path_im)
         button.config(image=new_tk)
         button.photo = new_tk
 
-def actions(button, window, username, hashed_password, bg_img, password_button):
+
+def actions(button, window, username, hashed_password, bg_img, password_button,object):
     global buttons_list
 
-    change_object = Change_details(username, hashed_password, window)
+    change_object = Change_details(username, hashed_password, window,object)
 
-    delete_object = Deletion(username, hashed_password, window)
+    delete_object = Deletion(username, hashed_password, window,object)
 
     try:
         for widget in window.winfo_children():
@@ -230,23 +241,24 @@ def actions(button, window, username, hashed_password, bg_img, password_button):
     )
     new_canvas.place(x=120 + 20, y=0)
     new_canvas.create_image(0, 0, image=bg_img, anchor="nw")
-    new_s = Frame(new_canvas, bg="#292A2D", width=450, height=400, bd=0)
+    new_s = Frame(new_canvas, bg="#292A2D", width=500, height=400, bd=0)
     MainWindow = new_canvas.create_window(
         650 + 60, 600 - 60, window=new_s, anchor="se")
-
+    def copy(value):
+        pyperclip.copy(value)
+        messagebox.showinfo("Copied","Copied!!!")
     with open(f"{username}decrypted.bin", "rb") as f:
 
         lists = pickle.load(f)
         dot_text = Label(new_s, text=":", bg="#292A2D", fg="white", font=(20))
         dot_text1 = Label(new_s, text=":", bg="#292A2D", fg="white", font=(20))
         dot_text2 = Label(new_s, text=":", bg="#292A2D", fg="white", font=(20))
-
         delete_account = Button(
             new_s,
             text="Delete Account",
             bg="#292A2D",
             fg="white",
-            font=("Verdana", 15),
+            font=("Cascadia Mono SemiBold", 15),
             command=lambda: delete_object.delete_social_media_account(
                 password_button, False, lists[button][2]
             ),
@@ -257,7 +269,7 @@ def actions(button, window, username, hashed_password, bg_img, password_button):
             text="Change Details",
             bg="#292A2D",
             fg="white",
-            font=("Verdana", 15),
+            font=("Cascadia Mono SemiBold", 15),
             command=lambda: change_object.change_window_creation(
                 lists[button][0], password_button
             ),
@@ -268,21 +280,21 @@ def actions(button, window, username, hashed_password, bg_img, password_button):
             text="Username",
             bg="#292A2D",
             fg="white",
-            font=("Verdana", 15),
+            font=("Cascadia Mono SemiBold", 15),
         )
         password_label = Label(
             new_s,
             text="Password",
             bg="#292A2D",
             fg="white",
-            font=("Verdana", 15),
+            font=("Cascadia Mono SemiBold", 15),
         )
         social_account = Label(
             new_s,
             text="Account Name",
             bg="#292A2D",
             fg="white",
-            font=("Verdana", 15),
+            font=("Cascadia Mono SemiBold", 15),
         )
 
         username_text = Label(
@@ -290,22 +302,24 @@ def actions(button, window, username, hashed_password, bg_img, password_button):
             text=lists[button][0],
             bg="#292A2D",
             fg="white",
-            font=("Verdana", 15),
+            font=("Cascadia Mono SemiBold", 15),
         )
         password_text = Label(
             new_s,
             text=lists[button][1],
             bg="#292A2D",
             fg="white",
-            font=("Verdana", 15),
+            font=("Cascadia Mono SemiBold", 15),
         )
         social_account_text = Label(
             new_s,
             text=lists[button][2],
             bg="#292A2D",
             fg="white",
-            font=("Verdana", 15),
+            font=("Cascadia Mono SemiBold", 15),
         )
+        copy_but_password = Button(new_s,text="Copy Password", bg="#292A2D", fg="white", font=("Cascadia Mono SemiBold",9),command=lambda:copy(lists[button][1]))
+        copy_but_username = Button(new_s,text="Copy Username", bg="#292A2D", fg="white", font=("Cascadia Mono SemiBold",9),command=lambda:copy(lists[button][0]))
 
         if lists[button][3] == "":
             img = tk_image.PhotoImage(image.open(f"{path}camera.png"))
@@ -323,7 +337,7 @@ def actions(button, window, username, hashed_password, bg_img, password_button):
                 username,
                 hashed_password,
                 new_s,
-                password_button,
+                password_button,object
             ),
         )
         img_button.photo = img
@@ -341,9 +355,11 @@ def actions(button, window, username, hashed_password, bg_img, password_button):
         password_text.place(x=250, y=200 + 25)
         social_account_text.place(x=250, y=250 + 25)
         ChangeAccount.place(x=250 + 25 - 3, y=350)
+        copy_but_username.place(x=360, y=30)
+        copy_but_password.place(x=360, y=80)
 
 def buttons_blit(
-        username, window, add_button, mainarea, hashed_password, bg_img, password_button
+        username, window, add_button, mainarea, hashed_password, bg_img, password_button,object
 ):
     global buttons_list
     global btn_nr
@@ -379,7 +395,7 @@ def buttons_blit(
                             username,
                             hashed_password,
                             bg_img,
-                            password_button,
+                            password_button,object
                         ),
                     )
                 ] = [i, button_img]
@@ -398,7 +414,7 @@ def buttons_blit(
             pass
 
 
-def gameloop(username, hashed_password, window, password_button):
+def gameloop(username, hashed_password, window, password_button,object):
     bg_img = tk_image.PhotoImage(image.open(f"{path}log.jpg"))
     vals = window.grid_slaves()
     try:
@@ -466,7 +482,7 @@ def gameloop(username, hashed_password, window, password_button):
         relief=RAISED,
         font=("Verdana", 9),
         command=lambda: addaccount(
-            username, add_button, hashed_password, window, subbar, password_button
+            username, add_button, hashed_password, window, subbar, password_button,object
         ),
     )
     add_button.photo = image_new
@@ -485,5 +501,5 @@ def gameloop(username, hashed_password, window, password_button):
         window,
         hashed_password,
         bg_img,
-        password_button,
+        password_button,object
     )
