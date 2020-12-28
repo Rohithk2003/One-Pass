@@ -1,5 +1,5 @@
 from data.change_class import *
-from data.apploop import gameloop
+from data.apploop import *
 path = ''
 
 # finding the os so tha  the images are displayed properly
