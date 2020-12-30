@@ -150,18 +150,6 @@ def register(window, window_after, object, *a):
 
     login_window1 = Tk()
     login_window1.resizable(False, False)
-    login_window1.focus_set()
-
-    login_window1.title("Register")
-    login_window1.config(bg="#292A2D")
-    width_window = 1057
-    height_window = 700
-    screen_width = login_window1.winfo_screenwidth()
-    screen_height = login_window1.winfo_screenheight()
-    x = screen_width / 2 - width_window / 2
-    y = screen_height / 2 - height_window / 2
-
-    login_window1.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 
     image1 = tk_image.PhotoImage(image.open(f"{path}background.jpg"))
 

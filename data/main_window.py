@@ -26,55 +26,15 @@ if platform.system() == 'Darwin':
     path = dir_path + "/images/"
 
 
-def window_after(username, hash_password, password_new, object, *window):
-    print(object)
-    try:
-        for i in window:
-            i.destroy()
-    except:
-        pass
-    # sidebar
+class Gameloop(Frame):
 
-    root = Tk()
-    root.resizable(False, False)
-    root.focus_set()
-    global var
-    global file
-    status_name = False
-    sidebar = Frame(
-        root, width=5, bg="#292A2D", height=500, relief="sunken", borderwidth=1
-    )
-    sidebar.pack(expand=False, fill="both", side="left")
+
 
     def testing(root, mainarea, username, hash_password, object,password_button):
-        button["state"] = DISABLED
-        notes_buttons["state"] = NORMAL
-        profile_button["state"] = NORMAL
-        root.title("Passwords")
-        emptyMenu = Menu(root)
-        root.geometry("1300x700")
-        mainarea.config(bg="#292A2D")
-        root.config(menu=emptyMenu)
-        root.iconbitmap(f"{path}\\password.ico")
-        list = mainarea.pack_slaves()
-        for l in list:
-            l.destroy()
-        list = mainarea.grid_slaves()
-        for l in list:
-            l.destroy()
+
         gameloop(username, hash_password, mainarea, password_button,object)
 
-    file = None
-    root.title("ONE-PASS")
-    width_window = 1300
-    height_window = 700
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    x = screen_width / 2 - width_window / 2
-    y = screen_height / 2 - height_window / 2
 
-    root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-    main_ic = tk_image.PhotoImage(image.open(f'{path}\\main_icon.png'))
     sidebar_icon = Label(sidebar, image=main_ic, bg='#292A2D')
 
     pass_img = tk_image.PhotoImage(image.open(f"{path}\\password.png"))
