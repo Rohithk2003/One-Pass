@@ -8,8 +8,7 @@ from tkinter import filedialog as fd
 from tkinter import messagebox
 from tkinter.ttk import *
 # finding the os
-status_name = ''
-var = 0
+
 if platform.system() == "Windows":
     l = os.path.dirname(os.path.realpath(__file__)).split("\\")
     dir_path = ''
@@ -33,15 +32,9 @@ def note_pad_sec(notes_buttons, button, profile_button, root, mainarea, sidebar)
     profile_button["state"] = NORMAL
     root.iconbitmap(f"{path}_notes.ico")
 
-    list = mainarea.grid_slaves()
-    for l in list:
-        l.destroy()
-
     emptyMenu = Menu(root)
     root.config(menu=emptyMenu)
-    list = mainarea.grid_slaves()
-    for l in list:
-        l.destroy()
+
 
     def newFile():
         root.title("Untitled - Notepad")

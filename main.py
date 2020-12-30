@@ -12,6 +12,7 @@ import base64
 import platform
 import glob
 from data.for_encryption import *
+from data.note_pad import *
 # tkinter modules
 from PIL import Image as image
 from PIL import ImageTk as tk_image
@@ -48,6 +49,7 @@ if platform.system() == 'Darwin':
     path = dir_path + "/images/"
 
 fa = None
+status_name = ''
 
 var = 0
 file = None
@@ -880,7 +882,7 @@ class Gameloop(Frame):
 	        borderwidth=0,
 	        highlightthickness=0,
 	        highlightcolor='#292A2D',
-	        command=lambda: self.bins(parent)
+	        command=lambda: self.notes(parent)
 
 	    )
 
@@ -952,25 +954,27 @@ class Gameloop(Frame):
 			new_fa.pack(side=RIGHT,expand=True)
 			master.iconbitmap(f"{path}\\password.ico")
 
-	def bins(self,master):
+	def notes(self,master):
 			self.button["state"] = NORMAL
 			self.notes_buttons["state"] = DISABLED
 			self.profile_button["state"] = NORMAL
 			master.title("Passwords")
 			emptyMenu = Menu(master)
 			master.config(menu=emptyMenu)
-			new_fa = Frame(self.mainarea, bg="#292A2D", width=1000, height=661)
+			self.new_fa = Frame(self.mainarea, bg="#292A2D", width=1000, height=661)
 			new_fa.pack(side=RIGHT,expand=True)
 			master.iconbitmap(f"{path}\\password.ico")
+            note_pad_sec(self.notes_buttons, self.button, self.profile_button, master, self.new_fa, self.sidebar)
+
 if __name__ == "__main__":
 
     app = SampleApp()
     app.mainloop()
-""" to remove all decrypted files
-the glob function returns a list of files ending with decrypted.bin"""
-list_file = glob.glob("*decrypted.bin")
-for i in list_file:
-    try:
-        os.remove(str(i))
-    except:
-        pass
+    """ to remove all decrypted files
+    the glob function returns a list of files ending with decrypted.bin"""
+    list_file = glob.glob("*decrypted.bin")
+    for i in list_file:
+        try:
+            os.remove(str(i))
+        except:
+            pass
