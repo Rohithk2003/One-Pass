@@ -25,19 +25,19 @@ if platform.system() == 'Darwin':
     path = dir_path + "/images/"
 
 
-def note_pad_sec(notes_buttons, button, profile_button, root, mainarea, sidebar):
+def note_pad_sec(notes_buttons, button, profile_button, master, mainarea, sidebar):
 
     notes_buttons["state"] = DISABLED
     button["state"] = NORMAL
     profile_button["state"] = NORMAL
-    root.iconbitmap(f"{path}_notes.ico")
+    master.iconbitmap(f"{path}_notes.ico")
 
-    emptyMenu = Menu(root)
-    root.config(menu=emptyMenu)
+    emptyMenu = Menu(master)
+    master.config(menu=emptyMenu)
 
 
     def newFile():
-        root.title("Untitled - Notepad")
+        master.title("Untitled - Notepad")
         TextArea.delete(1.0, END)
 
     def openFile():
@@ -54,7 +54,7 @@ def note_pad_sec(notes_buttons, button, profile_button, root, mainarea, sidebar)
         if file == "":
             file = None
         else:
-            root.title(os.path.basename(file) + " - Notepad")
+            master.title(os.path.basename(file) + " - Notepad")
             TextArea.delete(1.0, END)
             with open(file, "r") as f:
                 TextArea.insert(1.0, f.read())
@@ -62,7 +62,7 @@ def note_pad_sec(notes_buttons, button, profile_button, root, mainarea, sidebar)
 
     def rename_file():
         global file
-        if root.title() != "Untitled-Notepad":
+        if master.title() != "Untitled-Notepad":
             application_window = Tk()
             application_window.withdraw()
             a = simpledialog.askstring(
@@ -84,7 +84,7 @@ def note_pad_sec(notes_buttons, button, profile_button, root, mainarea, sidebar)
                 with open(file, "r") as f:
                     TextArea.insert(1.0, f.read())
                     f.close()
-                root.title(a + file_extension + " - Notepad")
+                master.title(a + file_extension + " - Notepad")
             else:
                 messagebox.showinfo(
                     "Rename", "Please save your file before renaming it"
@@ -116,7 +116,7 @@ def note_pad_sec(notes_buttons, button, profile_button, root, mainarea, sidebar)
                 with open(file, "w") as f:
                     f.write(TextArea.get(1.0, END))
                     f.close()
-                root.title(os.path.basename(file) + " - Notepad")
+                master.title(os.path.basename(file) + " - Notepad")
                 file = file
 
     def save_file():
@@ -145,11 +145,11 @@ def note_pad_sec(notes_buttons, button, profile_button, root, mainarea, sidebar)
                     status_name = True
                     f.write(TextArea.get(1.0, END))
                     f.close()
-                root.title(os.path.basename(file) + " - Notepad")
+                master.title(os.path.basename(file) + " - Notepad")
 
     def quitApp():
         try:
-            root.destroy()
+            master.destroy()
         except:
             pass
 
@@ -181,11 +181,11 @@ def note_pad_sec(notes_buttons, button, profile_button, root, mainarea, sidebar)
         messagebox.showinfo("Notepad", "Notepad by Rohithk-25-11-2020")
 
     # Basic tkinter setup
-    root.geometry("1300x700")
-    root.iconbitmap(False, f"{path}_notes.ico")
-    root.title("Untitled - Notepad")
+    master.geometry("1300x700")
+    master.iconbitmap(False, f"{path}_notes.ico")
+    master.title("Untitled - Notepad")
     # Add TextArea
-    root.resizable(0, 0)
+    master.resizable(0, 0)
     font_main = ("freesansbold", 12)
     Scroll_y = Scrollbar(mainarea, orient="vertical")
     Scroll_y.pack(side="right", fill=Y)
@@ -204,10 +204,10 @@ def note_pad_sec(notes_buttons, button, profile_button, root, mainarea, sidebar)
     TextArea.pack(expand=True, fill=BOTH)
 
     # create a menubar
-    MenuBar = Menu(root)
+    MenuBar = Menu(master)
     MenuBar.config(bg="#292A2D", bd=0, activebackground="#292A2D")
     status_name = False
-    root.config(bg="red", menu=MenuBar)
+    master.config(bg="red", menu=MenuBar)
     # File Menu Starts
 
     FileMenu = Menu(MenuBar, tearoff=0)
@@ -415,10 +415,10 @@ def note_pad_sec(notes_buttons, button, profile_button, root, mainarea, sidebar)
         window.focus_set()
 
     def popup_menu(e):
-        my_menu.tk_popup(e.x_root, e.y_root)
+        my_menu.tk_popup(e.x_master, e.y_master)
 
-    root.bind("<Control-Key-f>", primary)
-    root.bind("<Control-Key-h>", secondary)
+    master.bind("<Control-Key-f>", primary)
+    master.bind("<Control-Key-h>", secondary)
 
     EditMenu = Menu(MenuBar, tearoff=0)
     EditMenu.config(
@@ -915,11 +915,11 @@ def note_pad_sec(notes_buttons, button, profile_button, root, mainarea, sidebar)
         # To Open already existing file
 
     # bindings
-    root.bind("<Control-Key-s>", callback)
-    root.bind("<Control-Shift-S>", second_callback)
-    root.bind("<Control-Key-x>", cut)
-    root.bind("<Control-Key-c>", copy)
-    root.bind("<Control-Key-v>", paste)
+    master.bind("<Control-Key-s>", callback)
+    master.bind("<Control-Shift-S>", second_callback)
+    master.bind("<Control-Key-x>", cut)
+    master.bind("<Control-Key-c>", copy)
+    master.bind("<Control-Key-v>", paste)
     # Help Menu Starts
     HelpMenu = Menu(
         MenuBar, tearoff=0, bg="#292A2D", bd="0", activebackground="#292A2D"
@@ -941,4 +941,4 @@ def note_pad_sec(notes_buttons, button, profile_button, root, mainarea, sidebar)
 
     MenuBar.pack_propagate(0)
     sidebar.pack_propagate(0)
-    root.config(menu=MenuBar)
+    master.config(menu=MenuBar)
