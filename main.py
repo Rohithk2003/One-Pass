@@ -50,7 +50,13 @@ if platform.system() == 'Darwin':
         if i != 'data':
             dir_path += i + '/'
     path = dir_path + "/images/"
-
+if platform.system() == "Linux":
+    l = os.path.dirname(os.path.realpath(__file__)).split("/")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '/'
+    path = dir_path + "/images/"
 fa = None
 status_name = ''
 
@@ -816,9 +822,9 @@ class Gameloop(Frame):
         self.username = username
         self.password_new = password
 
-        main_ic = tk_image.PhotoImage(image.open(f'{path}\\main_icon.png'))
-        notes_img = tk_image.PhotoImage(image.open(f"{path}\\_notes.png"))
-        new_button = tk_image.PhotoImage(image.open(f"{path}\\_new_but.jpg"))
+        main_ic = tk_image.PhotoImage(image.open(f'{path}main_icon.png'))
+        notes_img = tk_image.PhotoImage(image.open(f"{path}_notes.png"))
+        new_button = tk_image.PhotoImage(image.open(f"{path}_new_but.jpg"))
 
         self.sidebar = Frame(
             self, width=5, bg="#292A2D", height=661, relief="sunken", borderwidth=1

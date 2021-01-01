@@ -6,3 +6,4 @@ pillow
 cryptography
 update_check
 pyperclip
+tkscrolledframe
