@@ -11,9 +11,10 @@ import hashlib
 import base64
 import platform
 import glob
+import pickle as p
+from tkscrolledframe import ScrolledFrame
 
 from data.for_encryption import *
-from data.note_pad import *
 from data.update_checker import *
 
 # tkinter modules
@@ -23,7 +24,7 @@ from tkinter import colorchooser
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from tkinter import simpledialog
-from tkinter.ttk import *
+from tkinter import ttk
 from tkinter import *
 # for encryption and decryption
 from cryptography.fernet import Fernet
@@ -95,6 +96,19 @@ def handle_focus_in(entry, index, *number):
         pass
 
 
+def handle_focus_out(entry, val, index):
+    a = entry.get()
+    if a == "" and index == 2 or a == "" and index == 4:
+        entry.delete(0, END)
+        entry.config(foreground="grey")
+        entry.config(show="")
+        entry.insert(0, val)
+    elif a == "":
+        entry.delete(0, END)
+        entry.config(foreground="grey")
+        entry.insert(0, val)
+
+
 def password_sec(entry, button):
     a = entry["show"]
     private_img = tk_image.PhotoImage(image.open(f"{path}private.png"))
@@ -113,19 +127,6 @@ def password_sec(entry, button):
             button.config(image=unhide_img)
             button.photo = unhide_img
             button.image = unhide_img
-
-
-def handle_focus_out(entry, val, index):
-    a = entry.get()
-    if a == "" and index == 2 or a == "" and index == 4:
-        entry.delete(0, END)
-        entry.config(foreground="grey")
-        entry.config(show="")
-        entry.insert(0, val)
-    elif a == "":
-        entry.delete(0, END)
-        entry.config(foreground="grey")
-        entry.insert(0, val)
 
 
 class SampleApp(Tk):
@@ -323,7 +324,7 @@ class Login_page(Frame):
             width=23,
             height=1,
             text="LOG IN",
-            font=("Cascadia Mono SemiBold", 15),
+            font=("Segoe UI SemiBold", 15),
             activeforeground="white",
             relief=SUNKEN,
             fg="white",
@@ -403,7 +404,6 @@ class Login_page(Frame):
             return False, main_password, self.password
         else:
             for_hashing_both = self.password + self.username
-            print('ds')
             if os.path.exists(f"{self.username}.bin.fenc"):
                 try:
                     # trying to decrypt the users file to check whether the password entered is valid
@@ -806,7 +806,7 @@ class Gameloop(Frame):
         Frame.__init__(self, parent)
         global var
         global file
-
+        self.parent = parent
         status_name = False
 
         self.var = var
@@ -958,10 +958,9 @@ class Gameloop(Frame):
         master.title("Passwords")
         emptyMenu = Menu(master)
         master.config(menu=emptyMenu)
-        self.new_fa = Frame(self.mainarea, bg="#292A2D",
-                            width=1000, height=661)
-        new_fa.pack(side=RIGHT, expand=True)
         master.iconbitmap(f"{path}\\password.ico")
+        self.switchframe(Password_display, master, self.username,
+                         self.hash_password, self.object, self.password_new)
 
     def notes(self, master):
         self.button["state"] = NORMAL
@@ -970,15 +969,14 @@ class Gameloop(Frame):
         master.title("Passwords")
         emptyMenu = Menu(master)
         master.config(menu=emptyMenu)
-        # self.new_fa = Frame(self.mainarea, bg="#292A2D", width=1000, height=661)
-        # self.new_fa.pack(side=RIGHT,expand=True)
+
         master.iconbitmap(f"{path}\\password.ico")
         self.switchframe(Note_pad, master)
 
-    def switchframe(self, frame_class, master):
+    def switchframe(self, frame_class, master, *args):
         global new_frame
         new_frame = frame_class(master, self, self.notes_buttons,
-                                self.button, self.profile_button, self.sidebar)
+                                self.button, self.profile_button, self.sidebar, *args)
         if self._frame is not None:
             self._frame.destroy()
         self._frame = new_frame
@@ -995,8 +993,6 @@ class Note_pad(Frame):
         main_window.title("Untitled-Notepad")
         main_window.iconbitmap(f"{path}_notes.ico")
         self.config(bg='black')
-        # emptyMenu = Menu(main_window)
-        # main_window.config(menu=emptyMenu)
 
         def newFile():
             main_window.title("Untitled - Notepad")
@@ -1900,6 +1896,376 @@ class Note_pad(Frame):
 
         main_window.config(menu=MenuBar)
 
+
+class Password_display(Frame):
+    def __init__(self, main_window, master, notes_buttons, button, profile_button, sidebar, *args):
+        self.main_window = main_window
+        Frame.__init__(self, self.main_window)
+        notes_buttons.config(state=NORMAL)
+        button.config(state=DISABLED)
+        profile_button.config(state=NORMAL)
+        emptyMenu = Menu(self.main_window)
+        self.main_window.config(menu=emptyMenu)
+        # getting the username
+        self.username = args[0]
+        self.hashed_password = args[1]
+        self.mainarea = master
+        self.button = button
+        self.object = args[2]
+        self.password = args[3]
+        bg_img = tk_image.PhotoImage(image.open(f"{path}log.jpg"))
+        self.subbar = Frame(self, bg="black", width=120, height=1057, relief="sunken", borderwidth=2
+                       )
+        self.subbar.grid(row=0, column=0)
+        self.subbar.grid_propagate(False)
+
+
+        scrollbar = ScrolledFrame(self.subbar, width=120, height=661)
+
+        scrollbar.pack(expand=1, fill=Y)
+        # configure the canvas
+        scrollbar.bind_arrow_keys(self.subbar)
+        scrollbar.bind_scroll_wheel(self.subbar)
+        scrollbar.focus_set()
+
+        # creating another frame
+        self.second_frame = scrollbar.display_widget(Frame)
+
+
+        # add that new frame to a new window in the canvas
+        image_new = tk_image.PhotoImage(image.open(f"{path}add-button.png"))
+        bg_img = tk_image.PhotoImage(image.open(f"{path}log.jpg"))
+
+        self.add_button = Button(
+            self.second_frame,
+            text="Add",
+            fg="white",
+            image=image_new,
+            compound="top",
+            activeforeground="white",
+            bg="#292A2D",
+            height=80,
+            activebackground="#292A2D",
+            width=120,
+            relief=RAISED,
+            font=("Verdana", 9),
+            command=lambda: self.addaccount(),
+        )
+        self.add_button.photo = image_new
+        values = []
+        with open(f"{self.username}decrypted.bin", "rb") as f:
+            try:
+                values = p.load(f)
+            except:
+                pass
+        length_list = len(values)
+        self.add_button.grid(row=length_list, column=0)
+
+        self.buttons_blit(
+            bg_img
+        )
+
+    def buttons_blit(self, bg_image):
+        global buttons_list
+        global btn_nr
+        new = []
+
+        with open(f"{self.username}decrypted.bin", "rb") as f:
+                val = p.load(f)
+                for i in val:
+                    new.append(i[2])
+                d = {}
+                for i in range(len(new)):
+                    if val[i][3] == "":
+                        button_img = tk_image.PhotoImage(
+                            image.open(f"{path}photo.png"))
+                    else:
+                        button_img = tk_image.PhotoImage(image.open(val[i][3]))
+                    d[
+                        Button(
+                            self.second_frame,
+                            text=f"{new[i]}",
+                            bg="#292A2D",
+                            fg="white",
+                            activeforeground="white",
+                            activebackground="#292A2D",
+                            width=120,
+                            font=("Segoe UI Semibold", 9),
+                            image=button_img,
+                            compound="top",
+                            command=lambda:self.show_account())
+
+                    ] = [i, button_img]
+
+                for i in d:
+                    i.image = d[i][1]
+                    i.grid(row=d[i][0], column=0)
+                with open(f"{self.username}decrypted.bin", "rb") as f:
+                    try:
+                        values = p.load(f)
+                    except:
+                        values = []
+                length_list = len(values)
+                self.add_button.grid(row=length_list + 1, column=0)
+
+
+    def verify(self):
+        file_name = f"{self.username}decrypted.bin"
+        with open(file_name, "rb") as f:
+            try:
+                test_values = p.load(f)
+                for user in test_values:
+                    if user[0] == str(self.username_window_entry.get()) and user[2] == str(self.name_of_social_entry.get()):
+                        return True
+            except:
+                return False
+
+    def save(self, *image_path):
+        global exist
+        if len(image_path) == 0:
+            self.image_path = f'{path}photo.png'
+        list_account = [
+            str(self.username_window_entry.get()),
+            str(self.password_entry.get()),
+            str(self.name_of_social_entry.get()),
+            self.image_path,
+        ]
+        if str(self.username_window_entry.get()) == "":
+            messagebox.showwarning("Warning", "Username cannot be empty")
+        elif str(self.password_entry.get()) == "":
+            messagebox.showwarning("Warning", "Password cannot be empty")
+        elif str(self.name_of_social_entry.get()) == "":
+            messagebox.showwarning(
+                "Warning", "Name of the account cannot be empty")
+        else:
+            verifying = self.verify()
+
+            if verifying:
+                messagebox.showerror("Error", "The account already exists")
+            else:
+                name_file = self.username + "decrypted.bin"
+                with open(name_file, "rb") as f:
+                    try:
+                        line = p.load(f)
+                    except:
+                        line = []
+                    line.append(list_account)
+                    f.close()
+                with open(name_file, "wb") as f1:
+                    p.dump(line, f1)
+                    f.close()
+                os.remove(self.username + ".bin.fenc")
+                pyAesCrypt.encryptFile(
+                    name_file, f'{self.username}.bin.fenc', self.hashed_password, bufferSize
+                )
+                messagebox.showinfo("Success", "Your account has been saved")
+                with open(f"{self.username}decrypted.bin", "rb") as f:
+                    val = p.load(f)
+                    self.add_button.grid(row=len(val) + 1, column=0)
+                self.root1.destroy()
+                self.main_window.switch_frame(
+                    Gameloop, self.username, self.password)
+
+    def addaccount(self):
+        self.root1 = Toplevel()
+        self.root1.geometry("400x300")
+        self.root1.title("Add Account")
+        self.root1.focus_set()
+        self.root1.grab_set()
+        self.root1.resizable(False, False)
+        width_window = 400
+        height_window = 400
+        screen_width = self.root1.winfo_screenwidth()
+        screen_height = self.root1.winfo_screenheight()
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
+        self.root1.config(bg="#292A2D")
+        self.root1.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+        name_of_social = Label(
+            self.root1, text="Name of the account", fg="white", bg="#292A2D")
+        username_window = Label(self.root1, text="Username:",
+                                fg="white", bg="#292A2D")
+        password_window = Label(self.root1, text="Password:",
+                                fg="white", bg="#292A2D")
+        self.username_window_entry = Entry(self.root1)
+        self.password_entry = Entry(self.root1)
+        self.name_of_social_entry = Entry(self.root1)
+
+        self.password_entry.grid(row=2, column=2)
+        self.username_window_entry.grid(row=1, column=2)
+        password_window.grid(row=2, column=1)
+        username_window.grid(row=1, column=1)
+        self.name_of_social_entry.grid(row=0, column=2)
+        name_of_social.grid(row=0, column=1)
+
+        username_window.place(x=50, y=100 + 100)
+        password_window.place(x=50, y=130 + 100)
+        name_of_social.place(x=50, y=70 + 100)
+        self.username_window_entry.place(x=200, y=100 + 100)
+        self.password_entry.place(x=200, y=130 + 100)
+        self.name_of_social_entry.place(x=200, y=70 + 100)
+
+        def browsefunc(self):
+            # try:
+            #     self.image_path = fd.askopenfilename()
+            #     im = image.open(self.image_path)
+            #     tkimage = tk_image.PhotoImage(im)
+            #     add_icon_button.config(image=tkimage)
+            #     add_icon_button.photo = tkimage
+            # except:
+            self.image_path = f"{path}photo.png"
+            im = image.open(self.image_path)
+            tkimage = tk_image.PhotoImage(im)
+            add_icon_button.config(image=tkimage)
+            add_icon_button.photo = tkimage
+            save_button.config(command=lambda: self.save(self.image_path))
+        new_id = tk_image.PhotoImage(image.open(f"{path}photo.png"))
+        add_icon_button = Button(
+            self.root1,
+            image=new_id,
+            borderwidth="0",
+            command=lambda: self.browsefunc(),
+            border="0",
+            highlightthickness="0",
+            activebackground="#292A2D",
+            bg="#292A2D",
+        )
+        add_icon_button.photo = new_id
+        add_icon_button.grid(row=3, column=0)
+        add_icon_button.place(x=125, y=200)
+
+        save_button = Button(self.root1, text="Save", command=lambda: self.save(),
+                             fg="white", bg="#292A2D")
+        save_button.grid(row=4, column=1)
+        save_button.place(x=250, y=170 + 100)
+        add_icon_button.place(x=150, y=50)
+        self.root1.mainloop()
+
+    def show_account(self):
+        global buttons_list
+        change_object = Change_details(username, hashed_password, window,object)
+        delete_object = Deletion(username, hashed_password, window,object)
+
+        #creating a canvas to fix background image
+        new_canvas = Canvas(
+            self, width=1000 + 50, height=1057, bd="0", highlightthickness=0
+        )
+        new_canvas.place(x=120 + 20, y=0)
+        new_canvas.create_image(0, 0, image=bg_img, anchor="nw")
+        new_s = Frame(new_canvas, bg="#292A2D", width=500, height=400, bd=0)
+        MainWindow = new_canvas.create_window(650 + 60, 600 - 60, window=new_s, anchor="se")
+        def copy(value):
+            pyperclip.copy(value)
+            messagebox.showinfo("Copied","Copied!!!")
+        with open(f"{username}decrypted.bin", "rb") as f:
+            lists = p.load(f)
+        dot_text = Label(new_s, text=":", bg="#292A2D", fg="white", font=(20))
+        dot_text1 = Label(new_s, text=":", bg="#292A2D", fg="white", font=(20))
+        dot_text2 = Label(new_s, text=":", bg="#292A2D", fg="white", font=(20))
+        delete_account = Button(
+              new_s,
+              text="Delete Account",
+             bg="#292A2D",
+             fg="white",
+             font=("Cascadia Mono SemiBold", 15),
+             command=lambda: delete_object.delete_social_media_account(
+                 password_button, False, lists[button][2]
+             ),
+         )
+
+        ChangeAccount = Button(
+             new_s,
+             text="Change Details",
+             bg="##292A2D",
+             fg="white",
+             font=("Cascadia Mono SemiBold", 15),
+             command=lambda: change_object.change_window_creation(
+                 lists[button][0], password_button
+             ),
+         )
+
+        username_label = Label(
+             new_s,
+             text="Username",
+             bg="##292A2D",
+             fg="white",
+             font=("Cascadia Mono SemiBold", 15),
+         )
+        password_label = Label(
+             new_s,
+             text="Password",
+             bg="#292A2D",
+             fg="white",
+             font=("Cascadia Mono SemiBold", 15),
+         )
+        social_account = Label(
+             new_s,
+             text="Account Name",
+             bg="#292A2D",
+             fg="white",
+             font=("Cascadia Mono SemiBold", 15),
+         )
+
+        username_text = Label(
+             new_s,
+             text=lists[button][0],
+             bg="#292A2D",
+             fg="white",
+             font=("Cascadia Mono SemiBold", 15),
+         )
+        password_text = Label(
+             new_s,
+             text=lists[button][1],
+             bg="#292A2D",
+             fg="white",
+             font=("Cascadia Mono SemiBold", 15),
+         )
+        social_account_text = Label(
+             new_s,
+             text=lists[button][2],
+             bg="##292A2D",
+             fg="white",
+             font=("Cascadia Mono SemiBold", 15),
+         )
+        copy_but_password = Button(new_s,text="Copy Password", bg="##292A2D", fg="white", font=("Cascadia Mono SemiBold",9),command=lambda:copy(lists[button][1]))
+        copy_but_username = Button(new_s,text="Copy Username", bg="##292A2D", fg="white", font=("Cascadia Mono SemiBold",9),command=lambda:copy(lists[button][0]))
+
+        if lists[button][3] == "":
+         img = tk_image.PhotoImage(image.open(f"{path}camera.png"))
+        else:
+         img = tk_image.PhotoImage(image.open(lists[button][3]))
+        img_button = Button(
+         new_s,
+         image=img,
+         border="0",
+         bg="#292A2D",
+         activebackground="#292A2D",
+         command=lambda: change_icon(
+             img_button,
+             lists[button][0],
+             username,
+             hashed_password,
+             new_s,
+             password_button,object
+         ),
+        )
+        img_button.photo = img
+
+        img_button.place(x=160, y=30)
+        dot_text.place(x=170 + 20, y=175 + 3)
+        dot_text1.place(x=170 + 20, y=200 + 25 + 3)
+        dot_text2.place(x=170 + 20, y=250 + 25 + 3)
+
+        delete_account.place(x=0 + 10, y=350)
+        username_label.place(x=30, y=175)
+        password_label.place(x=30, y=200 + 25)
+        social_account.place(x=30, y=250 + 25)
+        username_text.place(x=250, y=150 + 25)
+        password_text.place(x=250, y=200 + 25)
+        social_account_text.place(x=250, y=250 + 25)
+        ChangeAccount.place(x=250 + 25 - 3, y=350)
+        copy_but_username.place(x=360, y=30)
+        copy_but_password.place(x=360, y=80)
 
 if __name__ == "__main__":
 

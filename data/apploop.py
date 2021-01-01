@@ -38,128 +38,8 @@ def verify(social_username, social_media, real_username):
             return False
 
 
-def addaccount(username, button, hashed_password, window, sidebar, password_button,object):
-    root1 = Toplevel()
-    root1.geometry("400x300")
-    root1.title("Add Account")
-    root1.focus_set()
-    root1.grab_set()
-    root1.resizable(False, False)
-    width_window = 400
-    height_window = 400
-    screen_width = root1.winfo_screenwidth()
-    screen_height = root1.winfo_screenheight()
-    x = screen_width / 2 - width_window / 2
-    y = screen_height / 2 - height_window / 2
-    root1.config(bg="#292A2D")
-    root1.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-    name_of_social = Label(
-        root1, text="Name of the account", fg="white", bg="#292A2D")
-    name_of_social_entry = Entry(root1)
-    username_window = Label(root1, text="Username:", fg="white", bg="#292A2D")
-    password_window = Label(root1, text="Password:", fg="white", bg="#292A2D")
-    username_window_entry = Entry(root1)
-    password_entry = Entry(root1)
 
-    password_entry.grid(row=2, column=2)
-    username_window_entry.grid(row=1, column=2)
-    password_window.grid(row=2, column=1)
-    username_window.grid(row=1, column=1)
-    name_of_social_entry.grid(row=0, column=2)
-    name_of_social.grid(row=0, column=1)
-
-    username_window.place(x=50, y=100 + 100)
-    password_window.place(x=50, y=130 + 100)
-    name_of_social.place(x=50, y=70 + 100)
-    username_window_entry.place(x=200, y=100 + 100)
-    password_entry.place(x=200, y=130 + 100)
-    name_of_social_entry.place(x=200, y=70 + 100)
-
-    def browsefunc():
-        try:
-            image_path = fd.askopenfilename()
-            im = image.open(image_path)
-            tkimage = tk_image.PhotoImage(im)
-            add_icon_button.config(image=tkimage)
-            add_icon_button.photo = tkimage
-        except:
-            image_path = f"{path}photo.png"
-            im = image.open(image_path)
-            tkimage = tk_image.PhotoImage(im)
-            add_icon_button.config(image=tkimage)
-            add_icon_button.photo = tkimage
-
-    new_id = tk_image.PhotoImage(image.open(f"{path}photo.png"))
-    add_icon_button = Button(
-        root1,
-        image=new_id,
-        borderwidth="0",
-        command=browsefunc,
-        border="0",
-        highlightthickness="0",
-        activebackground="#292A2D",
-        bg="#292A2D",
-    )
-    add_icon_button.photo = new_id
-    add_icon_button.grid(row=3, column=0)
-    add_icon_button.place(x=125, y=200)
-
-    def save():
-        global exist
-        list_account = [
-            str(username_window_entry.get()),
-            str(password_entry.get()),
-            str(name_of_social_entry.get()),
-            image_path,
-        ]
-        if str(username_window_entry.get()) == "":
-            messagebox.showwarning("Warning", "Username cannot be empty")
-        elif str(password_entry.get()) == "":
-            messagebox.showwarning("Warning", "Password cannot be empty")
-        elif str(name_of_social_entry.get()) == "":
-            messagebox.showwarning(
-                "Warning", "Name of the account cannot be empty")
-        else:
-            verifying = verify(
-                username_window_entry.get(), name_of_social_entry.get(), username
-            )
-
-            if verifying:
-                messagebox.showerror("Error", "The account already exists")
-            else:
-                name_file = username + "decrypted.bin"
-                with open(name_file, "rb") as f:
-                    try:
-                        line = pickle.load(f)
-                    except:
-                        line = []
-                    line.append(list_account)
-                    f.close()
-                with open(name_file, "wb") as f1:
-                    pickle.dump(line, f1)
-                    f.close()
-                os.remove(username + ".bin.fenc")
-                pyAesCrypt.encryptFile(
-                    name_file, username + ".bin.fenc", hashed_password, bufferSize
-                )
-                messagebox.showinfo("Success", "Your account has been saved")
-                root1.destroy()
-                with open(f"{username}decrypted.bin", "rb") as f:
-                    val = pickle.load(f)
-                    button.grid(row=len(val) + 1, column=0)
-                gameloop(username, hashed_password, window, password_button,object)
-
-    save_button = Button(root1, text="Save", command=save,
-                         fg="white", bg="#292A2D")
-    save_button.grid(row=4, column=1)
-    save_button.place(x=250, y=170 + 100)
-    add_icon_button.place(x=150, y=50)
-    root1.mainloop()
-
-
-def change_icon(
-        button, usernam, users_username, hashed_password, window, password_button,object
-):
+def change_icon(button, usernam, users_username, hashed_password, window, password_button,object):
     file_name = users_username + "decrypted.bin"
     l = [(32, 32), (16, 16)]
     image_path = fd.askopenfilename(
@@ -416,14 +296,8 @@ def buttons_blit(
 
 def gameloop(username, hashed_password, window, password_button,object):
     bg_img = tk_image.PhotoImage(image.open(f"{path}log.jpg"))
-    vals = window.grid_slaves()
-    try:
-        for i in vals:
-            i.destroy()
-    except:
-        pass
 
-    window.config(bg="#292A2D")
+
     subbar = Frame(
         window, bg="black", width=120, height=1027, relief="sunken", borderwidth=2
     )
