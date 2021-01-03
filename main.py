@@ -1,11 +1,4 @@
 import sqlite3
-import pyaes
-import pbkdf2
-import os
-import secrets
-import pyAesCrypt
-import hashlib
-import platform
 import glob
 import pickle as p
 import pyperclip
@@ -63,7 +56,7 @@ my_cursor.execute(
 )
 
 
-#settings function
+# settings function
 
 def log_out(*window):
     try:
@@ -88,7 +81,7 @@ def log_out(*window):
         pass
 
 
-def settings(real_username,main_window,hashed_password,window,password_button,rec_pas, original_password, object):
+def settings(real_username, main_window, hashed_password, window, password_button, rec_pas, original_password, object):
     settings_window = Toplevel()
     settings_window.resizable(False, False)
     width_window = 187
@@ -104,8 +97,8 @@ def settings(real_username,main_window,hashed_password,window,password_button,re
     settings_window.title("Settings")
     settings_window.config(bg="#292A2D")
 
-    delete_object = Deletion(real_username, hashed_password, window,object)
-    change_object = Change_details(real_username, hashed_password, window,object)
+    delete_object = Deletion(real_username, hashed_password, window, object)
+    change_object = Change_details(real_username, hashed_password, window, object)
 
     log_label = Button(
         settings_window,
@@ -197,7 +190,8 @@ def settings(real_username,main_window,hashed_password,window,password_button,re
         Delete_social_button.config(state=NORMAL)
     settings_window.mainloop()
 
-#main class
+
+# main class
 class ONE_PASS(Tk):
     def __init__(self):
         Tk.__init__(self)
@@ -223,7 +217,8 @@ class ONE_PASS(Tk):
         self._frame.config(width=1057, height=661)
         self._frame.place(x=0, y=0)
 
-#login class
+
+# login class
 class Login_page(Frame):
     def __init__(self, master):
         Frame.__init__(self, master)
@@ -442,7 +437,7 @@ class Login_page(Frame):
                 messagebox.showinfo(
                     "Success", "You have now logged in ")
                 root.destroy()
-                master.switch_frame(Gameloop, self.username, self.password)
+                master.switch_frame(main_window, self.username, self.password)
 
             else:
                 pass
@@ -504,7 +499,8 @@ class Login_page(Frame):
                 return False, main_password, self.password
             return True, main_password, self.password
 
-#register class
+
+# register class
 class Register_page(Frame):
     def __init__(self, master):
         Frame.__init__(self, master)
@@ -642,7 +638,8 @@ class Register_page(Frame):
             activeforeground="#292A2D",
             bg="#994422",
             activebackground="#994422",
-            command=lambda: register_saving(str(username_entry.get()), str(password_entry.get()), str(email_id_entry.get()),
+            command=lambda: register_saving(str(username_entry.get()), str(password_entry.get()),
+                                            str(email_id_entry.get()),
                                             str(email_password_entry.get())))
 
         unhide_img = tk_image.PhotoImage(image.open(f"{path}eye.png"))
@@ -870,8 +867,9 @@ class Register_page(Frame):
         )
         self.window(self.username, hash_pass, self.password)
 
-#class which handles the main window for seeing the password 
-class Gameloop(Frame):
+
+# class which handles the main window for seeing the password
+class main_window(Frame):
     def __init__(self, parent, username, password):
         Frame.__init__(self, parent)
         global var
@@ -999,13 +997,13 @@ class Gameloop(Frame):
             bg='#292A2D',
             compound=CENTER,
             command=lambda: self.switchframe(
-                Profile_view, parent, self.username, self.password_new, self.email_id, self.decrypted_pass, self.hash_password, self.object),
+                Profile_view, parent, self.username, self.password_new, self.email_id, self.decrypted_pass,
+                self.hash_password, self.object),
             border=0,
             bd=0,
             borderwidth=0,
             highlightthickness=0,
             highlightcolor='#292A2D',
-
 
         )
 
@@ -1031,7 +1029,7 @@ class Gameloop(Frame):
         emptyMenu = Menu(master)
         master.config(menu=emptyMenu)
         master.iconbitmap(f"{path}password.ico")
-        self.switchframe(Password_display, master,self,self.username,
+        self.switchframe(Password_display, master, self, self.username,
                          self.hash_password, self.object, self.password_new)
 
     def notes(self, master):
@@ -1055,7 +1053,8 @@ class Gameloop(Frame):
         self._frame.config(width=1057, height=661)
         self._frame.place(x=134, y=0)
 
-#note -pad
+
+# note -pad
 class Note_pad(Frame):
     def __init__(self, main_window, notes_buttons, button, profile_button):
         Frame.__init__(self, main_window)
@@ -1067,6 +1066,7 @@ class Note_pad(Frame):
         self.config(bg='black')
 
         global testing_strng
+
         def newFile():
             main_window.title("Untitled - Notepad")
             TextArea.get(1.0, END)
@@ -1967,7 +1967,9 @@ class Note_pad(Frame):
         # Help Menu Ends
 
         main_window.config(menu=MenuBar)
-#displaying the passwords 
+
+
+# displaying the passwords
 class Password_display(Frame):
     def __init__(self, main_window, notes_buttons, button, profile_button, *args):
         self.main_window = main_window
@@ -1991,7 +1993,7 @@ class Password_display(Frame):
         bg_img = tk_image.PhotoImage(image.open(f"{path}log.jpg"))
         self.subbar = Frame(self, bg="black", width=120, height=1057, relief="sunken", borderwidth=2
                             )
-        self.subbar.place(x=0,y=0)
+        self.subbar.place(x=0, y=0)
         self.subbar.grid_propagate(False)
 
         scrollbar = ScrolledFrame(self.subbar, width=120, height=661)
@@ -2062,7 +2064,7 @@ class Password_display(Frame):
                         font=("Segoe UI Semibold", 9),
                         image=button_img,
                         compound="top",
-                        command=lambda value = new[i]:self.show_account(value))
+                        command=lambda value=new[i]: self.show_account(value))
 
                 ] = [i, button_img]
 
@@ -2083,7 +2085,8 @@ class Password_display(Frame):
             try:
                 test_values = p.load(f)
                 for user in test_values:
-                    if user[0] == str(self.username_window_entry.get()) and user[2] == str(self.name_of_social_entry.get()):
+                    if user[0] == str(self.username_window_entry.get()) and user[2] == str(
+                            self.name_of_social_entry.get()):
                         return True
             except:
                 return False
@@ -2130,7 +2133,7 @@ class Password_display(Frame):
                     val = p.load(f)
                     self.add_button.grid(row=len(val) + 1, column=0)
                 self.root1.destroy()
-                self.handler.switchframe(Password_display, self.main_window,self.handler,self.username,
+                self.handler.switchframe(Password_display, self.main_window, self.handler, self.username,
                                          self.hashed_password, self.object, self.password)
 
     def addaccount(self):
@@ -2187,6 +2190,7 @@ class Password_display(Frame):
             add_icon_button.config(image=tkimage)
             add_icon_button.photo = tkimage
             save_button.config(command=lambda: self.save(self.image_path))
+
         new_id = tk_image.PhotoImage(image.open(f"{path}photo.png"))
         add_icon_button = Button(
             self.root1,
@@ -2219,12 +2223,13 @@ class Password_display(Frame):
         new_frame = Frame(
             self, width=1000 + 50, height=1057, bd="0", highlightthickness=0
         )
-        new_frame.place(x=120+22,y=0)
-        background = Label(new_frame,bd=0,borderwidth=0,image=bg_img)
-        background.place(x=0,y=0)
-        background.image= bg_img
+        new_frame.place(x=120 + 22, y=0)
+        background = Label(new_frame, bd=0, borderwidth=0, image=bg_img)
+        background.place(x=0, y=0)
+        background.image = bg_img
         new_s = Frame(new_frame, bg="#292A2D", width=500, height=400, bd=0)
-        new_s.place(x=150,y=150)
+        new_s.place(x=150, y=150)
+
         def copy(value):
             pyperclip.copy(value)
             messagebox.showinfo("Copied", "Copied!!!")
@@ -2253,15 +2258,15 @@ class Password_display(Frame):
         #          lists[button][0], password_button
         #     ),
         # )
-        #getting the username and password
+        # getting the username and password
         username = ''
         password = ''
         image_path = ''
-        with open(f'{self.username}decrypted.bin','rb') as f:
+        with open(f'{self.username}decrypted.bin', 'rb') as f:
             values = p.load(f)
             for i in values:
                 if i[2] == account_name:
-                    username,password,image_path=i[0],i[1],i[3]
+                    username, password, image_path = i[0], i[1], i[3]
 
         username_label = Label(
             new_s,
@@ -2315,15 +2320,15 @@ class Password_display(Frame):
             img = tk_image.PhotoImage(image.open(f"{path}camera.png"))
         else:
             img = tk_image.PhotoImage(image.open(image_path))
-        #command for img_button
-            #         command=lambda: change_icon(
-            #     img_button,
-            #     lists[button][0],
-            #     username,
-            #     hashed_password,
-            #     new_s,
-            #     password_button, object
-            # ),
+        # command for img_button
+        #         command=lambda: change_icon(
+        #     img_button,
+        #     lists[button][0],
+        #     username,
+        #     hashed_password,
+        #     new_s,
+        #     password_button, object
+        # ),
         img_button = Button(
             new_s,
             image=img,
@@ -2348,7 +2353,9 @@ class Password_display(Frame):
         # ChangeAccount.place(x=250 + 25 - 3, y=350)
         copy_but_username.place(x=360, y=30)
         copy_but_password.place(x=360, y=80)
-#for seeing the profile 
+
+
+# for seeing the profile
 class Profile_view(Frame):
     def __init__(
             self,
@@ -2356,10 +2363,10 @@ class Profile_view(Frame):
             notepad_button,
             password_button,
             profile_button,
-            *args,  
+            *args,
     ):
         self.master = master
-        Frame.__init__(self,self.master)
+        Frame.__init__(self, self.master)
         self.config(bg="white")
         self.username = args[0]
         self.password = args[1]
@@ -2529,6 +2536,8 @@ class Profile_view(Frame):
         dot1.place(x=200, y=150 + 100 + 6)
         dot2.place(x=200, y=200 + 100 + 6)
         dot3.place(x=200, y=250 + 100 + 6)
+
+
 class Change_details:
     def __init__(self, real_username, hashed_password, window, object):
         self.real_username = real_username
@@ -2678,18 +2687,14 @@ class Change_details:
                     bufferSize,
                 )
 
-                gameloop(
+                main_window(
                     self.real_username, self.hashed_password, self.window, self.but
                 )
 
     def save_email(
             self,
             new_email,
-            old_email,
-            recovery_password,
-            another_recovery_password,
-            user_password,
-            object
+            another_recovery_password
     ):
 
         email_split = ""
@@ -2703,8 +2708,8 @@ class Change_details:
         val = email_split[::-1]
         main_password = val + "/" + another_recovery_password
 
-        re_hash_text1 = user_password + self.real_username
-        new_salt1 = user_password + "@" + main_password
+        re_hash_text1 = self.password + self.real_username
+        new_salt1 = self.password + "@" + main_password
         re_hash_new1 = hashlib.sha3_512(re_hash_text1.encode()).hexdigest()
         re_encrypt, new_salt = create_key(main_password, new_salt1)
 
@@ -2713,17 +2718,16 @@ class Change_details:
         password = new_email + re_hash_new1
         message = another_recovery_password
         passwordSalt = secrets.token_bytes(512)  # returns a random 64 byte
-        key = pbkdf2.PBKDF2(password, passwordSalt).read(
+        new_key = pbkdf2.PBKDF2(password, passwordSalt).read(
             32
         )  # it creates a key based on the password provided by the user
-        aes = pyaes.AESModeOfOperationCTR(key)
+        aes = pyaes.AESModeOfOperationCTR(new_key)
         # aes is mode of encryption for encrypting the password
         encrypted_pass = aes.encrypt(message)
 
         os.remove(f"{self.real_username}.bin.fenc")
-        self.object.execute(
-            "update data_input set password = (?),  email_id = (?),  salt_recovery=(?), salt = (?), recovery_password = (?) where  username = (?)",
-            (
+        query = 'update data_input set password = (?), email_id = (?), salt_recovery = (?), salt = (?), recovery_password = (?) where username = (?)'
+        self.object.execute(query,(
                 re_encrypt,
                 simple_encrypt(new_email),
                 passwordSalt,
@@ -2746,9 +2750,8 @@ class Change_details:
         )
         ad.destroy()
 
-    def change_email(self, rec_pass, ogi_pass):
-        self.password = ogi_pass
-        self.recovery = rec_pass
+    def change_email(self):
+
         new_window = Toplevel()
 
         new_img = tk_image.PhotoImage(image.open(f"{path}user.png"))
@@ -2802,19 +2805,17 @@ class Change_details:
                 simple_encrypt(self.real_username),)
         )
         for i in self.object.fetchall():
-            save = Button(
-                new_window,
-                text="Save",
-                command=lambda: self.save_email(
-                    str(new_email_entry.get()),
-                    simple_decrypt(i[0]),
-                    self.recovery,
-                    str(new_email_password_entry.get()),
-                    self.password,
-                    self.object
-                ),
-            )
-            save.place(x=150 - 40, y=200)
+            self.email_id = simple_decrypt(i[0])
+        save = Button(
+            new_window,
+            text="Save",
+            command=lambda: self.save_email(
+                str(new_email_entry.get()),
+                str(new_email_password_entry.get()),
+
+            ),
+        )
+        save.place(x=150 - 40, y=200)
 
         new_email_entry.bind(
             "<FocusIn>",
@@ -2860,11 +2861,12 @@ class Change_details:
         )
         show_both_12.image = unhide_img
         show_both_12.place(x=250 - 15, y=100 + 50 - 5)
+
+
 if __name__ == "__main__":
-    #initialising the main class
+    # initialising the main class
     app = ONE_PASS()
     app.mainloop()
-
 
 """ to remove all decrypted files
 the glob function returns a list of files ending with decrypted.bin"""
