@@ -2727,15 +2727,15 @@ class Change_details:
 
         os.remove(f"{self.real_username}.bin.fenc")
         query = 'update data_input set password = (?), email_id = (?), salt_recovery = (?), salt = (?), recovery_password = (?) where username = (?)'
-        self.object.execute(query,(
-                re_encrypt,
-                simple_encrypt(new_email),
-                passwordSalt,
-                new_salt,
-                encrypted_pass,
-                simple_encrypt(self.real_username),
-            ),
-        )
+        self.object.execute(query, (
+            re_encrypt,
+            simple_encrypt(new_email),
+            passwordSalt,
+            new_salt,
+            encrypted_pass,
+            simple_encrypt(self.real_username),
+        ),
+                            )
         pyAesCrypt.encryptFile(
             self.real_username + "decrypted.bin",
             self.real_username + ".bin.fenc",
