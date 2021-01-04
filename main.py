@@ -59,26 +59,23 @@ my_cursor.execute(
 # settings function
 
 def log_out(*window):
-    try:
-        for i in window:
-            i.destroy()
+    for windows in window:
+        windows.destroy()
 
-        a = Tk()
-        a.withdraw()
-        messagebox.showinfo(
-            "Logged Out", "You have been successfully logged out")
-        a.destroy()
-        list_file = glob.glob("*decrypted.bin")
-        for i in list_file:
-            converting_str = str(i)
-            try:
-                os.remove(converting_str)
-            except:
-                pass
-        login()
-
-    except:
-        pass
+    a = Tk()
+    a.withdraw()
+    messagebox.showinfo(
+        "Logged Out", "You have been successfully logged out")
+    a.destroy()
+    files = glob.glob("*decrypted.bin")
+    for i in files:
+        converting_str = str(i)
+        try:
+            os.remove(converting_str)
+        except:
+            pass
+    new_app = ONE_PASS()
+    new_app.mainloop()
 
 
 def settings(real_username, main_window, hashed_password, window, password_button, rec_pas, original_password, object):
@@ -104,7 +101,7 @@ def settings(real_username, main_window, hashed_password, window, password_butto
         settings_window,
         text="Log out",
         width=20,
-        font=("consolas"),
+        font="consolas",
         fg="white",
         activebackground="white",
         activeforeground="white",
@@ -119,7 +116,7 @@ def settings(real_username, main_window, hashed_password, window, password_butto
         text="Check for updates",
         width=20,
         activebackground="#994422",
-        font=("consolas"),
+        font="consolas",
         activeforeground="white",
         fg="white",
         bg="#994422",
@@ -198,7 +195,7 @@ class ONE_PASS(Tk):
         self.title("Password Manager")
         width_window = 1057
         height_window = 661
-
+        self.focus_force()
         self.config(bg="#292A2D")
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
@@ -334,7 +331,6 @@ class Login_page(Frame):
             relief=RAISED,
             font=("Segoe UI Semibold", 15),
         )
-        # command=lambda: register(window_after, object, window, self),
 
         register_button = Button(
             labelframe,
@@ -397,6 +393,7 @@ class Login_page(Frame):
             anchor='center',
             command=lambda: self.login_checking_1(master),
         )
+        master.bind("<Return>", lambda event, a=master: self.login_checking_1(a))
         sub_button.place(x=50 + 3, y=300 + 30)
 
         show_both_1.place(x=300, y=200 + 30 - 5)
@@ -426,27 +423,31 @@ class Login_page(Frame):
         )
 
     def login_checking_1(self, master, *event):
+
         self.username = str(self.input_entry.get())
         self.password = str(self.pass_entry.get())
-        if self.username != "" or self.password != "":
-            check, main_password, passw = self.login_checking()
-            if check:
-                root = Tk()
-                root.withdraw()
+        try:
+            if self.username != "" or self.password != "":
+                check, main_password, passw = self.login_checking()
+                if check:
+                    root = Tk()
+                    root.withdraw()
 
-                messagebox.showinfo(
-                    "Success", "You have now logged in ")
-                root.destroy()
-                master.switch_frame(main_window, self.username, self.password)
+                    messagebox.showinfo(
+                        "Success", "You have now logged in ")
+                    root.destroy()
+                    master.switch_frame(main_window, self.username, self.password)
 
+                else:
+                    pass
             else:
-                pass
-        else:
-            if username == "":
-                messagebox.showwarning("Error", "Cannot blank have username")
-            elif password == "":
-                messagebox.showwarning(
-                    "Error", "Cannot have blank password")
+                if self.username == "":
+                    messagebox.showwarning("Error", "Cannot blank have username")
+                elif self.password == "":
+                    messagebox.showwarning(
+                        "Error", "Cannot have blank password")
+        except:
+            pass
 
     def login_checking(self):  # verifying the user
         for_hashing_both = self.password + self.username
@@ -944,8 +945,8 @@ class main_window(Frame):
             salt = i[1]
             encrypt = i[0]
         password = self.email_id + self.hash_password
-        key = pbkdf2.PBKDF2(password, salt).read(32)
-        aes = pyaes.AESModeOfOperationCTR(key)
+        key_rec = pbkdf2.PBKDF2(password, salt).read(32)
+        aes = pyaes.AESModeOfOperationCTR(key_rec)
         self.decrypted_pass = aes.decrypt(encrypt)
         self.notes_buttons = Button(
             self.sidebar,
@@ -976,20 +977,11 @@ class main_window(Frame):
             activeforeground="white",
             bd=0,
             borderwidth=0,
+            command=lambda: settings(self.username, parent, self.hash_password, self.mainarea, self.button,
+                                     self.decrypted_pass, self.password_new, my_cursor)
         )
         self.settings_button.image = settings_image
-        # profile_object = Profile_view(
-        #     self.username,
-        #     self.password,
-        #     self.email_id,
-        #     self.encrypted_pass,
-        #     self.hash_password,
-        #     self.mainarea,
-        #     self.button,
-        #     self.notes_buttons,
-        #     parent,
-        #     self.object
-        # )
+
         self.profile_button = Button(
             self.sidebar,
             image=new_button,
@@ -1017,7 +1009,7 @@ class main_window(Frame):
         self.profile_button.grid(row=3, column=1)
         self.profile_button.place(x=0, y=140 + 20 + 20 + 30 + 14)
         self.settings_button.grid(row=10, column=1, columnspan=1)
-        self.settings_button.place(x=30 + 50 + 10, y=440 + 200 + 20)
+        self.settings_button.place(x=30 + 50 + 10, y=620)
         self.sidebar_icon.grid(row=0, column=0)
         self._frame = None
 

@@ -13,10 +13,11 @@ import pbkdf2
 from tkinter import *
 from tkinter import messagebox
 
-
 alphabet = string.ascii_lowercase
 upper_alpha = string.ascii_uppercase
 key = 6
+
+
 # password generator
 
 
@@ -54,8 +55,8 @@ def pass_generator(entry):
         'Segoe UI', 10), text="Length:").place(x=100, y=60)
     Label(de, foreground='white', background='black', font=(
         'Segoe UI', 10), text="Strength:").place(x=100, y=100)
-    pass_len = IntVar()
-    length = Spinbox(de, from_=6, to_=18, textvariable=pass_len, width=15)
+    length = Scale(de, length=174, from_=6, to=25, sliderrelief=FLAT, highlightcolor='black', troughcolor='black',
+                   resolution=1, orient='horizontal')
     length.place(x=160, y=60)
 
     def pd(value):
@@ -72,7 +73,7 @@ def pass_generator(entry):
     d1 = Radiobutton(de, text='Medium', variable=var, tristatevalue=0,
                      value='MEDIUM', command=lambda p='MEDIUM': pd(p))
     d1.place(x=220, y=100)
-    d2 = Radiobutton(de,  text='Low', variable=var, tristatevalue=0,
+    d2 = Radiobutton(de, text='Low', variable=var, tristatevalue=0,
                      value='LOW', command=lambda p='LOW': pd(p))
     d2.place(x=290, y=100)
     de.grab_set()
