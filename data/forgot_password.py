@@ -2,8 +2,8 @@ import smtplib
 import pyAesCrypt
 import secrets
 import pickle
-
-from data.show_hide import *
+import sqlite3
+from  data.show_hide import *
 from data.encryptiondecryption import *
 
 # set the buffer size
@@ -25,106 +25,241 @@ if platform.system() == 'Darwin':
         if i != 'data':
             dir_path += i + '/'
     path = dir_path + "/images/"
-
+def check_pass_integrity(username,password):
+                if username == password:
+                    return False
+                with open("pass.txt", 'r') as file:
+                    data = file.read().split()
+                for i in data:
+                    if i == password:
+                        return False
+                return True
 
 def forgot_password(email, *OTP):
     try:
         global running
         running = True
         SUBJECT = "EMAIL verification for ONE-PASS-MANAGER"
-        otp = f"Hey {OTP[2]}!\nOTP to change password is {OTP[0]}"
+        otp = f"Hey {OTP[1]}!\nOTP to change password is {OTP[0]}"
         msg = f"Subject: {SUBJECT}\n\n{otp}"
         s = smtplib.SMTP("smtp.gmail.com", 587)
         s.starttls()
-        s.login("", "")
-        s.sendmail("", email, msg)
+        s.login("rohithk6474@gmail.com", "Kedaram@123")
+        s.sendmail("rohithk6474@gmail.com", email, msg)
     except:
         a = Tk()
         a.withdraw()
-        messagebox.showwarning("No internet", "No internet is available")
+        messagebox.showwarning("Error", "Please try again later")
+def change(object,email,rec_pass,username12,new_password,new_username,original_password,main_pass):
+    if len(new_password) > 5:
+        if check_pass_integrity(new_username,new_password):
+            if not  os.path.exists(f'{username12}decrypted.bin'):#checking whether the user has logged in and trying to change password
+                value = original_password + username12
+                re_hash = hashlib.sha3_512(value.encode()).hexdigest()
+                file_name_reentry = f'{username12}.bin.aes'
+                pyAesCrypt.decryptFile(
+                        file_name_reentry,
+                        username12 + "decrypted.bin",
+                        re_hash,
+                        bufferSize,
+                    )
+            #if the user has logged then no need to decrypt the file again
+            os.remove(f'{username12}.bin.aes')
+            re_hash_text = str(new_password) + str(
+                new_username
+            )
+            new_salt = str(new_password) + "@" + main_pass
+            re_hash_new = hashlib.sha3_512(
+                re_hash_text.encode()).hexdigest()
+            re_encrypt, new_salt = create_key(main_pass, new_salt)
+            pyAesCrypt.encryptFile(
+                username12 + "decrypted.bin",
+                str(new_username) + ".bin.aes",
+                re_hash_new,
+                bufferSize,
+            )
 
+            password_recovery_email = email + re_hash_new
+            passwordSalt = secrets.token_bytes(512)
+            key = pbkdf2.PBKDF2(
+                password_recovery_email, passwordSalt).read(32)
+            aes = pyaes.AESModeOfOperationCTR(key)
+            encrypted_pass = aes.encrypt(rec_pass)
+
+            object.execute(
+                "update data_input set username = (?),password=(?),recovery_password = (?),salt_recovery=(?) "
+                "where email_id = (?)",
+                (
+                    simple_encrypt(str(new_username)),
+                    re_encrypt,
+                    encrypted_pass,
+                    passwordSalt,
+                    simple_encrypt(email),
+                ),
+            )
+            messagebox.showinfo(
+                "Success", "Your username and password has been changed"
+            )
+        else:
+            messagebox.showerror("Strength","Please provide a stronger password")
+    else:
+        messagebox.showerror("Length","length of the password must be greater than 5")
 
 def login_password(title1, object):
     window = Toplevel()
-    window.config(bg="#292A2D")
+    window.config(bg="#1E1E1E")
     window.resizable(False, False)
-
+    window.focus_force()
     window.title(title1)
     text = (
         "Please provide the recovery email  and recovery email password \n that you provided while creating an "
         "account "
     )
-    text_label = Label(window, text=text, fg="white", bg="#292A2D")
-    width_window = 400
-    height_window = 300
+    text_label = Label(window, text=text, font=("Yu Gothic Ui", 10), fg="#994422", bg="#1E1E1E")
+    width_window = 450
+    height_window = 400
     screen_width = window.winfo_screenwidth()
     screen_height = window.winfo_screenheight()
     x = screen_width / 2 - width_window / 2
     y = screen_height / 2 - height_window / 2
     window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 
-    username_forgot = Label(window, text="Username", fg="white", bg="#292A2D")
-    recover_email = Label(window, text="Email", fg="white", bg="#292A2D")
-    recover_password = Label(window, text="Password", fg="white", bg="#292A2D")
-    recover_email_entry = Entry(window)
-    recover_password_entry = Entry(window)
-    username_forgot_entry = Entry(window)
+    logo_image = tk_image.PhotoImage(image.open(f"{path}member.png"))
+    main_label = Label(window, image=logo_image, bg="#1E1E1E")
+    main_label.photo = logo_image
+    main_label.place(x=150, y=50)
 
-    username_forgot.place(x=50, y=70)
-    recover_password.place(x=50, y=100)
-    recover_email.place(x=50, y=130)
-    username_forgot_entry.place(x=200, y=70)
-    recover_password_entry.place(x=200, y=100)
-    recover_email_entry.place(x=200, y=130)
+    username_forgot = Label(window, text="Username:",
+                            fg="white",
+                            bg="#1E1E1E",
+                            font=("Yu Gothic Ui", 15), )
+    recover_email = Label(window, text="Recovery Email:",
+                          fg="white",
+                          bg="#1E1E1E",
+                          font=("Yu Gothic Ui", 15), )
+    recover_password = Label(window, text="Recovery Password:", fg="white",
+                             bg="#1E1E1E",
+                             font=("Yu Gothic Ui", 15), )
+    recover_email_entry = Entry(window,
+                                width=13,
+                                bg="#1E1E1E",
+                                foreground="white",
+                                border=0,
+                                bd=0,
+                                fg='white',
+                                font=("consolas", 15, "normal"),
+                                insertbackground="white", )
+    recover_password_entry = Entry(window,
+                                   width=13,
+                                   bg="#1E1E1E",
+                                   foreground="white",
+                                   fg='white',
+                                   border=0,
+                                   bd=0,
+                                   font=("consolas", 15, "normal"),
+                                   insertbackground="white", )
+    username_forgot_entry = Entry(window,
+                                  width=13,
+                                  bg="#1E1E1E",
+                                  border=0,
+                                  bd=0,
+                                  fg='white',
+
+                                  font=("consolas", 15, "normal"),
+                                  foreground="white",
+                                  insertbackground="white", )
+
+    username_forgot.place(x=0, y=70 + 100 + 3)
+    recover_password.place(x=0, y=130 + 100 + 30 + 3)
+    recover_email.place(x=0, y=100 + 100 + 15 + 3)
+    username_forgot_entry.place(x=250, y=70 + 100 + 5)
+    recover_password_entry.place(x=250, y=130 + 100 + 30 + 5)
+    recover_email_entry.place(x=250, y=100 + 100 + 15 + 5)
     text_label.place(x=20, y=0)
-    key = ""
-    l = "abcdefghijklmnopqrstuvwxyz"
-    for i in range(7):
-        key += random.choice(l)
+    main_key = ""
+    alphabets = string.ascii_lowercase
+    for letters in range(7):
+        main_key += random.choice(alphabets)
+    def verify_rec_password(window,email,password,main_key,but,object):
+            object.execute(
+                "select password,salt from data_input where email_id = (?)", (
+                    simple_encrypt(email),)
+            )
+            values_password = object.fetchall()
+            password_decrypt = ""
+            word = email.split()
 
-    def generate_key1(file, button):
-        pyAesCrypt.encryptFile(file, "otp.bin.fenc", key, bufferSize)
+            for i in word:
+                for a in i:
+                    if i == "@":
+                        break
+                    else:
+                        password_decrypt += i
+            new_val = password_decrypt[::-1]
+            main_pass = new_val + "/" + password
+            has = None
+            salt = None
+            decrypted_string = ""
+            for i in values_password:
+                has = i[0]
+                salt = i[1]
+            try:
+                            string = retreive_key(main_pass, has, salt)
+                            for i in string:
+                                if i == "@":
+                                    break
+                                else:
+                                    decrypted_string += i
+                            main(main_key,window,but,decrypted_string,main_pass)
+            except:
+                messagebox.showerror("Wrong Password","Invalid recovery password")
+    def generate_key1(file,main_key, button):
+
+        pyAesCrypt.encryptFile(file, "otp.bin.aes", main_key, bufferSize)
         os.unlink(file)
         button.config(state=DISABLED)
-
+        a = Tk()
+        a.withdraw()
         messagebox.showinfo(
             "OTP", f"An OTP has been sent to  {str(recover_email_entry.get())}"
         )
-        window.focus_set()
+        window.focus_force()
 
-    def change_password(email, password1, username12):
+        a.destroy()
+    def change_password(email, password1, username12,original_password,main_pass):
+
+        window.destroy()
         root = Toplevel()
-        new_img = tk_image.PhotoImage(image.open(f"{path}user.png"))
-        new_img_label = Label(root, image=new_img, bg="#292A2D")
+        new_img = tk_image.PhotoImage(image.open(f"{path}member.png"))
+        new_img_label = Label(root, image=new_img, bg="#1E1E1E")
         new_img_label.photo = new_img
         root.resizable(False, False)
-
-        file_name_reentry = username12 + ".bin.fenc"
+        file_name_reentry = 'kiren' + ".bin.aes"
 
         width_window = 400
         height_window = 400
-        screen_width = window.winfo_screenwidth()
-        screen_height = window.winfo_screenheight()
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
         root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
         root.title("Change Details")
-        root.geometry("300x300")
-        root.config(bg="#292A2D")
+        root.config(bg="#1E1E1E")
 
-        new_username = Label(root, text="New Username",
-                             fg="white", bg="#292A2D")
-        new_password = Label(root, text="New Password",
-                             fg="white", bg="#292A2D")
+        new_username = Label(root, text="New Username",font=("Segoe Ui", 13),
+                             fg="white", bg="#1E1E1E")
+        new_password = Label(root, text="New Password",font=("Segoe Ui", 13),
+                             fg="white", bg="#1E1E1E")
 
         new_username_entry = Entry(root)
         new_password_entry = Entry(root, show="*")
 
-        new_img_label.grid(row=0, column=1)
-        new_username.grid(row=1, column=0)
-        new_password.grid(row=2, column=0)
-        new_username_entry.grid(row=1, column=1)
-        new_password_entry.grid(row=2, column=1)
+        new_img_label.place(x=130,y=0)
+        new_username.place(x=50,y=200)
+        new_password.place(x=50,y=250)
+        new_username_entry.place(x=200,y=203)
+        new_password_entry.place(x=200,y=250+3)
+
 
         new_username_entry.bind(
             "<FocusIn>",
@@ -160,110 +295,22 @@ def login_password(title1, object):
             bd=0,
             command=lambda: password_sec(new_password_entry, show_both_12),
             fg="white",
-            bg="#292A2D",
-            highlightcolor="#292A2D",
-            activebackground="#292A2D",
+            bg="#1E1E1E",
+            highlightcolor="#1E1E1E",
+            activebackground="#1E1E1E",
             activeforeground="white",
             relief=RAISED,
         )
-        show_both_12.grid(row=0, column=5)
-        show_both_12.place(x=250 - 15, y=100 + 50 - 5)
-
-        def change():
-            object.execute(
-                "select password,salt from data_input where email_id = (?)", (
-                    simple_encrypt(email),)
-            )
-            values_password = object.fetchall()
-            password_decrypt = ""
-            word = email.split()
-
-            for i in word:
-                for a in i:
-                    if i == "@":
-                        break
-                    else:
-                        password_decrypt += i
-            new_val = password_decrypt[::-1]
-            main_pass = new_val + "/" + password1
-            has = None
-            salt = None
-            decrypted_string = ""
-            for i in values_password:
-                has = i[0]
-                salt = i[1]
-            string = retreive_key(main_pass, has, salt)
-            for i in string:
-                if i == "@":
-                    break
-                else:
-                    decrypted_string += i
-            value = decrypted_string + username12
-
-            re_hash = hashlib.sha3_512(value.encode()).hexdigest()
-            try:
-                pyAesCrypt.decryptFile(
-                    file_name_reentry,
-                    username12 + "decrypted.bin",
-                    re_hash,
-                    bufferSize,
-                )
-            except:
-                pass
-            if os.path.exists(f"{username12}decrypted.bin"):
-                os.remove(username12 + ".bin.fenc")
-                re_hash_text = str(new_password_entry.get()) + str(
-                    new_username_entry.get()
-                )
-                new_salt = str(new_password_entry.get()) + "@" + main_pass
-                re_hash_new = hashlib.sha3_512(
-                    re_hash_text.encode()).hexdigest()
-                re_encrypt, new_salt = create_key(main_pass, new_salt)
-                pyAesCrypt.encryptFile(
-                    username12 + "decrypted.bin",
-                    str(new_username_entry.get()) + ".bin.fenc",
-                    re_hash_new,
-                    bufferSize,
-                )
-                object.execute(
-                    "select email_id from data_input where username=(?)", (
-                        simple_encrypt(username12),)
-                )
-                for i in object.fetchall():
-                    password_recovery_email = simple_decrypt(
-                        i[0]) + re_hash_new
-                    passwordSalt = secrets.token_bytes(512)
-                    key = pbkdf2.PBKDF2(
-                        password_recovery_email, passwordSalt).read(32)
-                    aes = pyaes.AESModeOfOperationCTR(key)
-                    encrypted_pass = aes.encrypt(password1)
-
-                    object.execute(
-                        "update data_input set username = (?),password=(?),recovery_password = (?),salt_recovery=(?) "
-                        "where email_id = (?)",
-                        (
-                            simple_encrypt(str(new_username_entry.get())),
-                            re_encrypt,
-                            encrypted_pass,
-                            passwordSalt,
-                            simple_encrypt(email),
-                        ),
-                    )
-                messagebox.showinfo(
-                    "Success", "Your username and password has been changed"
-                )
-
-            else:
-                messagebox.showinfo("Error", "Wrong recovery password")
-
-        change_button = Button(root, text="Change", command=change)
-        change_button.grid(row=3, column=0)
-
-    def Verification(password, otp_entry, email, email_password, username12, button):
+        show_both_12.place(x=340,y=245)
+        
+        save = Button(root,text='Save!',font=("Segoe Ui", 13),fg='white',bg="#1E1E1E",command=lambda:change(object,email,password1,username12,str(new_password_entry.get()),str(new_username_entry.get()),original_password,main_pass))
+        save.place(x=150,y=290)
+        
+    def Verification(password, otp_entry, email, email_password, username12, button,original_password,main_pass):
         ot = str(otp_entry)
         if ot != "":
             pyAesCrypt.decryptFile(
-                "otp.bin.fenc", "otp_decyrpted.bin", password, bufferSize
+                "otp.bin.aes", "otp_decyrpted.bin", password, bufferSize
             )
             with open("otp_decyrpted.bin", "rb") as f11:
                 list = pickle.load(f11)
@@ -278,8 +325,9 @@ def login_password(title1, object):
                     roo1.destroy()
                     f11.close()
                     os.remove("otp_decyrpted.bin")
-                    os.remove("otp.bin.fenc")
-                    change_password(email, email_password, username12)
+                    os.remove("otp.bin.aes")
+                    change_password(email, email_password,
+                                    username12, original_password, main_pass)
                 else:
                     messagebox.showinfo(
                         "Error", "Incorrect OTP Please verify it again")
@@ -289,7 +337,7 @@ def login_password(title1, object):
             messagebox.showinfo(
                 "Error", "Please provide the OTP  send to your email")
 
-    def main(key, otp_window, button):
+    def main(main_key, otp_window, button,original_password,main_pass):
         run = False
         global running
         username_verify = str(username_forgot_entry.get())
@@ -314,13 +362,13 @@ def login_password(title1, object):
 
         elif recover_password_entry_verify == "Password":
             messagebox.showwarning("Warning", f"Password cannot be blank")
-        elif not os.path.exists(username_verify + ".bin.fenc"):
+        elif not os.path.exists(username_verify + ".bin.aes"):
 
             messagebox.showwarning(
                 "Warning", f"Cannot find user {username_verify}")
 
         else:
-            if os.path.exists(username_verify + ".bin.fenc"):
+            if os.path.exists(username_verify + ".bin.aes"):
                 verify_password = ""
                 for i in recover_email_entry_verify:
                     if i == "@":
@@ -354,20 +402,25 @@ def login_password(title1, object):
                     otp_entry_button = Button(
                         otp_window,
                         text="verify otp",
+                        width=15,
+                        font="consolas",
+                        fg="white",
+                        bg="#994422",
+                        bd=0,
                         command=lambda: Verification(
-                            key,
+                            str(main_key),
                             otp_entry.get(),
                             recover_email_entry_verify,
                             recover_password_entry_verify,
                             username_verify,
                             button,
-                        ),
-                        fg="white",
-                        bg="#292A2D",
-                    )
+                            original_password,
+                            main_pass
+                        ))
+                    
                     otp_entry_button.grid(row=8, column=1)
-                    otp_entry_button.place(x=50, y=200)
-                    otp_entry.place(x=200, y=200)
+                    otp_entry_button.place(x=70, y=200+ 120+40)
+                    otp_entry.place(x=200+40, y=200 + 120+45)
                     digits = "1234567890"
                     OTP = ""
                     for i in range(6):
@@ -377,83 +430,34 @@ def login_password(title1, object):
                     with open("otp.bin", "wb") as f:
                         pickle.dump(l, f)
                         f.close()
-                    generate_key1("otp.bin", button)
-                    forgot_password(
-                        OTP, recover_email_entry_verify, username_verify)
+                    generate_key1("otp.bin",str(main_key), button)
+                    forgot_password(recover_email_entry_verify, OTP,  username_verify)
             else:
                 messagebox.showerror("Error", "No such account exists")
 
     forgot_password_button = Button(
         window,
-        text="verify",
-        command=lambda: main(key, window, forgot_password_button),
-        bg="#292A2D",
+        command=lambda:verify_rec_password(window,str(recover_email_entry.get()),str(recover_password_entry.get()),main_key,forgot_password_button,object),
+        width=15,
+        text="V E R I F Y",
+        font="consolas",
         fg="white",
+        bg="#994422",
+        bd=0,
     )
     forgot_password_button.grid(row=5, column=1)
-    forgot_password_button.place(x=250, y=170)
+    forgot_password_button.place(x=150, y=200 + 120)
 
-    unhide_img = tk_image.PhotoImage(image.open(f"{path}eye.png"))
 
-    show_both_1 = Button(
-        window,
-        image=unhide_img,
-        bd=0,
-        command=lambda: password_sec(recover_password_entry, show_both_1),
-        fg="white",
-        bg="#292A2D",
-        highlightcolor="#292A2D",
-        activebackground="#292A2D",
-        activeforeground="white",
-        relief=RAISED,
+    # removing border for entry
+    # then adding frames like a line
+    Frame(window, width=150, height=2, bg="white").place(
+        x=250, y=70 + 100 + 10 + 16 + 5
     )
-    show_both_1.photo = unhide_img
-    show_both_1.grid(row=0, column=0)
-    show_both_1.place(x=325, y=95)
-    username_forgot_entry.insert(0, "Username")
-    username_forgot_entry.config(fg="grey")
-    recover_password_entry.insert(0, "Password")
-    recover_password_entry.config(fg="grey")
-    recover_password_entry.config(show="")
-
-    recover_email_entry.config(fg="grey")
-    recover_email_entry.insert(0, "Email ID")
-
-    username_forgot_entry.bind(
-        "<FocusIn>",
-        lambda event, val_val=username_forgot_entry, index=1: handle_focus_in(
-            val_val, index
-        ),
+    Frame(window, width=150, height=2, bg="white").place(
+        x=250, y=130 + 100 + 10 + 16 + 30 + 5
     )
-    username_forgot_entry.bind(
-        "<FocusOut>",
-        lambda event, val_val=username_forgot_entry, val="Username", index=1: handle_focus_out(
-            val_val, val, index
-        ),
+    Frame(window, width=150, height=2, bg="white").place(
+        x=250, y=100 + 100 + 10 + 16 + 15 + 5
     )
 
-    recover_password_entry.bind(
-        "<FocusIn>",
-        lambda event, val_val=recover_password_entry, index=2: handle_focus_in(
-            val_val, index
-        ),
-    )
-    recover_password_entry.bind(
-        "<FocusOut>",
-        lambda event, val_val=recover_password_entry, val="Password", index=2: handle_focus_out(
-            val_val, val, index
-        ),
-    )
-
-    recover_email_entry.bind(
-        "<FocusIn>",
-        lambda event, val_val=recover_email_entry, index=3: handle_focus_in(
-            val_val, index
-        ),
-    )
-    recover_email_entry.bind(
-        "<FocusOut>",
-        lambda event, val_val=recover_email_entry, val="Email ID", index=3: handle_focus_out(
-            val_val, val, index
-        ),
-    )

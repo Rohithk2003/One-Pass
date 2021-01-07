@@ -2,9 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7a9e6b53-1f4c-4c7b-96ef-45e24ecb301e" name="Default Changelist" comment="bug fixes">
-      <change beforePath="$PROJECT_DIR$/data/delete.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/delete.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DATABASE/users.db" beforeDir="false" afterPath="$PROJECT_DIR$/DATABASE/users.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/forgot_password.py" beforeDir="false" afterPath="$PROJECT_DIR$/data/forgot_password.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/kiren.bin.fenc" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pass.json" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/testasd.py" beforeDir="false" afterPath="$PROJECT_DIR$/testasd.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -28,6 +30,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunManager" selected="Python.main">

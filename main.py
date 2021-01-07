@@ -56,8 +56,7 @@ my_cursor.execute(
 )
 
 
-# settings function
-
+#log out
 def log_out(*window):
     for windows in window:
         windows.destroy()
@@ -74,11 +73,13 @@ def log_out(*window):
     new_app.mainloop()
 
 
-def settings(handler,real_username, master_main, hashed_password, window, password_button, rec_pas, original_password):
+def settings(handler, real_username, master_main, hashed_password, window, password_button, rec_pas, original_password):
     settings_window = Toplevel()
     settings_window.resizable(False, False)
-    width_window = 187
-    height_window = 175
+    settings_window.focus_force()
+
+    width_window = 500
+    height_window = 300
     screen_width = settings_window.winfo_screenwidth()
     screen_height = settings_window.winfo_screenheight()
     x = screen_width / 2 - width_window / 2
@@ -90,20 +91,20 @@ def settings(handler,real_username, master_main, hashed_password, window, passwo
     settings_window.title("Settings")
     settings_window.config(bg="#1E1E1E")
 
-    delete_object = Deletion(handler,real_username,original_password, hashed_password, window, my_cursor)
-    change_object = Change_details(handler,
-        real_username,original_password, hashed_password, window, my_cursor)
+    delete_object = Deletion(handler, real_username, original_password, hashed_password, window, my_cursor)
+    change_object = Change_details(handler,master_main,
+                                   real_username, original_password, hashed_password, window, my_cursor)
 
     log_label = Button(
         settings_window,
         text="Log out",
         width=20,
-        font="consolas",
+        font=("Segoe Ui", 13),
         fg="white",
         activebackground="#1E1E1E",
         activeforeground="white",
         bg="#1E1E1E",
-        bd=0,
+
         command=lambda: log_out(settings_window, window, master_main),
     )
 
@@ -113,24 +114,24 @@ def settings(handler,real_username, master_main, hashed_password, window, passwo
         text="Check for updates",
         width=20,
         activebackground="#1E1E1E",
-        font="consolas",
+        font=("Segoe Ui", 13),
         activeforeground="white",
         fg="white",
         bg="#1E1E1E",
-        bd=0,
+
     )
     Delete_account_button = Button(
         settings_window,
         text="Delete main account",
         command=lambda: delete_object.delete_main_account(
             master_main, settings_window),
-        font=("consolas"),
+        font=("Segoe Ui", 13),
         width=20,
         fg="white",
         activeforeground="white",
         activebackground="#1E1E1E",
         bg="#1E1E1E",
-        bd=0,
+
     )
     Delete_social_button = Button(
         settings_window,
@@ -138,45 +139,48 @@ def settings(handler,real_username, master_main, hashed_password, window, passwo
         command=lambda: delete_object.delete_social_media_account(
             password_button, True
         ),
-        font=("consolas"),
+        font=("Segoe Ui", 13),
         fg="white",
         width=20,
         activeforeground="white",
         activebackground="#1E1E1E",
         bg="#1E1E1E",
-        bd=0,
+
     )
     change_account_button = Button(
         settings_window,
         text="Change Details",
-        command=lambda: login_password("Change Details"),
-        font=("consolas"),
+        command=lambda: login_password("Change Details", my_cursor),
+        font=("Segoe Ui", 13),
         fg="white",
         activebackground="#1E1E1E",
         activeforeground="white",
         width=20,
         bg="#1E1E1E",
-        bd=0,
+
     )
     change_email_button = Button(
         settings_window,
         text="Change recovery email",
-        command=lambda: change_object.change_email(rec_pas, original_password),
-        font=("consolas"),
+        command=lambda: change_object.change_email(),
+        font=("Segoe Ui", 13),
         fg="white",
         activebackground="#1E1E1E",
         activeforeground="white",
         width=20,
+        justify='center',
+        anchor='center',
         bg="#1E1E1E",
-        bd=0
     )
+    # text label
+    Label(settings_window, text="Settings", font=("consolas", 30), fg='green', bg='#1E1E1E').place(x=160, y=0)
 
-    Delete_account_button.grid(row=1, column=1, columnspan=2)
-    check_for_updates.grid(row=2, column=1, columnspan=2)
-    Delete_social_button.grid(row=3, column=1, columnspan=2)
-    change_account_button.grid(row=4, column=1, columnspan=2)
-    change_email_button.grid(row=5, column=1, columnspan=2)
-    log_label.grid(row=6, column=1, columnspan=2)
+    Delete_account_button.place(x=30, y=70)
+    check_for_updates.place(x=270, y=70)
+    Delete_social_button.place(x=30, y=150)
+    change_account_button.place(x=270, y=150)
+    change_email_button.place(x=30, y=230)
+    log_label.place(x=270, y=230)
 
     if os.stat(f"{real_username}decrypted.bin").st_size == 0:
         Delete_social_button.config(state=DISABLED)
@@ -189,6 +193,8 @@ def settings(handler,real_username, master_main, hashed_password, window, passwo
 class ONE_PASS(Tk):
     def __init__(self):
         tix.Tk.__init__(self)
+        self.resizable(False, False)
+
         self.title("Password Manager")
         width_window = 1057
         height_window = 661
@@ -391,7 +397,7 @@ class Login_page(Frame):
             command=lambda: self.login_checking_1(master),
         )
         master.bind("<Return>", lambda event,
-                    a=master: self.login_checking_1(a))
+                                       a=master: self.login_checking_1(a))
         sub_button.place(x=50 + 3, y=300 + 30)
 
         show_both_1.place(x=300, y=200 + 30 - 5)
@@ -489,11 +495,11 @@ class Login_page(Frame):
             return False
         else:
             for_hashing_both = self.password + self.username
-            if os.path.exists(f"{self.username}.bin.fenc"):
+            if os.path.exists(f"{self.username}.bin.aes"):
                 try:
                     # trying to decrypt the users file to check whether the password entered is valid
                     pyAesCrypt.decryptFile(
-                        self.username + ".bin.fenc",
+                        self.username + ".bin.aes",
                         self.username + "decrypted.bin",
                         main_password,
                         bufferSize,
@@ -807,7 +813,7 @@ class Register_page(Frame):
         for i in values_username:
             for usernames in i:
                 if simple_decrypt(usernames) == self.username and os.path.exists(
-                        self.username + ".bin.fenc"
+                        self.username + ".bin.aes"
                 ):
                     return (
                         True,
@@ -866,7 +872,7 @@ class Register_page(Frame):
         file_name = self.username + ".bin"
         with open(file_name, "wb"):
             pyAesCrypt.encryptFile(
-                file_name, file_name + ".fenc", hash_pass, bufferSize
+                file_name, file_name + ".aes", hash_pass, bufferSize
             )
         os.remove(file_name)
         # to display that his account has been created
@@ -877,7 +883,7 @@ class Register_page(Frame):
         # for opening the main section where he can store his passwords and use notepad so the file has to be decrypted
         pyAesCrypt.decryptFile(
             file_name +
-            ".fenc", f"{self.username}decrypted.bin", hash_pass, bufferSize
+            ".aes", f"{self.username}decrypted.bin", hash_pass, bufferSize
         )
         self.master.switch_frame(main_window, self.username, self.password)
 
@@ -923,20 +929,6 @@ class main_window(Frame):
             highlightthickness=0,
             highlightcolor='#292A2D',
             command=lambda: self.testing(parent))
-        self.notes_buttons = Button(
-            self.sidebar,
-            image=new_button,
-            text='Notes',
-            bg='#292A2D',
-            compound=CENTER,
-            border=0,
-            bd=0,
-            borderwidth=0,
-            highlightthickness=0,
-            highlightcolor='#292A2D',
-            command=lambda: self.notes(parent)
-
-        )
 
         settings_image = tk_image.PhotoImage(
             image.open(f"{path}\\settings.png"))
@@ -952,7 +944,7 @@ class main_window(Frame):
             activeforeground="white",
             bd=0,
             borderwidth=0,
-            command=lambda: settings(self,self.username, parent, self.hash_password, self.mainarea, self.button,
+            command=lambda: settings(self, self.username, parent, self.hash_password, self.mainarea, self.button,
                                      self.decrypted_pass, self.password_new)
         )
         self.settings_button.image = settings_image
@@ -964,7 +956,8 @@ class main_window(Frame):
             bg='#292A2D',
             compound=CENTER,
             command=lambda: self.switchframe(
-                Profile_view, parent, self.username, self.password_new, self.email_id, self.decrypted_pass,
+                Profile_view, parent, self.username, self.password_new, self.email_id,
+                self.decrypted_pass,
                 self.hash_password, self.object),
             border=0,
             bd=0,
@@ -989,7 +982,6 @@ class main_window(Frame):
             tip.bind_widget(self.profile_button, balloonmsg='View Profile')
             tip.bind_widget(self.settings_button, balloonmsg='View Settings')
             tip.bind_widget(self.button, balloonmsg='View Password')
-            tip.bind_widget(self.notes_buttons, balloonmsg='View Notes')
         except:
             pass
         self.profile_button.photo = new_button
@@ -1002,7 +994,6 @@ class main_window(Frame):
             "select email_id,salt_recovery from data_input where username = (?)",
             (simple_encrypt(self.username),),
         )
-
 
         for email in self.object.fetchall():
             self.email_id = simple_decrypt(email[0])
@@ -1033,10 +1024,8 @@ class main_window(Frame):
 
         self.button.grid(row=1, column=1)
         self.button.place(x=0, y=150 + 20)
-        self.notes_buttons.grid(row=2, column=1)
-        self.notes_buttons.place(x=0, y=140 + 20 + 20 + 17)
-        self.profile_button.grid(row=3, column=1)
-        self.profile_button.place(x=0, y=140 + 20 + 20 + 30 + 14)
+        self.profile_button.grid(row=2, column=1)
+        self.profile_button.place(x=0, y=140 + 20 + 20+3  + 14)
         self.settings_button.grid(row=10, column=1, columnspan=1)
         self.settings_button.place(x=30 + 50 + 10, y=620)
         self.sidebar_icon.grid(row=0, column=0)
@@ -1044,960 +1033,36 @@ class main_window(Frame):
 
     def testing(self, master):
         self.button["state"] = DISABLED
-        self.notes_buttons["state"] = NORMAL
         self.profile_button["state"] = NORMAL
         master.title("Passwords")
         emptyMenu = Menu(master)
         master.config(menu=emptyMenu)
         master.iconbitmap(f"{path}password.ico")
-        self.switchframe(Password_display, master, self, self.username,
+        self.switchframe(Password_display, master, self.username,
                          self.hash_password, self.object, self.password_new)
-
-    def notes(self, master):
-        self.button["state"] = NORMAL
-        self.notes_buttons["state"] = DISABLED
-        self.profile_button["state"] = NORMAL
-        master.title("Notes")
-        emptyMenu = Menu(master)
-        master.config(menu=emptyMenu)
-
-        master.iconbitmap(f"{path}password.ico")
-        self.switchframe(Note_pad, master)
 
     def switchframe(self, frame_class, master, *args):
         global new_frame
-        new_frame = frame_class(master, self.notes_buttons,
-                                self.button, self.profile_button, *args)
+
+        new_frame = frame_class(master,
+                                self.button, self.profile_button, self, self.mainarea, *args)
         if self._frame is not None:
             self._frame.destroy()
         self._frame = new_frame
         self._frame.config(width=1057, height=661)
         self._frame.place(x=134, y=0)
-
+        
 
 # note -pad
-class Note_pad(Frame):
-    def __init__(self, main_window, notes_buttons, button, profile_button):
-        Frame.__init__(self, main_window)
-        notes_buttons.config(state=DISABLED)
-        button.config(state=NORMAL)
-        profile_button.config(state=NORMAL)
-        main_window.title("Untitled-Notepad")
-        main_window.iconbitmap(f"{path}_notes.ico")
-        self.config(bg='black')
-        main_window.unbind("<Return>")
 
-        global testing_strng
-
-        def newFile():
-            main_window.title("Untitled - Notepad")
-            TextArea.get(1.0, END)
-
-        def openFile():
-            global file
-            file = fd.askopenfilename(
-                defaultextension=".txt",
-                filetypes=[("All Files", "*.*"),
-                           ("Text Documents", "*.txt")],
-            )
-
-            # check to if there is a file_name
-            global status_name
-            status_name = file
-            if file == "":
-                file = None
-            else:
-                main_window.title(os.path.basename(file) + " - Notepad")
-                TextArea.delete(1.0, END)
-                with open(file, "r") as f:
-                    TextArea.insert(1.0, f.read())
-                    f.close()
-
-        def rename_file():
-            global file
-            if main_window.title() != "Untitled-Notepad":
-                application_window = Tk()
-                application_window.withdraw()
-                a = simpledialog.askstring(
-                    "Input", "What is new file name?", parent=application_window
-                )
-                application_window.destroy()
-                if file != None or file != 0:
-                    new_file, file_extension = os.path.splitext(file)
-                    f = open(file, "r")
-                    dir = os.path.dirname(file)
-                    values = f.read()
-                    f.close()
-                    os.remove(file)
-                    file = (dir) + "/" + a + file_extension
-                    with open(file, "w") as f:
-                        f.write(values)
-                        f.close()
-                    TextArea.delete(1.0, END)
-                    with open(file, "r") as f:
-                        TextArea.insert(1.0, f.read())
-                        f.close()
-                    main_window.title(a + file_extension + " - Notepad")
-                else:
-                    messagebox.showinfo(
-                        "Rename", "Please save your file before renaming it"
-                    )
-                    save_as_File()
-            else:
-                messagebox.showinfo(
-                    "Rename", "Please save your file before renaming it"
-                )
-                save_as_File()
-
-        def save_as_File():
-            global file
-            if file == None:
-
-                file = fd.asksaveasfilename(
-                    initialfile="Untitled.txt",
-                    defaultextension=".txt",
-                    filetypes=[
-                        ("All Files", "*.*"),
-                        ("Text Documents", "*.txt"),
-                    ],
-                )
-                if file == "":
-                    file = None
-
-                else:
-                    # Save as a new file
-                    with open(file, "w") as f:
-                        f.write(TextArea.get(1.0, END))
-                        f.close()
-                    main_window.title(os.path.basename(file) + " - Notepad")
-                    file = file
-
-        def save_file():
-            global status_name
-            global file
-            if status_name:
-                with open(file, "w") as f:
-                    f.write(TextArea.get(1.0, END))
-                    f.close()
-            else:
-                file = fd.asksaveasfilename(
-                    initialfile="Untitled.txt",
-                    defaultextension=".txt",
-                    filetypes=[
-                        ("All Files", "*.*"),
-                        ("Text Documents", "*.txt"),
-                    ],
-                )
-                status_name = file
-                if file == "":
-                    file = None
-
-                else:
-                    # Save as a new file
-                    with open(file, "w") as f:
-                        status_name = True
-                        f.write(TextArea.get(1.0, END))
-                        f.close()
-                    main_window.title(os.path.basename(file) + " - Notepad")
-
-        def quitApp():
-            try:
-                main_window.destroy()
-            except:
-                pass
-
-        def cut(*event):
-            global cutting_value
-            try:
-                if TextArea.selection_get():
-                    # grabbing selected text from text area
-                    cutting_value = TextArea.selection_get()
-                    TextArea.delete("sel.first", "sel.last")
-            except:
-                cutting_value = ""
-
-        def copy(*event):
-            global cutting_value
-            try:
-                if TextArea.selection_get():
-                    # grabbing selected text from text area
-                    cutting_value = TextArea.selection_get()
-            except:
-                cutting_value = ""
-
-        def paste(*event):
-            if cutting_value:
-                postion = TextArea.index(INSERT)
-                TextArea.insert(postion, cutting_value)
-
-        def about():
-            messagebox.showinfo("Notepad", "Notepad by Rohithk-25-11-2020")
-
-        # Basic tkinter setup
-        main_window.iconbitmap(False, f"{path}_notes.ico")
-        main_window.title("Untitled - Notepad")
-        # Add TextArea
-        font_main = ("freesansbold", 12)
-        Scroll_y = Scrollbar(self, orient="vertical")
-        Scroll_y.pack(side="right", fill=Y)
-        TextArea = Text(
-            self,
-            font=font_main,
-            fg="#292A2D",
-            insertofftime=600,
-            insertontime=600,
-            insertbackground="#292A2D",
-            undo=True,
-            width=1057, height=661,
-            yscrollcommand=Scroll_y.set,
-        )
-
-        Scroll_y.config(command=TextArea.yview)
-        TextArea.pack(expand=True, fill=BOTH)
-        # create a menubar
-        MenuBar = Menu(main_window)
-        MenuBar.config(bg="#292A2D", bd=0, activebackground="#292A2D")
-        status_name = False
-        main_window.config(bg="red", menu=MenuBar)
-        # File Menu Starts
-
-        FileMenu = Menu(MenuBar, tearoff=0)
-        FileMenu.config(
-            background="black",
-            borderwidth="0",
-            relief=SUNKEN,
-            activebackground="#292A2D",
-        )
-        FileMenu.config(activebackground="#292A2D")
-        # To open new file
-        FileMenu.add_command(
-            label="New",
-            command=newFile,
-            background="#292A2D",
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        FileMenu.add_command(
-            label="Open",
-            command=openFile,
-            background="#292A2D",
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        # To save the current file
-        FileMenu.add_command(
-            label="Save",
-            command=lambda: save_file(),
-            background="#292A2D",
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        FileMenu.add_command(
-            label="Save As",
-            command=lambda: save_as_File(),
-            background="#292A2D",
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        FileMenu.add_command(
-            label="Rename",
-            command=lambda: rename_file(),
-            background="#292A2D",
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        FileMenu.add_command(
-            label="Exit",
-            command=quitApp,
-            foreground="white",
-            background="#292A2D",
-            activebackground="#4B4C4F",
-        )
-        MenuBar.add_cascade(
-            label="File",
-            menu=FileMenu,
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-
-        # File Menu ends
-        def select_font(font):
-            size = TextArea["font"]
-            num = ""
-            for i in size:
-                if i in "1234567890":
-                    num += i
-            real_size = int(num)
-            new_font_size = (font, real_size)
-            TextArea.config(font=new_font_size)
-
-        def size_change(event):
-
-            original_font = TextArea["font"]
-            find_font = ""
-            var = ""
-            for i in original_font:
-                if i == " " or i.isalpha():
-                    var += i
-            size = 0
-
-            find_font = var.rstrip()
-            new_str = original_font.split()
-            for i in new_str:
-                for a in i:
-                    if a in "0123456789":
-                        size = int(i)
-            if size != 60 and event.delta == 120:
-                size += 1
-            if size != 6 and event.delta == -120:
-                size -= 1
-            new_font = (find_font, size)
-            TextArea.configure(font=new_font)
-
-        def change_size(size):
-            global var
-            lb = Label(self, text=var, anchor=E)
-            lb.pack(fill=X, side=TOP)
-            var = len(str(TextArea.get("1.0", "end-1c")))
-            lb.config(text=var)
-
-            def update(event):
-                var = len(str(TextArea.get("1.0", "end-1c")))
-                lb.config(text=var)
-
-            TextArea.bind("<KeyPress>", update)
-            TextArea.bind("<KeyRelease>", update)
-            original_font = TextArea["font"]
-            find_font = ""
-            var = ""
-            for i in original_font:
-                if i == " " or i.isalpha():
-                    var += i
-            find_font = var.rstrip()
-            new_font = (find_font, size)
-            TextArea.configure(font=new_font)
-
-        def change_color():
-            my_color = colorchooser.askcolor()[1]
-            TextArea.config(fg=my_color)
-
-        def bg_color():
-            my_color = colorchooser.askcolor()[1]
-            TextArea.config(bg=my_color)
-
-        def highlight_text():
-            TextArea.tag_configure(
-                "start", background="#FFFF00", foreground="#292A2D"
-            )
-            try:
-                TextArea.tag_add("start", "sel.first", "sel.last")
-            except TclError:
-                pass
-
-        def secondary(*event):
-            replace_window = Toplevel(self)
-            replace_window.focus_set()
-            replace_window.grab_set()
-            replace_window.title("Replace")
-            replace_entry = Entry(replace_window)
-            find_entry_new = Entry(replace_window)
-            find_entry_new.grid(row=0, column=0)
-            replace_button = Button(
-                replace_window,
-                text="Replace",
-                command=lambda: replacenfind(
-                    find_entry_new.get(), replace_window, str(replace_entry.get())
-                ),
-            )
-            replace_button.grid(row=1, column=1)
-            replace_entry.grid(row=1, column=0)
-
-        def primary(*event):
-            find_window = Toplevel(self)
-            find_window.geometry("100x50")
-            find_window.focus_set()
-            find_window.grab_set()
-            find_window.title("Find")
-            find_entry = Entry(find_window)
-            find_button = Button(
-                find_window,
-                text="Find",
-                command=lambda: find(find_entry.get(), find_window),
-            )
-            find_entry.pack()
-            find_button.pack(side="right")
-
-        def replacenfind(value, window, replace_value):
-            text_find = str(value)
-            index = "1.0"
-            TextArea.tag_remove("found", "1.0", END)
-            if value:
-                while 1:
-                    index = TextArea.search(
-                        text_find, index, nocase=1, stopindex=END
-                    )
-                    if not index:
-                        break
-                    lastidx = "% s+% d" % (index, len(text_find))
-                    TextArea.delete(index, lastidx)
-                    TextArea.insert(index, replace_value)
-                    lastidx = "% s+% d" % (index, len(replace_value))
-                    TextArea.tag_add("found", index, lastidx)
-                    index = lastidx
-                TextArea.tag_config("found", foreground="blue")
-            window.focus_set()
-
-        def find(value, window):
-            text_find = str(value)
-            index = "1.0"
-            TextArea.tag_remove("found", "1.0", END)
-            if value:
-                while 1:
-                    index = TextArea.search(
-                        text_find, index, nocase=1, stopindex=END
-                    )
-                    if not index:
-                        break
-                    lastidx = "% s+% dc" % (index, len(text_find))
-                    TextArea.tag_add("found", index, lastidx)
-                    index = lastidx
-                TextArea.tag_config("found", foreground="red")
-            window.focus_set()
-
-        def popup_menu(e):
-            my_menu.tk_popup(e.x_main_window, e.y_main_window)
-
-        main_window.bind("<Control-Key-f>", primary)
-        main_window.bind("<Control-Key-h>", secondary)
-
-        EditMenu = Menu(MenuBar, tearoff=0)
-        EditMenu.config(
-            bg="#292A2D", bd="0", relief="ridge", activebackground="#292A2D"
-        )
-        TextArea.bind("<Control-MouseWheel>", size_change)
-
-        my_menu = Menu(
-            self, tearoff=0, bd="0", borderwidth="0", background="#292A2D"
-        )
-        my_menu.config(bg="#292A2D", bd="0", activebackground="#292A2D")
-        my_menu.add_command(
-            label="Highlight",
-            command=highlight_text,
-            foreground="white",
-            background="#292A2D",
-            activebackground="#4B4C4F",
-        )
-        my_menu.add_command(
-            label="Copy",
-            command=copy,
-            foreground="white",
-            background="#292A2D",
-            activebackground="#4B4C4F",
-        )
-        my_menu.add_command(
-            label="Cut",
-            command=cut,
-            background="#292A2D",
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        my_menu.add_command(
-            label="Paste",
-            command=paste,
-            foreground="white",
-            background="#292A2D",
-            activebackground="#4B4C4F",
-        )
-        my_menu.add_separator()
-
-        def undo():
-            try:
-                TextArea.edit_undo()
-            except:
-                pass
-
-        def redo():
-            try:
-                TextArea.edit_redo()
-            except:
-                pass
-
-        try:
-            my_menu.add_command(
-                label="Undo",
-                command=undo,
-                foreground="white",
-                background="#292A2D",
-                activebackground="#4B4C4F",
-            )
-        except:
-            pass
-
-        try:
-            my_menu.add_command(
-                label="Redo",
-                command=redo,
-                foreground="white",
-                background="#292A2D",
-                activebackground="#4B4C4F",
-            )
-        except:
-            pass
-        TextArea.bind("<Button-3>", popup_menu)
-
-        # To give a feature of cut, copy and paste
-        highlight_text_button = Button(
-            MenuBar, text="highlight", command=highlight_text
-        )
-        highlight_text_button.grid(row=0, column=5, sticky=W)
-        submenu = Menu(EditMenu, tearoff=0)
-        submenu_size = Menu(EditMenu, tearoff=0)
-        submenu.config(bg="#292A2D", bd="0", activebackground="#292A2D")
-        submenu_size.config(bg="#292A2D", bd="0",
-                            activebackground="#292A2D")
-
-        submenu.add_command(
-            label="MS Sans Serif",
-            command=lambda: select_font("MS Sans Serif"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Arial",
-            command=lambda: select_font("Arial"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Bahnschrift",
-            command=lambda: select_font("Bahnschrift"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Cambria",
-            command=lambda: select_font("Cambria"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Consolas",
-            command=lambda: select_font("Consolas"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Courier",
-            command=lambda: select_font("Courier"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Century",
-            command=lambda: select_font("Century"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Calibri",
-            command=lambda: select_font("Calibri"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Yu Gothic",
-            command=lambda: select_font("Yu Gothic"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Times New Roman",
-            command=lambda: select_font("Times New Roman"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Sylfaen",
-            command=lambda: select_font("Sylfaen"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Nirmala UI",
-            command=lambda: select_font("Nirmala UI"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Ebrima",
-            command=lambda: select_font("Ebrima"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Comic Sans MS",
-            command=lambda: select_font("Comic Sans MS"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Microsoft PhagsPa",
-            command=lambda: select_font("Microsoft PhagsPa"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Lucida  Console",
-            command=lambda: select_font("Lucida Console"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Franklin Gothic Medium",
-            command=lambda: select_font("Franklin Gothic Medium"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu.add_command(
-            label="Cascadia Code",
-            command=lambda: select_font("Cascadia Code"),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="6",
-            command=lambda: change_size(6),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="7",
-            command=lambda: change_size(7),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="8",
-            command=lambda: change_size(8),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="9",
-            command=lambda: change_size(9),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="10",
-            command=lambda: change_size(10),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="11",
-            command=lambda: change_size(11),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="12",
-            command=lambda: change_size(12),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="13",
-            command=lambda: change_size(13),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="14",
-            command=lambda: change_size(14),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="15",
-            command=lambda: change_size(15),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="16",
-            command=lambda: change_size(16),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="17",
-            command=lambda: change_size(17),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="18",
-            command=lambda: change_size(18),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="19",
-            command=lambda: change_size(19),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="20",
-            command=lambda: change_size(20),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="21",
-            command=lambda: change_size(21),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="22",
-            command=lambda: change_size(22),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="23",
-            command=lambda: change_size(23),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="24",
-            command=lambda: change_size(24),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="25",
-            command=lambda: change_size(25),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="26",
-            command=lambda: change_size(26),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="27",
-            command=lambda: change_size(27),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="28",
-            command=lambda: change_size(28),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="29",
-            command=lambda: change_size(29),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="30",
-            command=lambda: change_size(30),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="31",
-            command=lambda: change_size(31),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="32",
-            command=lambda: change_size(32),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="33",
-            command=lambda: change_size(33),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="34",
-            command=lambda: change_size(34),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="35",
-            command=lambda: change_size(35),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="36",
-            command=lambda: change_size(36),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="37",
-            command=lambda: change_size(37),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="38",
-            command=lambda: change_size(38),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="39",
-            command=lambda: change_size(39),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        submenu_size.add_command(
-            label="40",
-            command=lambda: change_size(40),
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-
-        EditMenu.add_command(
-            label="Text Color",
-            command=change_color,
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        EditMenu.add_command(
-            label="Background Color",
-            command=bg_color,
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        EditMenu.add_command(
-            label="Cut",
-            command=cut,
-            accelerator="(Ctrl+x)",
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        EditMenu.add_command(
-            label="Copy",
-            command=copy,
-            accelerator="(Ctrl+c)",
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        EditMenu.add_command(
-            label="Paste",
-            command=paste,
-            accelerator="(Ctrl+v)",
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        EditMenu.add_command(
-            label="Find",
-            command=primary,
-            accelerator="(Ctrl+f)",
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        EditMenu.add_command(
-            label="Replace",
-            command=secondary,
-            accelerator="(Ctrl+h)",
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        EditMenu.add_command(
-            label="Undo",
-            command=TextArea.edit_undo,
-            accelerator="(Ctrl+z)",
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        EditMenu.add_command(
-            label="Redo",
-            command=TextArea.edit_redo,
-            accelerator="(Ctrl+y)",
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        EditMenu.add_cascade(
-            label="Font",
-            menu=submenu,
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        EditMenu.add_cascade(
-            label="Size",
-            menu=submenu_size,
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        MenuBar.add_cascade(
-            label="Edit",
-            menu=EditMenu,
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-
-        def callback(event):
-            save_file()
-
-        def second_callback(event):
-            file = None
-            save_as_File(file)
-            # To Open already existing file
-
-        # bindings
-        main_window.bind("<Control-Key-s>", callback)
-        main_window.bind("<Control-Shift-S>", second_callback)
-        main_window.bind("<Control-Key-x>", cut)
-        main_window.bind("<Control-Key-c>", copy)
-        main_window.bind("<Control-Key-v>", paste)
-        # Help Menu Starts
-        HelpMenu = Menu(
-            MenuBar, tearoff=0, bg="#292A2D", bd="0", activebackground="#292A2D"
-        )
-        HelpMenu.add_command(
-            label="About Notepad",
-            command=about,
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-        MenuBar.add_cascade(
-            label="Help",
-            menu=HelpMenu,
-            foreground="white",
-            activebackground="#4B4C4F",
-        )
-
-        # Help Menu Ends
-
-        main_window.config(menu=MenuBar)
 
 
 # displaying the passwords
 class Password_display(Frame):
-    def __init__(self, main_window, notes_buttons, button, profile_button, *args):
+    def __init__(self, main_window, button, profile_button, handler, second_frame, *args):
         self.main_window = main_window
         Frame.__init__(self, self.main_window)
         self.config(bg='#292A2D')
-        notes_buttons.config(state=NORMAL)
         button.config(state=DISABLED)
         profile_button.config(state=NORMAL)
         emptyMenu = Menu(self.main_window)
@@ -2005,11 +1070,11 @@ class Password_display(Frame):
         main_window.unbind("<Return>")
 
         #  # getting the username
-        self.handler = args[0]
-        self.username = args[1]
-        self.hashed_password = args[2]
-        self.object = args[3]
-        self.password = args[4]
+        self.handler = handler
+        self.username = args[0]
+        self.hashed_password = args[1]
+        self.object = args[2]
+        self.password = args[3]
 
         self.button = button
 
@@ -2087,7 +1152,7 @@ class Password_display(Frame):
                             font=("Segoe UI Semibold", 9),
                             image=button_img,
                             compound="top",
-                            command=lambda a=i,value=new[i]: self.show_account(a,value))
+                            command=lambda a=i, value=new[i]: self.show_account(a, value))
 
                     ] = [i, button_img]
 
@@ -2149,9 +1214,9 @@ class Password_display(Frame):
                 with open(name_file, "wb") as f1:
                     p.dump(line, f1)
                     f.close()
-                os.remove(self.username + ".bin.fenc")
+                os.remove(self.username + ".bin.aes")
                 pyAesCrypt.encryptFile(
-                    name_file, f'{self.username}.bin.fenc', self.hashed_password, bufferSize
+                    name_file, f'{self.username}.bin.aes', self.hashed_password, bufferSize
                 )
                 messagebox.showinfo("Success", "Your account has been saved")
                 with open(f"{self.username}decrypted.bin", "rb") as f:
@@ -2238,10 +1303,12 @@ class Password_display(Frame):
         add_icon_button.place(x=150, y=50)
         self.root1.mainloop()
 
-    def show_account(self, button,account_name):
+    def show_account(self, button, account_name):
 
-        change_object = Change_details(self.handler,self.username,self.password, self.hashed_password, self.main_window, my_cursor)
-        delete_object = Deletion(self.handler,self.username, self.password,self.hashed_password, self.main_window, my_cursor)
+        change_object = Change_details(self.handler,self.main_window, self.username, self.password, self.hashed_password,
+                                       self.main_window, my_cursor)
+        delete_object = Deletion(self.handler, self.username, self.password, self.hashed_password, self.main_window,
+                                 my_cursor)
 
         self.config(bg='#1E1E1E')
         bg_img = tk_image.PhotoImage(image.open(f"{path}log.jpg"))
@@ -2262,23 +1329,23 @@ class Password_display(Frame):
         dot_text = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
         dot_text1 = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
         dot_text2 = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
-        with open(f'{self.username}decrypted.bin','rb') as f:
+        with open(f'{self.username}decrypted.bin', 'rb') as f:
             lists = pickle.load(f)
         delete_account = Button(
             new_s,
             text="Delete Account",
             bg="#1E1E1E",
             fg="white",
-            font=("Cascadia Mono SemiBold", 15),
+            font=("Yu Gothic Ui", 15),
             command=lambda: delete_object.delete_social_media_account(
-                 self.button, False, lists[button][2]),)
+                self.button, False, lists[button][2]), )
 
         ChangeAccount = Button(
             new_s,
             text="Change Details",
             bg="#1E1E1E",
             fg="white",
-            font=("Cascadia Mono SemiBold", 15),
+            font=("Yu Gothic Ui", 15),
             command=lambda: change_object.change_window_creation(lists[button][0], self.button))
         # getting the username and password
         username = ''
@@ -2295,21 +1362,21 @@ class Password_display(Frame):
             text="Username",
             bg="#1E1E1E",
             fg="white",
-            font=("Cascadia Mono SemiBold", 15),
+            font=("Yu Gothic Ui", 15),
         )
         password_label = Label(
             new_s,
             text="Password",
             bg="#1E1E1E",
             fg="white",
-            font=("Cascadia Mono SemiBold", 15),
+            font=("Yu Gothic Ui", 15),
         )
         social_account = Label(
             new_s,
             text="Account Name",
             bg="#1E1E1E",
             fg="white",
-            font=("Cascadia Mono SemiBold", 15),
+            font=("Yu Gothic Ui", 15),
         )
 
         username_text = Label(
@@ -2317,26 +1384,26 @@ class Password_display(Frame):
             text=username,
             bg="#1E1E1E",
             fg="white",
-            font=("Cascadia Mono SemiBold", 15),
+            font=("Yu Gothic Ui", 15),
         )
         password_text = Label(
             new_s,
             text=password,
             bg="#1E1E1E",
             fg="white",
-            font=("Cascadia Mono SemiBold", 15),
+            font=("Yu Gothic Ui", 15),
         )
         social_account_text = Label(
             new_s,
             text=account_name,
             bg="#1E1E1E",
             fg="white",
-            font=("Cascadia Mono SemiBold", 15),
+            font=("Yu Gothic Ui", 15),
         )
         copy_but_password = Button(new_s, text="Copy Password", bg="#1E1E1E", fg="white", font=(
-            "Cascadia Mono SemiBold", 12), command=lambda: copy(password))
+            "Yu Gothic Ui", 12), command=lambda: copy(password))
         copy_but_username = Button(new_s, text="Copy Username", bg="#1E1E1E", fg="white", font=(
-            "Cascadia Mono SemiBold", 12), command=lambda: copy(username))
+            "Yu Gothic Ui", 12), command=lambda: copy(username))
 
         if image_path == "":
             img = tk_image.PhotoImage(image.open(f"{path}side_display.jpg"))
@@ -2378,15 +1445,17 @@ class Profile_view(Frame):
     def __init__(
             self,
             master,
-            notepad_button,
             password_button,
             profile_button,
+            handler,
+            window,
             *args,
     ):
         self.master = master
         Frame.__init__(self, self.master)
         self.config(bg="white")
         self.username = args[0]
+        self.window = window
         self.password = args[1]
         self.email_id = args[2]
         self.email_password = args[3]
@@ -2394,13 +1463,12 @@ class Profile_view(Frame):
         self.object = args[5]
         self.profile_button = profile_button
         self.password_button = password_button
-        self.notepad = notepad_button
-        main_window.unbind("<Return>")
+        self.handler = handler
+        self.master.unbind("<Return>")
 
         self.master.iconbitmap(f"{path}profile.ico")
         self.profile_button["state"] = DISABLED
         self.password_button["state"] = NORMAL
-        self.notepad["state"] = NORMAL
 
         self.master.title("Profile")
 
@@ -2424,12 +1492,12 @@ class Profile_view(Frame):
             bg="#292A2D",
             highlightcolor="black",
             highlightbackground="black",
-            width=560,
-            height=500,
+            width=500,
+            height=430,
         )
 
         new_canvas.create_window(
-            600 - 30, 300 + 50, window=new_s, anchor="center"
+            450, 300 + 50, window=new_s, anchor="center"
         )
 
         # all labels
@@ -2525,25 +1593,25 @@ class Profile_view(Frame):
             activeforeground="white",
         )
         profile_photo.photo = member
-        # delete_object = Deletion(
-        #     self.username, self.hashed_password, profile, self.object)
-        # delete_this_account = Button(
-        #     new_s,
-        #     text="Delete Account",
-        #     fg="white",
-        #     bg="black",
-        #     activebackground="black",
-        #     activeforeground="white",
-        #     font="Helvetiva 10",
-        #     command=lambda: delete_object.delete_main_account(s),
-        # )
+        delete_object = Deletion(self.handler,
+                                 self.username, self.password, self.hashed_password, self.window, my_cursor)
+        delete_this_account = Button(
+            new_s,
+            text="Delete Account",
+            fg="white",
+            bg="black",
+            activebackground="black",
+            activeforeground="white",
+            font="Helvetiva 10",
+            command=lambda: delete_object.delete_main_account(self.master),
+        )
 
         username_label.place(x=5, y=100 + 100)
         password_label.place(x=5, y=150 + 100)
         email_id_label.place(x=5, y=200 + 100)
         email_password_label.place(x=5, y=250 + 100)
-        profile_photo.place(x=200, y=50)
-        # delete_this_account.place(x=0 + 2, y=400 + 50 + 20)
+        profile_photo.place(x=150, y=50)
+        delete_this_account.place(x=0 + 2, y=400)
 
         username_label_right.place(x=300 - 70, y=100 + 100)
         password_label_right.place(x=300 - 70, y=150 + 100)
@@ -2558,7 +1626,8 @@ class Profile_view(Frame):
 
 
 class Change_details:
-    def __init__(self,handler, real_username, password, hashed_password, window, object):
+    def __init__(self, handler, master,real_username, password, hashed_password, window, object):
+        self.master = master
         self.real_username = real_username
         self.hashed_password = hashed_password
         self.window = window
@@ -2566,6 +1635,7 @@ class Change_details:
         self.window.unbind("<Return>")
         self.hand = handler
         self.password = password
+
     def change_window_creation(self, selectaccount, pass_button):
         self.but = pass_button
         change_acccount = Toplevel()
@@ -2574,8 +1644,7 @@ class Change_details:
         change_acccount.focus_force()
         change_acccount.title("Change Account")
 
-
-        #assigning the main value
+        # assigning the main value
         self.account_change = selectaccount
         width_window = 450
         height_window = 400
@@ -2698,26 +1767,24 @@ class Change_details:
                 with open(f"{self.real_username}decrypted.bin", "wb") as f:
                     pickle.dump(value1, f)
                     f.close()
-                os.remove(f"{self.real_username}.bin.fenc")
+                os.remove(f"{self.real_username}.bin.aes")
                 pyAesCrypt.encryptFile(
                     f"{self.real_username}decrypted.bin",
-                    f"{self.real_username}.bin.fenc",
+                    f"{self.real_username}.bin.aes",
                     self.hashed_password,
                     bufferSize,
                 )
 
-                self.hand.switch_frame(main_window,self.window,
-                    self.real_username, self.password
-                )
+                self.hand.switchframe(main_window, self.window,
+                                      self.real_username, self.password
+                                      )
 
     def save_email(
             self,
-            new_email,
-            another_recovery_password
     ):
 
         email_split = ""
-        word = new_email.split()
+        word =  self.new_email_entry.get().split()
         for i in word:
             for a in i:
                 if i == "@":
@@ -2725,7 +1792,7 @@ class Change_details:
                 else:
                     email_split += i
         val = email_split[::-1]
-        main_password = val + "/" + another_recovery_password
+        main_password = val + "/" + self.new_email_password_entry.get()
 
         re_hash_text1 = self.password + self.real_username
         new_salt1 = self.password + "@" + main_password
@@ -2734,30 +1801,29 @@ class Change_details:
 
         # encrypting the new recovery password
 
-        password = new_email + re_hash_new1
-        message = another_recovery_password
+        password =  self.new_email_entry.get() + re_hash_new1
         passwordSalt = secrets.token_bytes(512)  # returns a random 64 byte
         new_key = pbkdf2.PBKDF2(password, passwordSalt).read(
             32
         )  # it creates a key based on the password provided by the user
         aes = pyaes.AESModeOfOperationCTR(new_key)
         # aes is mode of encryption for encrypting the password
-        encrypted_pass = aes.encrypt(message)
+        encrypted_pass = aes.encrypt(self.new_email_password_entry.get())
 
-        os.remove(f"{self.real_username}.bin.fenc")
+        os.remove(f"{self.real_username}.bin.aes")
         query = 'update data_input set password = (?), email_id = (?), salt_recovery = (?), salt = (?), recovery_password = (?) where username = (?)'
         self.object.execute(query, (
             re_encrypt,
-            simple_encrypt(new_email),
+            simple_encrypt(self.new_email_entry.get()),
             passwordSalt,
             new_salt,
             encrypted_pass,
             simple_encrypt(self.real_username),
         ),
-        )
+                            )
         pyAesCrypt.encryptFile(
             self.real_username + "decrypted.bin",
-            self.real_username + ".bin.fenc",
+            self.real_username + ".bin.aes",
             re_hash_new1,
             bufferSize,
         )
@@ -2765,62 +1831,58 @@ class Change_details:
         ad.withdraw()
         messagebox.showinfo(
             "Success",
-            "Your email and password has been changed.Please restart the program ",
+            "Your email and password has been changed",
         )
         ad.destroy()
-        self.hand.switch_frame(main_window,self.window,
-                    self.real_username, self.password
-                )
+        self.new_window.destroy()
+        self.master.switch_frame(main_window,
+                              self.real_username, self.password
+                              )
+
     def change_email(self):
 
-        new_window = Toplevel()
-
-        new_img = tk_image.PhotoImage(image.open(f"{path}user.png"))
-        new_img_label = Label(new_window, image=new_img, bg="#292A2D")
+        self.new_window = Toplevel()
+        self.new_window.focus_force()
+        new_img = tk_image.PhotoImage(image.open(f"{path}member.png"))
+        new_img_label = Label(self.new_window, image=new_img, bg="#1E1E1E")
         new_img_label.photo = new_img
 
-        file_name_reentry = self.real_username + ".bin.fenc"
+        file_name_reentry = self.real_username + ".bin.aes"
 
         width_window = 400
-        height_window = 200
-        screen_width = new_window.winfo_screenwidth()
-        screen_height = new_window.winfo_screenheight()
+        height_window = 300
+        screen_width = self.new_window.winfo_screenwidth()
+        screen_height = self.new_window.winfo_screenheight()
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
-        new_window.geometry("%dx%d+%d+%d" %
+        self.new_window.geometry("%dx%d+%d+%d" %
                             (width_window, height_window, x, y))
-        new_window.title("Change Recovery details")
-        new_window.geometry("300x300")
-        new_window.config(bg="#292A2D")
+        self.new_window.title("Change Recovery details")
+        self.new_window.config(bg="#1E1E1E")
 
-        new_email = Label(new_window, text="New Email",
-                          fg="white", bg="#292A2D")
-        new_email_password = Label(
-            new_window, text="New Password", fg="white", bg="#292A2D"
-        )
+        self.new_email = Label(self.new_window, text="New Email",font=("Segoe UI SemiBold", 15),
+                  fg="white", bg="#1E1E1E")
+        self.new_email_password = Label(self.new_window, text="New Password", fg="white",font=("Segoe UI SemiBold", 15), bg="#1E1E1E")
 
-        new_email_entry = Entry(new_window)
-        new_email_password_entry = Entry(new_window, show="*")
+
+        self.new_email_entry = Entry(self.new_window,foreground='white',insertbackground='white',background='#1E1E1E',font=15,bd=0,width=17,border=0)
+        self.new_email_password_entry = Entry(self.new_window,insertbackground='white',foreground='white',background='#1E1E1E',font=15,bd=0,width=17,show="*")
 
         new_img_label.grid(row=0, column=1)
-        new_email.grid(row=1, column=0)
-        new_email_password.grid(row=2, column=0)
-        new_email_entry.grid(row=1, column=1)
-        new_email_password_entry.grid(row=2, column=1)
+        self.new_email.grid(row=1, column=0)
+        self.new_email_password.grid(row=2, column=0)
+        self.new_email_entry.grid(row=1, column=1)
+        self.new_email_password_entry.grid(row=2, column=1)
+        new_img_label.place(x=130, y=0)
+        self.new_email.place(x=10, y=70 + 50)
+        self.new_email_password.place(x=10, y=100 + 50+20)
+        self.new_email_entry.place(x=165, y=70 + 52)
+        self.new_email_password_entry.place(x=165, y=100 + 53+20)
+        Frame(self.new_window, width=150, height=2,
+              bg="#CACBC7").place(x=165, y=70 + 77)
+        Frame(self.new_window, width=150, height=2,
+              bg="#CACBC7").place(x=165, y=100 + 77+20)
 
-        new_img_label.place(x=110, y=50)
-        new_email.place(x=10, y=70 + 50)
-        new_email_password.place(x=10, y=100 + 50)
-        new_email_entry.place(x=150 - 40, y=70 + 50)
-        new_email_password_entry.place(x=150 - 40, y=100 + 50)
-
-        new_email_password_entry.config(show="")
-
-        new_email_password_entry.config(fg="grey")
-        new_email_password_entry.insert(0, "New Email password")
-
-        new_email_entry.config(fg="grey")
-        new_email_entry.insert(0, "New Email")
         self.object.execute(
             "select email_id from data_input where username=(?)", (
                 simple_encrypt(self.real_username),)
@@ -2828,75 +1890,53 @@ class Change_details:
         for i in self.object.fetchall():
             self.email_id = simple_decrypt(i[0])
         save = Button(
-            new_window,
+            self.new_window,
             text="Save",
-            command=lambda: self.save_email(
-                str(new_email_entry.get()),
-                str(new_email_password_entry.get()),
-
-            ),
+            command=lambda: self.save_email(),
         )
-        save.place(x=150 - 40, y=200)
-
-        new_email_entry.bind(
-            "<FocusIn>",
-            lambda event, val_val=new_email_entry, index=1: handle_focus_in(
-                val_val, index
-            ),
-        )
-        new_email_entry.bind(
-            "<FocusOut>",
-            lambda event, val_val=new_email_entry, val="Email", index=1: handle_focus_out(
-                val_val, val, index
-            ),
-        )
-
-        new_email_password_entry.bind(
-            "<FocusIn>",
-            lambda event, val_val=new_email_password_entry, index=2: handle_focus_in(
-                val_val, index
-            ),
-        )
-        new_email_password_entry.bind(
-            "<FocusOut>",
-            lambda event, val_val=new_email_password_entry, val="New Email password", index=2: handle_focus_out(
-                val_val, val, index
-            ),
-        )
-
+        save.place(x=170, y=220)
         private_img = tk_image.PhotoImage(image.open(f"{path}private.png"))
         unhide_img = tk_image.PhotoImage(image.open(f"{path}eye.png"))
 
         show_both_12 = Button(
-            new_window,
+            self.new_window,
             image=unhide_img,
             command=lambda: password_sec(
-                new_email_password_entry, show_both_12),
+                self.new_email_password_entry, show_both_12),
             fg="white",
             bd="0",
-            bg="#292A2D",
-            highlightcolor="#292A2D",
-            activebackground="#292A2D",
+            bg="#1E1E1E",
+            highlightcolor="#1E1E1E",
+            activebackground="#1E1E1E",
             activeforeground="white",
             relief=RAISED,
         )
         show_both_12.image = unhide_img
-        show_both_12.place(x=250 - 15, y=100 + 50 - 5)
-
+        show_both_12.place(x=320, y=100 + 53+20)
 
 class Deletion:
-    def __init__(self, handler,real_username, password,hashed_password, window, object):
+    def __init__(self, handler, real_username, password, hashed_password, window, object):
         self.real_username = real_username
         self.hashed_password = hashed_password
         self.window = window
         self.object = object
         self.window.unbind("<Return>")
         self.handler = handler
-        self.passworwd = password
+        self.password = password
+
     def delete_social_media_account(self, password_button, Value, *account_name):
 
         if Value:
             delete_med_account = Tk()
+            width_window = 440
+            height_window = 60
+            delete_med_account.focus_force()
+            delete_med_account.config(bg="#292A2D")
+            screen_width = delete_med_account.winfo_screenwidth()
+            screen_height = delete_med_account.winfo_screenheight()
+            x = screen_width / 2 - width_window / 2
+            y = screen_height / 2 - height_window / 2
+            delete_med_account.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
             delete_med_account.config(bg="#292A2D")
             delete_med_account.title("Delete Account")
             selectaccount = Combobox(
@@ -2909,7 +1949,7 @@ class Deletion:
                     ac = pickle.load(selectfile)
                     for i in ac:
                         tu += (i[2],)
-                except:
+                except EOFError:
                     pass
             delete = Button(
                 delete_med_account,
@@ -2924,7 +1964,7 @@ class Deletion:
             change_account_label = Label(
                 delete_med_account,
                 fg="white",
-                bg="#292A2D",
+                bg="#292A2D", font=("Yu Gothic Ui", 15),
                 text="Select account to be deleted",
             )
             selectaccount.grid(column=1, row=0)
@@ -2964,7 +2004,7 @@ class Deletion:
 
                 f.close()
             try:
-                os.remove(f"{self.real_username}.bin.fenc")
+                os.remove(f"{self.real_username}.bin.aes")
             except:
                 pass
             with open(f"{self.real_username}decrypted.bin", "wb") as f:
@@ -2973,7 +2013,7 @@ class Deletion:
 
             pyAesCrypt.encryptFile(
                 f"{self.real_username}decrypted.bin",
-                f"{self.real_username}.bin.fenc",
+                f"{self.real_username}.bin.aes",
                 self.hashed_password,
                 bufferSize,
             )
@@ -2983,7 +2023,7 @@ class Deletion:
                 "Success", f"{account_name}  has been  deleted")
             a.destroy()
 
-            self.window.switch_frame(main_window,self.window,self.real_username,self.password)
+            self.window.switchframe(main_window, self.window, self.real_username, self.password)
         else:
             a = Tk()
             a.withdraw()
@@ -3002,7 +2042,7 @@ class Deletion:
             if result == f"{self.real_username}-CONFIRM":
                 try:
                     os.remove(self.real_username + "decrypted.bin")
-                    os.remove(self.real_username + ".bin.fenc")
+                    os.remove(self.real_username + ".bin.aes")
 
                     self.object.execute(
                         "delete from data_input where username = (?)",
@@ -3015,7 +2055,7 @@ class Deletion:
                     window.destroy()
                     for i in another_window:
                         i.destroy()
-                    if not os.path.exists(f"{self.real_username}.bin.fenc"):
+                    if not os.path.exists(f"{self.real_username}.bin.aes"):
                         quit()
                 except:
                     pass
