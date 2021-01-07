@@ -1,2 +1,3 @@
-import os
-os.remove(f'kiren.bin.aes')
+import os,glob
+for i in glob.glob("*.bin.aes"):
+    os.remove(i)
