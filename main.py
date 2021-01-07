@@ -89,7 +89,7 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
     settings_window.title("Settings")
     settings_window.config(bg="#1E1E1E")
 
-    delete_object = Deletion(handler, real_username, original_password, hashed_password, window, my_cursor)
+    delete_object = Deletion(handler, real_username, original_password, hashed_password, window, my_cursor,master_main)
     change_object = Change_details(handler, master_main,
                                    real_username, original_password, hashed_password, window, my_cursor)
 
@@ -891,13 +891,11 @@ class main_window(Frame):
     def __init__(self, parent, username, password):
         Frame.__init__(self, parent)
         global var
-        global file
         status_name = False
         parent.unbind("<Return>")
 
         self.parent = parent
         self.var = var
-        self.file = file
         self.object = my_cursor
         self.status = status_name
         self.username = username
@@ -1094,7 +1092,7 @@ class Password_display(Frame):
             Frame, bg='#1E1E1E', width=131, height=661)
 
         # add that new frame to a new window in the canvas
-        image_new = tk_image.PhotoImage(image.open(f"{path}add-button.png"))
+        image_new = tk_image.PhotoImage(image.open(f"{path}add_button.png"))
 
         self.add_button = Button(
             self.second_frame,
@@ -1132,7 +1130,7 @@ class Password_display(Frame):
                     new.append(i[2])
                 d = {}
                 for i in range(len(new)):
-                    if val[i][3] == "":
+                    if not val[i][3] :
                         button_img = tk_image.PhotoImage(
                             image.open(f"{path}side_display.jpg"))
                     else:
@@ -1172,11 +1170,11 @@ class Password_display(Frame):
             try:
                 test_values = p.load(f)
                 for user in test_values:
-                    if user[0] == str(self.username_window_entry.get()) and user[2] == str(
-                            self.name_of_social_entry.get()):
+                    if  user[2] == str(self.name_of_social_entry.get()):
                         return True
             except:
-                return False
+                pass
+
 
     def save(self, *image_path):
         if len(image_path) == 0:
@@ -1220,7 +1218,7 @@ class Password_display(Frame):
                     val = p.load(f)
                     self.add_button.grid(row=len(val) + 1, column=0)
                 self.root1.destroy()
-                self.handler.switchframe(Password_display, self.main_window, self.handler, self.username,
+                self.handler.switchframe(Password_display, self.main_window, self.username,
                                          self.hashed_password, self.object, self.password)
 
     def addaccount(self):
@@ -1271,7 +1269,7 @@ class Password_display(Frame):
             #     add_icon_button.config(image=tkimage)
             #     add_icon_button.photo = tkimage
             # except:
-            self.image_path = f"{path}photo.png"
+            self.image_path = f"{path}side_display.jpg"
             im = image.open(self.image_path)
             tkimage = tk_image.PhotoImage(im)
             add_icon_button.config(image=tkimage)
@@ -1306,7 +1304,7 @@ class Password_display(Frame):
                                        self.hashed_password,
                                        self.main_window, my_cursor)
         delete_object = Deletion(self.handler, self.username, self.password, self.hashed_password, self.main_window,
-                                 my_cursor)
+                                 my_cursor,self.main_window)
 
         self.config(bg='#1E1E1E')
         bg_img = tk_image.PhotoImage(image.open(f"{path}log.jpg"))
@@ -1592,7 +1590,7 @@ class Profile_view(Frame):
         )
         profile_photo.photo = member
         delete_object = Deletion(self.handler,
-                                 self.username, self.password, self.hashed_password, self.window, my_cursor)
+                                 self.username, self.password, self.hashed_password, self.window, my_cursor,self.master)
         delete_this_account = Button(
             new_s,
             text="Delete Account",
@@ -1916,7 +1914,7 @@ class Change_details:
 
 
 class Deletion:
-    def __init__(self, handler, real_username, password, hashed_password, window, object):
+    def __init__(self, handler, real_username, password, hashed_password, window, object,master):
         self.real_username = real_username
         self.hashed_password = hashed_password
         self.window = window
@@ -1924,36 +1922,37 @@ class Deletion:
         self.window.unbind("<Return>")
         self.handler = handler
         self.password = password
+        self.master = master
 
     def delete_social_media_account(self, password_button, Value, *account_name):
 
         if Value:
-            delete_med_account = Tk()
+            self.delete_med_account = Tk()
             width_window = 440
             height_window = 60
-            delete_med_account.focus_force()
-            delete_med_account.config(bg="#292A2D")
-            screen_width = delete_med_account.winfo_screenwidth()
-            screen_height = delete_med_account.winfo_screenheight()
+            self.delete_med_account.focus_force()
+            self.delete_med_account.config(bg="#292A2D")
+            screen_width = self.delete_med_account.winfo_screenwidth()
+            screen_height = self.delete_med_account.winfo_screenheight()
             x = screen_width / 2 - width_window / 2
             y = screen_height / 2 - height_window / 2
-            delete_med_account.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-            delete_med_account.config(bg="#292A2D")
-            delete_med_account.title("Delete Account")
+            self.delete_med_account.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+            self.delete_med_account.config(bg="#292A2D")
+            self.delete_med_account.title("Delete Account")
             selectaccount = Combobox(
-                delete_med_account, width=27, state="#292A2D"
+                self.delete_med_account, width=27, state="#292A2D"
             )
             # Adding combobox drop down list
-            tu = ()
+            values = ()
             with open(f"{self.real_username}decrypted.bin", "rb") as selectfile:
                 try:
                     ac = pickle.load(selectfile)
                     for i in ac:
-                        tu += (i[2],)
+                        values += (i[2],)
                 except EOFError:
                     pass
             delete = Button(
-                delete_med_account,
+                self.delete_med_account,
                 text="Delete",
                 fg="white",
                 bg="#292A2D",
@@ -1961,9 +1960,9 @@ class Deletion:
                     str(selectaccount.get()), password_button, True
                 ),
             )
-            selectaccount["values"] = tu
+            selectaccount["values"] = values
             change_account_label = Label(
-                delete_med_account,
+                self.delete_med_account,
                 fg="white",
                 bg="#292A2D", font=("Yu Gothic Ui", 15),
                 text="Select account to be deleted",
@@ -1985,8 +1984,7 @@ class Deletion:
 
                 self.change_account_name(
                     account_name[0], password_button, False)
-            else:
-                pass
+
 
     def change_account_name(self, account_name, button, val):
         if val:
@@ -2023,8 +2021,8 @@ class Deletion:
             messagebox.showinfo(
                 "Success", f"{account_name}  has been  deleted")
             a.destroy()
-
-            self.window.switchframe(main_window, self.window, self.real_username, self.password)
+            self.delete_med_account.destroy()
+            self.master.switch_frame(main_window,  self.real_username, self.password)
         else:
             a = Tk()
             a.withdraw()
