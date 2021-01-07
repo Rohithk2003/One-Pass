@@ -41,10 +41,8 @@ if platform.system() == "Linux":
             dir_path += i + '/'
     path = dir_path + "/images/"
 fa = None
-status_name = ''
 testing_strng = ''
 var = 0
-file = None
 # database
 if not os.path.exists("DATABASE"):
     os.mkdir("DATABASE")
@@ -56,7 +54,7 @@ my_cursor.execute(
 )
 
 
-#log out
+# log out
 def log_out(*window):
     for windows in window:
         windows.destroy()
@@ -92,7 +90,7 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
     settings_window.config(bg="#1E1E1E")
 
     delete_object = Deletion(handler, real_username, original_password, hashed_password, window, my_cursor)
-    change_object = Change_details(handler,master_main,
+    change_object = Change_details(handler, master_main,
                                    real_username, original_password, hashed_password, window, my_cursor)
 
     log_label = Button(
@@ -1025,7 +1023,7 @@ class main_window(Frame):
         self.button.grid(row=1, column=1)
         self.button.place(x=0, y=150 + 20)
         self.profile_button.grid(row=2, column=1)
-        self.profile_button.place(x=0, y=140 + 20 + 20+3  + 14)
+        self.profile_button.place(x=0, y=140 + 20 + 20 + 3 + 14)
         self.settings_button.grid(row=10, column=1, columnspan=1)
         self.settings_button.place(x=30 + 50 + 10, y=620)
         self.sidebar_icon.grid(row=0, column=0)
@@ -1051,10 +1049,9 @@ class main_window(Frame):
         self._frame = new_frame
         self._frame.config(width=1057, height=661)
         self._frame.place(x=134, y=0)
-        
+
 
 # note -pad
-
 
 
 # displaying the passwords
@@ -1305,7 +1302,8 @@ class Password_display(Frame):
 
     def show_account(self, button, account_name):
 
-        change_object = Change_details(self.handler,self.main_window, self.username, self.password, self.hashed_password,
+        change_object = Change_details(self.handler, self.main_window, self.username, self.password,
+                                       self.hashed_password,
                                        self.main_window, my_cursor)
         delete_object = Deletion(self.handler, self.username, self.password, self.hashed_password, self.main_window,
                                  my_cursor)
@@ -1626,7 +1624,7 @@ class Profile_view(Frame):
 
 
 class Change_details:
-    def __init__(self, handler, master,real_username, password, hashed_password, window, object):
+    def __init__(self, handler, master, real_username, password, hashed_password, window, object):
         self.master = master
         self.real_username = real_username
         self.hashed_password = hashed_password
@@ -1784,7 +1782,7 @@ class Change_details:
     ):
 
         email_split = ""
-        word =  self.new_email_entry.get().split()
+        word = self.new_email_entry.get().split()
         for i in word:
             for a in i:
                 if i == "@":
@@ -1801,7 +1799,7 @@ class Change_details:
 
         # encrypting the new recovery password
 
-        password =  self.new_email_entry.get() + re_hash_new1
+        password = self.new_email_entry.get() + re_hash_new1
         passwordSalt = secrets.token_bytes(512)  # returns a random 64 byte
         new_key = pbkdf2.PBKDF2(password, passwordSalt).read(
             32
@@ -1836,8 +1834,8 @@ class Change_details:
         ad.destroy()
         self.new_window.destroy()
         self.master.switch_frame(main_window,
-                              self.real_username, self.password
-                              )
+                                 self.real_username, self.password
+                                 )
 
     def change_email(self):
 
@@ -1856,17 +1854,19 @@ class Change_details:
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
         self.new_window.geometry("%dx%d+%d+%d" %
-                            (width_window, height_window, x, y))
+                                 (width_window, height_window, x, y))
         self.new_window.title("Change Recovery details")
         self.new_window.config(bg="#1E1E1E")
 
-        self.new_email = Label(self.new_window, text="New Email",font=("Segoe UI SemiBold", 15),
-                  fg="white", bg="#1E1E1E")
-        self.new_email_password = Label(self.new_window, text="New Password", fg="white",font=("Segoe UI SemiBold", 15), bg="#1E1E1E")
+        self.new_email = Label(self.new_window, text="New Email", font=("Segoe UI SemiBold", 15),
+                               fg="white", bg="#1E1E1E")
+        self.new_email_password = Label(self.new_window, text="New Password", fg="white",
+                                        font=("Segoe UI SemiBold", 15), bg="#1E1E1E")
 
-
-        self.new_email_entry = Entry(self.new_window,foreground='white',insertbackground='white',background='#1E1E1E',font=15,bd=0,width=17,border=0)
-        self.new_email_password_entry = Entry(self.new_window,insertbackground='white',foreground='white',background='#1E1E1E',font=15,bd=0,width=17,show="*")
+        self.new_email_entry = Entry(self.new_window, foreground='white', insertbackground='white',
+                                     background='#1E1E1E', font=15, bd=0, width=17, border=0)
+        self.new_email_password_entry = Entry(self.new_window, insertbackground='white', foreground='white',
+                                              background='#1E1E1E', font=15, bd=0, width=17, show="*")
 
         new_img_label.grid(row=0, column=1)
         self.new_email.grid(row=1, column=0)
@@ -1875,13 +1875,13 @@ class Change_details:
         self.new_email_password_entry.grid(row=2, column=1)
         new_img_label.place(x=130, y=0)
         self.new_email.place(x=10, y=70 + 50)
-        self.new_email_password.place(x=10, y=100 + 50+20)
+        self.new_email_password.place(x=10, y=100 + 50 + 20)
         self.new_email_entry.place(x=165, y=70 + 52)
-        self.new_email_password_entry.place(x=165, y=100 + 53+20)
+        self.new_email_password_entry.place(x=165, y=100 + 53 + 20)
         Frame(self.new_window, width=150, height=2,
               bg="#CACBC7").place(x=165, y=70 + 77)
         Frame(self.new_window, width=150, height=2,
-              bg="#CACBC7").place(x=165, y=100 + 77+20)
+              bg="#CACBC7").place(x=165, y=100 + 77 + 20)
 
         self.object.execute(
             "select email_id from data_input where username=(?)", (
@@ -1912,7 +1912,8 @@ class Change_details:
             relief=RAISED,
         )
         show_both_12.image = unhide_img
-        show_both_12.place(x=320, y=100 + 53+20)
+        show_both_12.place(x=320, y=100 + 53 + 20)
+
 
 class Deletion:
     def __init__(self, handler, real_username, password, hashed_password, window, object):

@@ -50,7 +50,7 @@ def forgot_password(email, *OTP):
         a = Tk()
         a.withdraw()
         messagebox.showwarning("Error", "Please try again later")
-def change(object,email,rec_pass,username12,new_password,new_username,original_password,main_pass):
+def change(window,object,email,rec_pass,username12,new_password,new_username,original_password,main_pass):
     if len(new_password) > 5:
         if check_pass_integrity(new_username,new_password):
             if not  os.path.exists(f'{username12}decrypted.bin'):#checking whether the user has logged in and trying to change password
@@ -70,7 +70,7 @@ def change(object,email,rec_pass,username12,new_password,new_username,original_p
             )
             new_salt = str(new_password) + "@" + main_pass
             re_hash_new = hashlib.sha3_512(
-                re_hash_text.encode()).hexdigest()
+                re_hash_text.encode()).hexdigest()#re hashing the new password for encrypting the file 
             re_encrypt, new_salt = create_key(main_pass, new_salt)
             pyAesCrypt.encryptFile(
                 username12 + "decrypted.bin",
@@ -79,13 +79,13 @@ def change(object,email,rec_pass,username12,new_password,new_username,original_p
                 bufferSize,
             )
 
-            password_recovery_email = email + re_hash_new
+            password_recovery_email = email + re_hash_new 
             passwordSalt = secrets.token_bytes(512)
             key = pbkdf2.PBKDF2(
                 password_recovery_email, passwordSalt).read(32)
-            aes = pyaes.AESModeOfOperationCTR(key)
+            aes = pyaes.AESModeOfOperationCTR(key)#initialising the mode of encryption for recovery pass
             encrypted_pass = aes.encrypt(rec_pass)
-
+            #updating the database
             object.execute(
                 "update data_input set username = (?),password=(?),recovery_password = (?),salt_recovery=(?) "
                 "where email_id = (?)",
@@ -100,6 +100,7 @@ def change(object,email,rec_pass,username12,new_password,new_username,original_p
             messagebox.showinfo(
                 "Success", "Your username and password has been changed"
             )
+            window.destroy()
         else:
             messagebox.showerror("Strength","Please provide a stronger password")
     else:
@@ -303,7 +304,7 @@ def login_password(title1, object):
         )
         show_both_12.place(x=340,y=245)
         
-        save = Button(root,text='Save!',font=("Segoe Ui", 13),fg='white',bg="#1E1E1E",command=lambda:change(object,email,password1,username12,str(new_password_entry.get()),str(new_username_entry.get()),original_password,main_pass))
+        save = Button(root,text='Save!',font=("Segoe Ui", 13),fg='white',bg="#1E1E1E",command=lambda:change(root,object,email,password1,username12,str(new_password_entry.get()),str(new_username_entry.get()),original_password,main_pass))
         save.place(x=150,y=290)
         
     def Verification(password, otp_entry, email, email_password, username12, button,original_password,main_pass):
