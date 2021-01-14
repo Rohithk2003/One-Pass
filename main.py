@@ -187,7 +187,7 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
     settings_window.mainloop()
 
 
-# main class
+# main clas
 class ONE_PASS(Tk):
     def __init__(self):
         tix.Tk.__init__(self)
@@ -1176,14 +1176,12 @@ class Password_display(Frame):
                 pass
 
 
-    def save(self, *image_path):
-        if len(image_path) == 0:
-            self.image_path = f'{path}photo.png'
+    def save(self):
+
         list_account = [
             str(self.username_window_entry.get()),
             str(self.password_entry.get()),
             str(self.name_of_social_entry.get()),
-            self.image_path,
         ]
         if str(self.username_window_entry.get()) == "":
             messagebox.showwarning("Warning", "Username cannot be empty")
@@ -1261,23 +1259,8 @@ class Password_display(Frame):
         self.password_entry.place(x=200, y=130 + 100)
         self.name_of_social_entry.place(x=200, y=70 + 100)
 
-        def browsefunc(self):
-            # try:
-            #     self.image_path = fd.askopenfilename()
-            #     im = image.open(self.image_path)
-            #     tkimage = tk_image.PhotoImage(im)
-            #     add_icon_button.config(image=tkimage)
-            #     add_icon_button.photo = tkimage
-            # except:
-            self.image_path = f"{path}side_display.jpg"
-            im = image.open(self.image_path)
-            tkimage = tk_image.PhotoImage(im)
-            add_icon_button.config(image=tkimage)
-            add_icon_button.photo = tkimage
-            save_button.config(command=lambda: self.save(self.image_path))
-
         new_id = tk_image.PhotoImage(image.open(f"{path}photo.png"))
-        add_icon_button = Button(
+        self.add_icon_button = Button(
             self.root1,
             image=new_id,
             borderwidth="0",
@@ -1287,17 +1270,16 @@ class Password_display(Frame):
             activebackground="#292A2D",
             bg="#292A2D",
         )
-        add_icon_button.photo = new_id
-        add_icon_button.grid(row=3, column=0)
-        add_icon_button.place(x=125, y=200)
+        self.add_icon_button.photo = new_id
+        self.add_icon_button.grid(row=3, column=0)
+        self.add_icon_button.place(x=125, y=200)
 
-        save_button = Button(self.root1, text="Save", command=lambda: self.save(),
+        self.save_button = Button(self.root1, text="Save", command=lambda: self.save(),
                              fg="white", bg="#292A2D")
-        save_button.grid(row=4, column=1)
-        save_button.place(x=250, y=170 + 100)
-        add_icon_button.place(x=150, y=50)
+        self.save_button.grid(row=4, column=1)
+        self.save_button.place(x=250, y=170 + 100)
+        self.add_icon_button.place(x=150, y=50)
         self.root1.mainloop()
-
     def show_account(self, button, account_name):
 
         change_object = Change_details(self.handler, self.main_window, self.username, self.password,
