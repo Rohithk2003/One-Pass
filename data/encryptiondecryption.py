@@ -55,7 +55,7 @@ def pass_generator(entry):
         'Segoe UI', 10), text="Length:").place(x=100, y=60)
     Label(de, foreground='white', background='black', font=(
         'Segoe UI', 10), text="Strength:").place(x=100, y=100)
-    length = Scale(de, length=174, from_=6, to=25, sliderrelief=FLAT, highlightcolor='black', troughcolor='black',
+    length = Scale(de, length=174, from_=6, to=15, sliderrelief=FLAT, highlightcolor='black', troughcolor='black',
                    resolution=1, orient='horizontal')
     length.place(x=160, y=60)
 
@@ -95,14 +95,12 @@ def pass_generator(entry):
         de.grab_set()
 
     def display(length, strength):
-        print(strength)
-        print(length)
         if length == '' or strength == '':
             messagebox.showerror("Error", "Please fill the details")
 
         try:
             if int(length) > 5:
-                if int(length) < 18:
+                if int(length) <= 15:
                     try:
                         a = string.ascii_lowercase
                         d = string.ascii_uppercase
