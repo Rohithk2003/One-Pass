@@ -904,7 +904,6 @@ class main_window(Frame):
             (self.password_new + self.username).encode()).hexdigest()
 
         main_ic = tk_image.PhotoImage(image.open(f'{path}main_icon.png'))
-        notes_img = tk_image.PhotoImage(image.open(f"{path}_notes.png"))
         new_button = tk_image.PhotoImage(image.open(f"{path}_new_but.jpg"))
 
         self.sidebar = Frame(
@@ -1130,17 +1129,15 @@ class Password_display(Frame):
                     new.append(i[2])
                 d = {}
                 for i in range(len(new)):
-                    if not val[i][3] :
-                        button_img = tk_image.PhotoImage(
-                            image.open(f"{path}side_display.jpg"))
-                    else:
-                        button_img = tk_image.PhotoImage(image.open(val[i][3]))
+                    button_img = tk_image.PhotoImage(
+                            image.open(f"{path}a.png"))
                     d[
                         Button(
                             self.second_frame,
                             text=f"{new[i]}",
                             bg="#1E1E1E",
                             fg="white",
+                            height=60,
                             activeforeground="white",
                             activebackground="#1E1E1E",
                             width=120,
@@ -1326,14 +1323,13 @@ class Password_display(Frame):
             font=("Yu Gothic Ui", 15),
             command=lambda: change_object.change_window_creation(lists[button][0], self.button))
         # getting the username and password
-        username = ''
-        password = ''
-        image_path = ''
+        username,password = '',''
+        img = tk_image.PhotoImage(image.open(f'{path}followers.png'))
         with open(f'{self.username}decrypted.bin', 'rb') as f:
             values = p.load(f)
             for i in values:
                 if i[2] == account_name:
-                    username, password, image_path = i[0], i[1], i[3]
+                    username, password = i[0], i[1]
 
         username_label = Label(
             new_s,
@@ -1383,16 +1379,8 @@ class Password_display(Frame):
         copy_but_username = Button(new_s, text="Copy Username", bg="#1E1E1E", fg="white", font=(
             "Yu Gothic Ui", 12), command=lambda: copy(username))
 
-        if image_path == "":
-            img = tk_image.PhotoImage(image.open(f"{path}side_display.jpg"))
-        else:
-            img = tk_image.PhotoImage(image.open(image_path))
-        '''command  for img_button             command=lambda: change_icon(img_button,lists[button][0],
-            username,
-            hashed_password,
-            new_s,
-            password_button, object'''
-        img_button = Button(
+
+        img_button = Label(
             new_s,
             image=img,
             border="0",
@@ -1413,7 +1401,7 @@ class Password_display(Frame):
         username_text.place(x=250, y=250 + 25)
         password_text.place(x=250, y=200 + 25)
         social_account_text.place(x=250, y=175)
-        ChangeAccount.place(x=310, y=350)
+        ChangeAccount.place(x=350, y=350)
         copy_but_username.place(x=360, y=30)
         copy_but_password.place(x=360, y=80)
 
