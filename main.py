@@ -1,6 +1,7 @@
-import sqlite3
+import mysql.connector as m
 import glob
 import pickle as p
+from mysql.connector.constants import CharacterSet
 import pyperclip
 from tkscrolledframe import ScrolledFrame
 from tkinter import tix
@@ -11,7 +12,6 @@ from data.forgot_password import *
 # tkinter modules
 from PIL import Image as image
 from PIL import ImageTk as tk_image
-from tkinter import colorchooser
 from tkinter import filedialog as fd
 from tkinter import messagebox
 from tkinter import simpledialog
@@ -44,14 +44,15 @@ fa = None
 testing_strng = ''
 var = 0
 # database
-if not os.path.exists("DATABASE"):
-    os.mkdir("DATABASE")
-connection = sqlite3.connect("DATABASE\\users.db", isolation_level=None)
+
+connection = m.connect(host='localhost', user='root', passwd='rohithk123')
 my_cursor = connection.cursor()
+my_cursor.execute("create database if not exists users")
+my_cursor.execute("use users")
+my_cursor.execute("ALTER DATABASE `%s` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'" % "users")
+my_cursor.execute("set autocommit=1")
 my_cursor.execute(
-    "create table if not exists data_input (username varchar(100) primary key,email_id varchar(100),password  blob,"
-    "salt blob, recovery_password varchar(100), salt_recovery blob) "
-)
+    "create table if not exists data_input (username varchar(100) primary key,email_id longtext,password blob ,salt blob, recovery_password LONGBLOB, salt_recovery blob) ")
 
 
 # log out
@@ -62,7 +63,7 @@ def log_out(*window):
     a = Tk()
     a.withdraw()
     messagebox.showinfo(
-        "Logged Out", "You have been successfully logged out")
+        "Logged Out", "You have  successfully logged out")
     a.destroy()
     for file in glob.glob("*decrypted.bin"):
         os.remove(file)
@@ -89,9 +90,9 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
     settings_window.title("Settings")
     settings_window.config(bg="#1E1E1E")
 
-    delete_object = Deletion(handler, real_username, original_password, hashed_password, window, my_cursor,master_main)
-    change_object = Change_details(handler, master_main,
-                                   real_username, original_password, hashed_password, window, my_cursor)
+    delete_object = Deletion(handler, real_username, original_password, hashed_password, window, my_cursor, master_main)
+    change_object = Change_details(master_main,
+                                   real_username, original_password, hashed_password, my_cursor)
 
     log_label = Button(
         settings_window,
@@ -108,7 +109,7 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
 
     check_for_updates = Button(
         settings_window,
-        command=checkforupdates,
+        command=lambda:checkforupdates(settings_window),
         text="Check for updates",
         width=20,
         activebackground="#1E1E1E",
@@ -375,7 +376,7 @@ class Login_page(Frame):
 
         self.input_entry.insert(END, "Username")
         self.input_entry.config(foreground="grey")
-        self.pass_entry.insert(END, "Password")
+        self.pass_entry.insert(END, "Master Password")
         self.pass_entry.config(foreground="grey")
         self.pass_entry.config(show="")
 
@@ -447,30 +448,27 @@ class Login_page(Frame):
 
         self.username = str(self.input_entry.get())
         self.password = str(self.pass_entry.get())
-        try:
-            if self.username != "" or self.password != "":
-                check = self.login_checking()
-                if check:
-                    root = Tk()
-                    root.withdraw()
+        if self.username != "" or self.password != "":
+            check = self.login_checking()
+            if check:
+                root = Tk()
+                root.withdraw()
 
-                    messagebox.showinfo(
-                        "Success", "You have now logged in ")
-                    root.destroy()
-                    master.switch_frame(
-                        main_window, self.username, self.password)
+                messagebox.showinfo(
+                    "Success", "You have now logged in ")
+                root.destroy()
+                master.switch_frame(
+                    main_window, self.username, self.password)
 
-                else:
-                    pass
             else:
-                if self.username == "":
-                    messagebox.showwarning(
-                        "Error", "Cannot blank have username")
-                elif self.password == "":
-                    messagebox.showwarning(
-                        "Error", "Cannot have blank password")
-        except:
-            pass
+                pass
+        else:
+            if self.username == "":
+                messagebox.showwarning(
+                    "Error", "Cannot blank have username")
+            elif self.password == "":
+                messagebox.showwarning(
+                    "Error", "Cannot have blank password")
 
     def login_checking(self):  # verifying the user
         for_hashing_both = self.password + self.username
@@ -566,7 +564,7 @@ class Register_page(Frame):
         password = Label(
             labelframe1,
             fg="#ebebeb",
-            text="Password",
+            text="Master Password",
             bd=5,
             bg="#292A2D",
             font=("Yu Gothic Ui", 15),
@@ -753,6 +751,7 @@ class Register_page(Frame):
                     if self.email_exists():
                         registering = self.saving()
                         if registering:
+                            print()
                             messagebox.showinfo(
                                 "Error", "Username or email is unavailable")
                             self.submit_but.config(state=NORMAL)
@@ -816,7 +815,7 @@ class Register_page(Frame):
                     return (
                         True,
                     )  # checking whether the username already exists in the database
-
+                    print("d")
         email_split = ""
         word = self.email.split()
         for i in word:
@@ -828,7 +827,7 @@ class Register_page(Frame):
         val = email_split[::-1]
         main_password = val + "/" + self.email_password  # static salt
         static_salt_password = self.password + "@" + main_password
-        # hashing/encrypting the password and store the dynamic salt created during creat_key() fn is called along with the encrypted password in database
+        # hashing/encrypting the password and store the dynamic salt created during create_key() fn is called along with the encrypted password in database
         cipher_text, salt_for_decryption = create_key(
             main_password, static_salt_password
         )
@@ -843,21 +842,16 @@ class Register_page(Frame):
         key = pbkdf2.PBKDF2(password_recovery_email, passwordSalt).read(32)
         aes = pyaes.AESModeOfOperationCTR(key)
         encrypted_pass = aes.encrypt(self.email_password)
-        try:
-            my_cursor.execute(
-                "insert into data_input values (?,?,?,?,?,?)",
-                (
-                    simple_encrypt(self.username),
-                    simple_encrypt(self.email),
-                    cipher_text,
-                    salt_for_decryption,
-                    encrypted_pass,
-                    passwordSalt,
-                ),
-            )
-
-        except:
-            return True
+        my_cursor.execute(
+            "insert into data_input values (%s,%s,%s,%s,%s,%s)",(
+                simple_encrypt(self.username),
+                simple_encrypt(self.email),
+                cipher_text,
+                salt_for_decryption,
+                encrypted_pass,
+                passwordSalt,
+            ))
+        print("d")
         return False
 
     # adding the account
@@ -986,13 +980,12 @@ class main_window(Frame):
         self.mainarea.pack(expand=True, fill="both", side="right")
 
         self.object.execute(
-            "select email_id,salt_recovery from data_input where username = (?)",
+            "select email_id,salt_recovery from data_input where username = (%s)",
             (simple_encrypt(self.username),),
         )
 
         for email in self.object.fetchall():
             self.email_id = simple_decrypt(email[0])
-
         email_split = ""
 
         word = self.email_id.split()
@@ -1004,7 +997,7 @@ class main_window(Frame):
                     email_split += i
         val = email_split[::-1]
         self.object.execute(
-            "select recovery_password,salt_recovery from data_input where username = (?)",
+            "select recovery_password,salt_recovery from data_input where username = (%s)",
             (simple_encrypt(self.username),),
         )
         d = self.object.fetchall()
@@ -1029,11 +1022,11 @@ class main_window(Frame):
     def testing(self, master):
         self.button["state"] = DISABLED
         self.profile_button["state"] = NORMAL
-        master.title("Passwords")
-        emptyMenu = Menu(master)
-        master.config(menu=emptyMenu)
-        master.iconbitmap(f"{path}password.ico")
-        self.switchframe(Password_display, master, self.username,
+        self.parent.title("Passwords")
+        emptyMenu = Menu(self.parent)
+        self.parent.config(menu=emptyMenu)
+        self.parent.iconbitmap(f"{path}password.ico")
+        self.switchframe(Password_display, self.parent, self.username,
                          self.hash_password, self.object, self.password_new)
 
     def switchframe(self, frame_class, master, *args):
@@ -1048,21 +1041,19 @@ class main_window(Frame):
         self._frame.place(x=134, y=0)
 
 
-# note -pad
-
-
 # displaying the passwords
 class Password_display(Frame):
     def __init__(self, main_window, button, profile_button, handler, second_frame, *args):
         self.main_window = main_window
         Frame.__init__(self, self.main_window)
         self.config(bg='#292A2D')
+        self.style = ttk.Style()
         button.config(state=DISABLED)
         profile_button.config(state=NORMAL)
         emptyMenu = Menu(self.main_window)
         self.main_window.config(menu=emptyMenu)
-        main_window.unbind("<Return>")
-
+        self.main_window.unbind("<Return>")
+        self.main_window.title("Passwords")
         #  # getting the username
         self.handler = handler
         self.username = args[0]
@@ -1073,12 +1064,11 @@ class Password_display(Frame):
         self.button = button
 
         bg_img = tk_image.PhotoImage(image.open(f"{path}log.jpg"))
-        self.subbar = Frame(self, bg="black", width=120, height=1057, relief="sunken", borderwidth=2
+        self.subbar = Frame(self, bg="black", width=105, height=1057, relief="sunken", borderwidth=2
                             )
         self.subbar.place(x=0, y=0)
         self.subbar.grid_propagate(False)
-
-        scrollbar = ScrolledFrame(self.subbar, width=131, height=661)
+        scrollbar = ScrolledFrame(self.subbar, width=128, height=661)
 
         scrollbar.pack(expand=1, fill=Y)
         # configure the canvas
@@ -1130,7 +1120,7 @@ class Password_display(Frame):
                 d = {}
                 for i in range(len(new)):
                     button_img = tk_image.PhotoImage(
-                            image.open(f"{path}a.png"))
+                        image.open(f"{path}a.png"))
                     d[
                         Button(
                             self.second_frame,
@@ -1167,11 +1157,10 @@ class Password_display(Frame):
             try:
                 test_values = p.load(f)
                 for user in test_values:
-                    if  user[2] == str(self.name_of_social_entry.get()):
+                    if user[2] == str(self.name_of_social_entry.get()):
                         return True
             except:
                 pass
-
 
     def save(self):
 
@@ -1233,57 +1222,53 @@ class Password_display(Frame):
         self.root1.geometry("%dx%d+%d+%d" %
                             (width_window, height_window, x, y))
         name_of_social = Label(
-            self.root1, text="Name of the account", fg="white", bg="#292A2D")
-        username_window = Label(self.root1, text="Username:",
+            self.root1, text="Account Name:", fg="white", font=("Yu Gothic Ui", 15), bg="#292A2D")
+        username_window = Label(self.root1, text="Username:", font=("Yu Gothic Ui", 15),
                                 fg="white", bg="#292A2D")
-        password_window = Label(self.root1, text="Password:",
+        password_window = Label(self.root1, text="Password:", font=("Yu Gothic Ui", 15),
                                 fg="white", bg="#292A2D")
-        self.username_window_entry = Entry(self.root1)
-        self.password_entry = Entry(self.root1)
-        self.name_of_social_entry = Entry(self.root1)
+        self.username_window_entry = Entry(self.root1, font=("Yu Gothic Ui", 10))
+        self.password_entry = Entry(self.root1, font=("Yu Gothic Ui", 10))
+        self.name_of_social_entry = Entry(self.root1, font=("Yu Gothic Ui", 10))
 
-        self.password_entry.grid(row=2, column=2)
-        self.username_window_entry.grid(row=1, column=2)
-        password_window.grid(row=2, column=1)
-        username_window.grid(row=1, column=1)
-        self.name_of_social_entry.grid(row=0, column=2)
-        name_of_social.grid(row=0, column=1)
-
-        username_window.place(x=50, y=100 + 100)
-        password_window.place(x=50, y=130 + 100)
-        name_of_social.place(x=50, y=70 + 100)
-        self.username_window_entry.place(x=200, y=100 + 100)
-        self.password_entry.place(x=200, y=130 + 100)
-        self.name_of_social_entry.place(x=200, y=70 + 100)
+        username_window.place(x=10, y=100 + 100)
+        password_window.place(x=10, y=130 + 110)
+        name_of_social.place(x=10, y=60 + 100)
+        self.username_window_entry.place(x=200 + 10, y=100 + 110, height=20, width=150)
+        self.password_entry.place(x=200 + 10, y=130 + 118, height=20, width=150)
+        self.name_of_social_entry.place(x=200 + 10, y=70 + 100, height=20, width=150)
 
         new_id = tk_image.PhotoImage(image.open(f"{path}photo.png"))
-        self.add_icon_button = Button(
+        self.add_icon_button = Label(
             self.root1,
             image=new_id,
             borderwidth="0",
-            command=lambda: self.browsefunc(),
-            border="0",
             highlightthickness="0",
             activebackground="#292A2D",
             bg="#292A2D",
         )
         self.add_icon_button.photo = new_id
-        self.add_icon_button.grid(row=3, column=0)
         self.add_icon_button.place(x=125, y=200)
 
-        self.save_button = Button(self.root1, text="Save", command=lambda: self.save(),
-                             fg="white", bg="#292A2D")
-        self.save_button.grid(row=4, column=1)
-        self.save_button.place(x=250, y=170 + 100)
+        self.save_button = Button(self.root1, text="S A V E", bd=0,
+                                  width=15,
+                                  height=1,
+                                  font=("consolas"),
+                                  fg="#292A2D",
+                                  activeforeground="#292A2D",
+                                  bg="#994422",
+                                  activebackground="#994422",
+                                  command=lambda: self.save(), )
+        self.save_button.place(x=130, y=170 + 130)
         self.add_icon_button.place(x=150, y=50)
         self.root1.mainloop()
+
     def show_account(self, button, account_name):
 
-        change_object = Change_details(self.handler, self.main_window, self.username, self.password,
-                                       self.hashed_password,
-                                       self.main_window, my_cursor)
+        change_object = Change_details(self.main_window, self.username, self.password,
+                                       self.hashed_password, my_cursor)
         delete_object = Deletion(self.handler, self.username, self.password, self.hashed_password, self.main_window,
-                                 my_cursor,self.main_window)
+                                 my_cursor, self.main_window)
 
         self.config(bg='#1E1E1E')
         bg_img = tk_image.PhotoImage(image.open(f"{path}log.jpg"))
@@ -1309,27 +1294,34 @@ class Password_display(Frame):
         delete_account = Button(
             new_s,
             text="Delete Account",
-            bg="#1E1E1E",
-            fg="white",
-            font=("Yu Gothic Ui", 15),
+            bd=0,
+            font=("consolas"),
+            fg="#292A2D",
+            activeforeground="#292A2D",
+            bg="#994422",
+            activebackground="#994422",
             command=lambda: delete_object.delete_social_media_account(
                 self.button, False, lists[button][2]), )
 
         ChangeAccount = Button(
             new_s,
             text="Change Details",
-            bg="#1E1E1E",
-            fg="white",
-            font=("Yu Gothic Ui", 15),
+            bd=0,
+            font=("consolas"),
+            fg="#292A2D",
+            activeforeground="#292A2D",
+            bg="#994422",
+            activebackground="#994422",
             command=lambda: change_object.change_window_creation(lists[button][0], self.button))
         # getting the username and password
-        username,password = '',''
-        img = tk_image.PhotoImage(image.open(f'{path}followers.png'))
+        username = ''
+        password = ''
         with open(f'{self.username}decrypted.bin', 'rb') as f:
             values = p.load(f)
             for i in values:
                 if i[2] == account_name:
                     username, password = i[0], i[1]
+        image_path = f'{path}followers.png'
 
         username_label = Label(
             new_s,
@@ -1374,11 +1366,20 @@ class Password_display(Frame):
             fg="white",
             font=("Yu Gothic Ui", 15),
         )
-        copy_but_password = Button(new_s, text="Copy Password", bg="#1E1E1E", fg="white", font=(
-            "Yu Gothic Ui", 12), command=lambda: copy(password))
-        copy_but_username = Button(new_s, text="Copy Username", bg="#1E1E1E", fg="white", font=(
-            "Yu Gothic Ui", 12), command=lambda: copy(username))
+        copy_but_password = Button(new_s, text="Copy Password", bd=0,
+                                   font=("consolas"),
+                                   fg="#292A2D",
+                                   activeforeground="#292A2D",
+                                   bg="#994422",
+                                   activebackground="#994422", command=lambda: copy(password))
+        copy_but_username = Button(new_s, text="Copy Username", bd=0,
+                                   font=("consolas"),
+                                   fg="#292A2D",
+                                   activeforeground="#292A2D",
+                                   bg="#994422",
+                                   activebackground="#994422", command=lambda: copy(username))
 
+        img = tk_image.PhotoImage(image.open(image_path))
 
         img_button = Label(
             new_s,
@@ -1394,14 +1395,14 @@ class Password_display(Frame):
         dot_text1.place(x=170 + 20, y=200 + 25 + 3)
         dot_text2.place(x=170 + 20, y=250 + 25 + 3)
 
-        delete_account.place(x=0 + 10, y=350)
+        delete_account.place(x=0 + 25, y=340)
         username_label.place(x=30, y=250 + 25)
         password_label.place(x=30, y=200 + 25)
         social_account.place(x=30, y=175)
         username_text.place(x=250, y=250 + 25)
         password_text.place(x=250, y=200 + 25)
         social_account_text.place(x=250, y=175)
-        ChangeAccount.place(x=350, y=350)
+        ChangeAccount.place(x=340, y=340)
         copy_but_username.place(x=360, y=30)
         copy_but_password.place(x=360, y=80)
 
@@ -1560,7 +1561,8 @@ class Profile_view(Frame):
         )
         profile_photo.photo = member
         delete_object = Deletion(self.handler,
-                                 self.username, self.password, self.hashed_password, self.window, my_cursor,self.master)
+                                 self.username, self.password, self.hashed_password, self.window, my_cursor,
+                                 self.master)
         delete_this_account = Button(
             new_s,
             text="Delete Account",
@@ -1591,14 +1593,12 @@ class Profile_view(Frame):
         dot3.place(x=200, y=250 + 100 + 6)
 
 
+# to change the details of the user
 class Change_details:
-    def __init__(self, handler, master, real_username, password, hashed_password, window, object):
-        self.master = master
+    def __init__(self, handler, real_username, password, hashed_password, object):
         self.real_username = real_username
         self.hashed_password = hashed_password
-        self.window = window
         self.object = object
-        self.window.unbind("<Return>")
         self.hand = handler
         self.password = password
 
@@ -1629,21 +1629,21 @@ class Change_details:
             text="New Username:",
             fg="white",
             bg="#292A2D",
-            font=("Sitka Text", 15),
+            font=("Yu Gothic Ui", 15),
         )
         new_password_label = Label(
             change_acccount,
             text="New Password:",
             fg="white",
             bg="#292A2D",
-            font=("Sitka Text", 15),
+            font=("Yu Gothic Ui", 15),
         )
         new_account_name_label = Label(
             change_acccount,
             text="New Account Name:",
             fg="white",
             bg="#292A2D",
-            font=("Sitka Text", 15),
+            font=("Yu Gothic Ui", 15),
         )
 
         new_username = Entry(
@@ -1740,13 +1740,10 @@ class Change_details:
                     self.hashed_password,
                     bufferSize,
                 )
-
-                self.hand.switchframe(main_window, self.window,
-                                      self.real_username, self.password
-                                      )
+                self.hand.switch_frame(main_window, self.real_username, self.password)
 
     def save_email(
-            self,
+            self
     ):
 
         email_split = ""
@@ -1777,7 +1774,7 @@ class Change_details:
         encrypted_pass = aes.encrypt(self.new_email_password_entry.get())
 
         os.remove(f"{self.real_username}.bin.aes")
-        query = 'update data_input set password = (?), email_id = (?), salt_recovery = (?), salt = (?), recovery_password = (?) where username = (?)'
+        query = 'update data_input set password = (%s), email_id = (%s), salt_recovery = (%s), salt = (%s), recovery_password = (%s) where username = (%s)'
         self.object.execute(query, (
             re_encrypt,
             simple_encrypt(self.new_email_entry.get()),
@@ -1801,9 +1798,8 @@ class Change_details:
         )
         ad.destroy()
         self.new_window.destroy()
-        self.master.switch_frame(main_window,
-                                 self.real_username, self.password
-                                 )
+        self.hand.switch_frame(main_window, self.real_username, self.password)
+
 
     def change_email(self):
 
@@ -1852,7 +1848,7 @@ class Change_details:
               bg="#CACBC7").place(x=165, y=100 + 77 + 20)
 
         self.object.execute(
-            "select email_id from data_input where username=(?)", (
+            "select email_id from data_input where username=(%s)", (
                 simple_encrypt(self.real_username),)
         )
         for i in self.object.fetchall():
@@ -1884,7 +1880,7 @@ class Change_details:
 
 
 class Deletion:
-    def __init__(self, handler, real_username, password, hashed_password, window, object,master):
+    def __init__(self, handler, real_username, password, hashed_password, window, object, master):
         self.real_username = real_username
         self.hashed_password = hashed_password
         self.window = window
@@ -1951,10 +1947,8 @@ class Deletion:
             )
             a.destroy()
             if result:
-
                 self.change_account_name(
                     account_name[0], password_button, False)
-
 
     def change_account_name(self, account_name, button, val):
         if val:
@@ -1989,10 +1983,14 @@ class Deletion:
             a = Tk()
             a.withdraw()
             messagebox.showinfo(
-                "Success", f"{account_name}  has been  deleted")
+                "Success", f"The account  has been  deleted")
             a.destroy()
-            self.delete_med_account.destroy()
-            self.master.switch_frame(main_window,  self.real_username, self.password)
+            self.master.switch_frame(main_window, self.real_username, self.password)
+            try:
+                self.delete_med_account.destroy()
+
+            except:
+                pass
         else:
             a = Tk()
             a.withdraw()
@@ -2014,7 +2012,7 @@ class Deletion:
                     os.remove(self.real_username + ".bin.aes")
 
                     self.object.execute(
-                        "delete from data_input where username = (?)",
+                        "delete from data_input where username = (%s)",
                         (simple_encrypt(self.real_username),),
                     )
                     messagebox.showinfo(

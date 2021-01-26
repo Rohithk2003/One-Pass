@@ -4,7 +4,7 @@ from tkinter import *
 from tkinter import messagebox
 
 
-def checkforupdates():
+def checkforupdates(*window):
     # isUpToDate check whether the file ie main.py  is same as the one present in my github repository and it returns true if same else false
     if isUpToDate(
             "main.py",
@@ -32,6 +32,8 @@ def checkforupdates():
                 )
 
         else:
-            quit()
+            pass
+            for i in window:
+                i.focus_force()
     else:
         messagebox.showinfo("Update", "No update is currently available")
