@@ -113,10 +113,10 @@ def login_password(title1, object):
     window.focus_force()
     window.title(title1)
     text = (
-        "Please provide the recovery email  and recovery email password \n that you provided while creating an "
+        "Please provide the recovery email  and recovery email password \n that you entered while creating an "
         "account "
     )
-    text_label = Label(window, text=text, font=("Yu Gothic Ui", 10), fg="#994422", bg="#1E1E1E")
+    text_label = Label(window, text=text, font=("Yu Gothic Ui", 13), fg="#994422", bg="#1E1E1E")
     width_window = 450
     height_window = 400
     screen_width = window.winfo_screenwidth()

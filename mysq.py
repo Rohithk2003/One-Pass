@@ -91,7 +91,7 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
     settings_window.config(bg="#1E1E1E")
 
     delete_object = Deletion(handler, real_username, original_password, hashed_password, window, my_cursor, master_main)
-    change_object = Change_details(handler,
+    change_object = Change_details(master_main,
                                    real_username, original_password, hashed_password, my_cursor)
 
     log_label = Button(
@@ -1743,7 +1743,7 @@ class Change_details:
                 self.hand.switch_frame(main_window, self.real_username, self.password)
 
     def save_email(
-            self,
+            self
     ):
 
         email_split = ""
@@ -1798,9 +1798,8 @@ class Change_details:
         )
         ad.destroy()
         self.new_window.destroy()
-        self.master.switch_frame(main_window,
-                                 self.real_username, self.password
-                                 )
+        self.hand.switch_frame(main_window, self.real_username, self.password)
+
 
     def change_email(self):
 
