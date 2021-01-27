@@ -44,6 +44,7 @@ if platform.system() == "Linux":
 fa = None
 testing_strng = ''
 var = 0
+
 # database
 
 connection = m.connect(host='localhost', user='root', passwd='rohithk123')
@@ -54,7 +55,10 @@ my_cursor.execute("ALTER DATABASE `%s` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_
 my_cursor.execute("set autocommit=1")
 my_cursor.execute(
     "create table if not exists usersdata (username varchar(100) primary key,email_id longtext,password blob ,salt blob, recovery_password LONGBLOB, salt_recovery blob) ")
-
+def destroy_all(root):
+    for widget in root.winfo_children():
+        if isinstance(widget, tix.Toplevel):
+            widget.destroy()
 # log out
 def log_out(*window):
     for windows in window:
@@ -67,11 +71,8 @@ def log_out(*window):
     a.destroy()
     for file in glob.glob("*decrypted.bin"):
         os.remove(file)
-
     new_app = ONE_PASS()
     new_app.mainloop()
-
-
 def settings(handler, real_username, master_main, hashed_password, window, password_button, rec_pas, original_password):
     settings_window = Toplevel()
     settings_window.resizable(False, False)
@@ -1728,6 +1729,7 @@ class Change_details:
                     self.hashed_password,
                     bufferSize,
                 )
+                destroy_all(self.hand)
                 self.hand.switch_frame(main_window, self.real_username, self.password)
 
     def save_email(
@@ -1786,6 +1788,7 @@ class Change_details:
         )
         ad.destroy()
         self.new_window.destroy()
+        destroy_all(self.hand)
         self.hand.switch_frame(main_window, self.real_username, self.password)
 
 
@@ -1973,6 +1976,7 @@ class Deletion:
             messagebox.showinfo(
                 "Success", f"The account  has been  deleted")
             a.destroy()
+            destroy_all(self.master)
             self.master.switch_frame(main_window, self.real_username, self.password)
             try:
                 self.delete_med_account.destroy()
