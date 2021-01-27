@@ -5,10 +5,10 @@ from mysql.connector.constants import CharacterSet
 import pyperclip
 from tkscrolledframe import ScrolledFrame
 from tkinter import tix
-
+import platform
 from data.checkupdates import *
+from data.secure import *
 from data.forgot_password import *
-
 # tkinter modules
 from PIL import Image as image
 from PIL import ImageTk as tk_image
@@ -376,7 +376,7 @@ class Login_page(Frame):
 
         self.input_entry.insert(END, "Username")
         self.input_entry.config(foreground="grey")
-        self.pass_entry.insert(END, "Master Password")
+        self.pass_entry.insert(END, "Password")
         self.pass_entry.config(foreground="grey")
         self.pass_entry.config(show="")
 

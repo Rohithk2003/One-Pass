@@ -4,7 +4,7 @@ import secrets
 import pickle
 import sqlite3
 from  data.show_hide import *
-from data.encryptiondecryption import *
+from data.secure import *
 
 # set the buffer size
 
