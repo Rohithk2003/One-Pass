@@ -71,7 +71,7 @@ def log_out(*window):
     a.destroy()
     for file in glob.glob("*decrypted.bin"):
         os.remove(file)
-    new_app = ONE_PASS()
+    new_app = main_class()
     new_app.mainloop()
 def settings(handler, real_username, master_main, hashed_password, window, password_button, rec_pas, original_password):
     settings_window = Toplevel()
@@ -178,7 +178,7 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
 
 
 # main clas
-class ONE_PASS(Tk):
+class main_class(Tk):
     def __init__(self):
         tix.Tk.__init__(self)
         self.resizable(False, False)
@@ -2025,8 +2025,9 @@ class Deletion:
 
 
 if __name__ == "__main__":
+
     # initialising the main class
-    app = ONE_PASS()
+    app = main_class()
     app.mainloop()
 
 """ to remove all decrypted files
