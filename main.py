@@ -19,6 +19,7 @@ from tkinter import ttk
 from tkinter import *
 
 bufferSize = 64 * 1024
+
 if platform.system() == "Windows":
     l = os.path.dirname(os.path.realpath(__file__)).split("\\")
     dir_path = ''
@@ -52,8 +53,7 @@ my_cursor.execute("use users")
 my_cursor.execute("ALTER DATABASE `%s` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'" % "users")
 my_cursor.execute("set autocommit=1")
 my_cursor.execute(
-    "create table if not exists data_input (username varchar(100) primary key,email_id longtext,password blob ,salt blob, recovery_password LONGBLOB, salt_recovery blob) ")
-
+    "create table if not exists usersdata (username varchar(100) primary key,email_id longtext,password blob ,salt blob, recovery_password LONGBLOB, salt_recovery blob) ")
 
 # log out
 def log_out(*window):
@@ -793,7 +793,7 @@ class Register_page(Frame):
     """to create a file named user and to store his accounts and also add his details to the database"""
 
     def saving(self):
-        my_cursor.execute("select username from data_input")
+        my_cursor.execute("select username from usersdata")
         values_username = my_cursor.fetchall()
         for i in values_username:
             for usernames in i:
@@ -831,7 +831,7 @@ class Register_page(Frame):
         aes = pyaes.AESModeOfOperationCTR(key)
         encrypted_pass = aes.encrypt(self.email_password)
         my_cursor.execute(
-            "insert into data_input values (%s,%s,%s,%s,%s,%s)",(
+            "insert into usersdata values (%s,%s,%s,%s,%s,%s)",(
                 simple_encrypt(self.username),
                 simple_encrypt(self.email),
                 cipher_text,
@@ -968,7 +968,7 @@ class main_window(Frame):
         self.mainarea.pack(expand=True, fill="both", side="right")
 
         self.object.execute(
-            "select email_id,salt_recovery from data_input where username = (%s)",
+            "select email_id,salt_recovery from usersdata where username = (%s)",
             (simple_encrypt(self.username),),
         )
 
@@ -985,7 +985,7 @@ class main_window(Frame):
                     email_split += i
         val = email_split[::-1]
         self.object.execute(
-            "select recovery_password,salt_recovery from data_input where username = (%s)",
+            "select recovery_password,salt_recovery from usersdata where username = (%s)",
             (simple_encrypt(self.username),),
         )
         d = self.object.fetchall()
@@ -1762,7 +1762,7 @@ class Change_details:
         encrypted_pass = aes.encrypt(self.new_email_password_entry.get())
 
         os.remove(f"{self.real_username}.bin.aes")
-        query = 'update data_input set password = (%s), email_id = (%s), salt_recovery = (%s), salt = (%s), recovery_password = (%s) where username = (%s)'
+        query = 'update usersdata set password = (%s), email_id = (%s), salt_recovery = (%s), salt = (%s), recovery_password = (%s) where username = (%s)'
         self.object.execute(query, (
             re_encrypt,
             simple_encrypt(self.new_email_entry.get()),
@@ -1836,7 +1836,7 @@ class Change_details:
               bg="#CACBC7").place(x=165, y=100 + 77 + 20)
 
         self.object.execute(
-            "select email_id from data_input where username=(%s)", (
+            "select email_id from usersdata where username=(%s)", (
                 simple_encrypt(self.real_username),)
         )
         for i in self.object.fetchall():
@@ -2000,7 +2000,7 @@ class Deletion:
                     os.remove(self.real_username + ".bin.aes")
 
                     self.object.execute(
-                        "delete from data_input where username = (%s)",
+                        "delete from usersdata where username = (%s)",
                         (simple_encrypt(self.real_username),),
                     )
                     messagebox.showinfo(

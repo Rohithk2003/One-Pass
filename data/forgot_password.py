@@ -87,7 +87,7 @@ def change(window,object,email,rec_pass,username12,new_password,new_username,ori
             encrypted_pass = aes.encrypt(rec_pass)
             #updating the database
             object.execute(
-                "update data_input set username = (%s),password=(%s),recovery_password = (%s),salt_recovery=(%s) "
+                "update usersdata set username = (%s),password=(%s),recovery_password = (%s),salt_recovery=(%s) "
                 "where email_id = (%s)",
                 (
                     simple_encrypt(str(new_username)),
@@ -183,7 +183,7 @@ def login_password(title1, object):
         main_key += random.choice(alphabets)
     def verify_rec_password(window,email,password,main_key,but,object):
             object.execute(
-                "select password,salt from data_input where email_id = (%s)", (
+                "select password,salt from usersdata where email_id = (%s)", (
                     simple_encrypt(email),)
             )
             values_password = object.fetchall()
@@ -378,7 +378,7 @@ def login_password(title1, object):
                         verify_password += i
                 verify_password += recover_password_entry_verify
                 object.execute(
-                    "select email_id from data_input where username = (%s)",
+                    "select email_id from usersdata where username = (%s)",
                     (simple_encrypt(username_verify),),
                 )
                 values_fetch = object.fetchall()
