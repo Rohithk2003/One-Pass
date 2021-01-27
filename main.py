@@ -107,18 +107,7 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
         command=lambda: log_out(settings_window, window, master_main),
     )
 
-    check_for_updates = Button(
-        settings_window,
-        command=lambda:checkforupdates(settings_window),
-        text="Check for updates",
-        width=20,
-        activebackground="#1E1E1E",
-        font=("Segoe Ui", 13),
-        activeforeground="white",
-        fg="white",
-        bg="#1E1E1E",
 
-    )
     Delete_account_button = Button(
         settings_window,
         text="Delete main account",
@@ -175,11 +164,10 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
     Label(settings_window, text="Settings", font=("consolas", 30), fg='green', bg='#1E1E1E').place(x=160, y=0)
 
     Delete_account_button.place(x=30, y=70)
-    check_for_updates.place(x=270, y=70)
     Delete_social_button.place(x=30, y=150)
     change_account_button.place(x=270, y=150)
     change_email_button.place(x=30, y=230)
-    log_label.place(x=270, y=230)
+    log_label.place(x=270, y=70)
 
     if os.stat(f"{real_username}decrypted.bin").st_size == 0:
         Delete_social_button.config(state=DISABLED)
