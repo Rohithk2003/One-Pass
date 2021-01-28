@@ -47,19 +47,23 @@ var = 0
 
 # database
 
-connection = m.connect(host='localhost', user='root', passwd='rohithk123')
+connection = m.connect(host='localhost', user='root', passwd='rohithk123',autocommit=True)
 my_cursor = connection.cursor()
 my_cursor.execute("create database if not exists users")
 my_cursor.execute("use users")
-my_cursor.execute("ALTER DATABASE `%s` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'" % "users")
-my_cursor.execute("set autocommit=1")
+my_cursor.execute(
+    "ALTER DATABASE `%s` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'" % "users")
 my_cursor.execute(
     "create table if not exists usersdata (username varchar(100) primary key,email_id longtext,password blob ,salt blob, recovery_password LONGBLOB, salt_recovery blob) ")
+
+
 def destroy_all(root):
     for widget in root.winfo_children():
         if isinstance(widget, tix.Toplevel):
             widget.destroy()
 # log out
+
+
 def log_out(*window):
     for windows in window:
         windows.destroy()
@@ -73,6 +77,8 @@ def log_out(*window):
         os.remove(file)
     new_app = main_class()
     new_app.mainloop()
+
+
 def settings(handler, real_username, master_main, hashed_password, window, password_button, rec_pas, original_password):
     settings_window = Toplevel()
     settings_window.resizable(False, False)
@@ -91,7 +97,8 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
     settings_window.title("Settings")
     settings_window.config(bg="#1E1E1E")
 
-    delete_object = Deletion(handler, real_username, original_password, hashed_password, window, my_cursor, master_main)
+    delete_object = Deletion(handler, real_username, original_password,
+                             hashed_password, window, my_cursor, master_main)
     change_object = Change_details(master_main,
                                    real_username, original_password, hashed_password, my_cursor)
 
@@ -107,7 +114,6 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
 
         command=lambda: log_out(settings_window, window, master_main),
     )
-
 
     Delete_account_button = Button(
         settings_window,
@@ -162,7 +168,8 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
         bg="#1E1E1E",
     )
     # text label
-    Label(settings_window, text="Settings", font=("consolas", 30), fg='green', bg='#1E1E1E').place(x=160, y=0)
+    Label(settings_window, text="Settings", font=("consolas", 30),
+          fg='green', bg='#1E1E1E').place(x=160, y=0)
 
     Delete_account_button.place(x=30, y=70)
     Delete_social_button.place(x=30, y=150)
@@ -385,7 +392,7 @@ class Login_page(Frame):
             command=lambda: self.login_checking_1(master),
         )
         master.bind("<Return>", lambda event,
-                                       a=master: self.login_checking_1(a))
+                    a=master: self.login_checking_1(a))
         sub_button.place(x=50 + 3, y=300 + 30)
 
         show_both_1.place(x=300, y=200 + 30 - 5)
@@ -832,7 +839,7 @@ class Register_page(Frame):
         aes = pyaes.AESModeOfOperationCTR(key)
         encrypted_pass = aes.encrypt(self.email_password)
         my_cursor.execute(
-            "insert into usersdata values (%s,%s,%s,%s,%s,%s)",(
+            "insert into usersdata values (%s,%s,%s,%s,%s,%s)", (
                 simple_encrypt(self.username),
                 simple_encrypt(self.email),
                 cipher_text,
@@ -1049,7 +1056,6 @@ class Password_display(Frame):
         self.hashed_password = args[1]
         self.object = args[2]
         self.password = args[3]
-
         self.button = button
 
         bg_img = tk_image.PhotoImage(image.open(f"{path}log.jpg"))
@@ -1057,7 +1063,7 @@ class Password_display(Frame):
                             )
         self.subbar.place(x=0, y=0)
         self.subbar.grid_propagate(False)
-        scrollbar = ScrolledFrame(self.subbar, width=128, height=661)
+        scrollbar = ScrolledFrame(self.subbar, width=129, height=661,bg='#1E1E1E')
 
         scrollbar.pack(expand=1, fill=Y)
         # configure the canvas
@@ -1067,7 +1073,7 @@ class Password_display(Frame):
 
         # creating another frame
         self.second_frame = scrollbar.display_widget(
-            Frame, bg='#1E1E1E', width=131, height=661)
+            Frame, bg='#1E1E1E', width=129, height=661)
 
         # add that new frame to a new window in the canvas
         image_new = tk_image.PhotoImage(image.open(f"{path}add_button.png"))
@@ -1080,7 +1086,7 @@ class Password_display(Frame):
             compound="top",
             activeforeground="white",
             bg="#1E1E1E",
-            height=80,
+            height=60,
             activebackground="#1E1E1E",
             width=120,
             relief=RAISED,
@@ -1216,16 +1222,21 @@ class Password_display(Frame):
                                 fg="white", bg="#292A2D")
         password_window = Label(self.root1, text="Password:", font=("Yu Gothic Ui", 15),
                                 fg="white", bg="#292A2D")
-        self.username_window_entry = Entry(self.root1, font=("Yu Gothic Ui", 10))
+        self.username_window_entry = Entry(
+            self.root1, font=("Yu Gothic Ui", 10))
         self.password_entry = Entry(self.root1, font=("Yu Gothic Ui", 10))
-        self.name_of_social_entry = Entry(self.root1, font=("Yu Gothic Ui", 10))
+        self.name_of_social_entry = Entry(
+            self.root1, font=("Yu Gothic Ui", 10))
 
         username_window.place(x=10, y=100 + 100)
         password_window.place(x=10, y=130 + 110)
         name_of_social.place(x=10, y=60 + 100)
-        self.username_window_entry.place(x=200 + 10, y=100 + 110, height=20, width=150)
-        self.password_entry.place(x=200 + 10, y=130 + 118, height=20, width=150)
-        self.name_of_social_entry.place(x=200 + 10, y=70 + 100, height=20, width=150)
+        self.username_window_entry.place(
+            x=200 + 10, y=100 + 110, height=20, width=150)
+        self.password_entry.place(
+            x=200 + 10, y=130 + 118, height=20, width=150)
+        self.name_of_social_entry.place(
+            x=200 + 10, y=70 + 100, height=20, width=150)
 
         new_id = tk_image.PhotoImage(image.open(f"{path}photo.png"))
         self.add_icon_button = Label(
@@ -1730,7 +1741,8 @@ class Change_details:
                     bufferSize,
                 )
                 destroy_all(self.hand)
-                self.hand.switch_frame(main_window, self.real_username, self.password)
+                self.hand.switch_frame(
+                    main_window, self.real_username, self.password)
 
     def save_email(
             self
@@ -1773,7 +1785,7 @@ class Change_details:
             encrypted_pass,
             simple_encrypt(self.real_username),
         ),
-                            )
+        )
         pyAesCrypt.encryptFile(
             self.real_username + "decrypted.bin",
             self.real_username + ".bin.aes",
@@ -1790,7 +1802,6 @@ class Change_details:
         self.new_window.destroy()
         destroy_all(self.hand)
         self.hand.switch_frame(main_window, self.real_username, self.password)
-
 
     def change_email(self):
 
@@ -1893,7 +1904,8 @@ class Deletion:
             screen_height = self.delete_med_account.winfo_screenheight()
             x = screen_width / 2 - width_window / 2
             y = screen_height / 2 - height_window / 2
-            self.delete_med_account.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+            self.delete_med_account.geometry(
+                "%dx%d+%d+%d" % (width_window, height_window, x, y))
             self.delete_med_account.config(bg="#292A2D")
             self.delete_med_account.title("Delete Account")
             selectaccount = Combobox(
@@ -1977,7 +1989,8 @@ class Deletion:
                 "Success", f"The account  has been  deleted")
             a.destroy()
             destroy_all(self.master)
-            self.master.switch_frame(main_window, self.real_username, self.password)
+            self.master.switch_frame(
+                main_window, self.real_username, self.password)
             try:
                 self.delete_med_account.destroy()
 
