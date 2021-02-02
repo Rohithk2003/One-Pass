@@ -1,6 +1,7 @@
 import mysql.connector as m
 import glob
 import pickle as p
+import platform
 from mysql.connector.constants import CharacterSet
 import pyperclip
 from tkscrolledframe import ScrolledFrame

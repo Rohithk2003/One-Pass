@@ -1,4 +1,3 @@
-
 from tkinter.ttk import *
 from tkinter import *
 
@@ -6,6 +5,7 @@ from PIL import ImageTk as tk_image
 from PIL import Image as image
 import platform
 import os
+
 # finding the os so tha  the images are displayed properly
 if platform.system() == "Windows":
     l = os.path.dirname(os.path.realpath(__file__)).split("\\")
@@ -21,6 +21,35 @@ if platform.system() == 'Darwin':
         if i != 'data':
             dir_path += i + '/'
     path = dir_path + "/images/"
+
+
+def handle_focus_in(entry, index, *number):
+    val = str(entry.get())
+    if val == "Username" or val == "Email ID" or val == "New Email":
+        entry.delete(0, END)
+        entry.config(foreground="black")
+    if val == "Password" or val == "Email password" or val == "New Email password":
+        entry.delete(0, END)
+        entry.config(foreground="black")
+        entry.config(show="*")
+    elif (
+            index == 2
+            and val == "Password"
+            or index == 4
+            and val == "Email password"
+            or index == 2
+            and val == "New Email password"
+    ):
+        entry.config(foreground="white")
+        state_entry = entry["show"]
+        entry.config(show=state_entry)
+    try:
+        for i in number:
+            if i in (0, 1):
+                entry.config(foreground="white")
+
+    except:
+        pass
 
 
 def handle_focus_in(entry, index, *number):

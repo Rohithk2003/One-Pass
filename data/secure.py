@@ -1,20 +1,21 @@
-import base64
-import os
-import random
-import string
-import threading
-from tkinter import *
-from tkinter import messagebox
-
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import string
+import random
+import threading
+import base64
+import os
+import hashlib
+import pyaes
+import pbkdf2
+from tkinter import *
+from tkinter import messagebox
 
 alphabet = string.ascii_lowercase
 upper_alpha = string.ascii_uppercase
 key = 6
-
 
 # password generator
 
