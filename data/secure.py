@@ -180,7 +180,7 @@ def simple_decrypt(message):
 def create_key(password, message):
     password_key = password.encode()  # convert string to bytes
     salt = os.urandom(64)  # create a random 64 bit byte
-    # PBKDF2 HMAC- it is a type of encryption-Password-Based Key Derivation Function 2,HMAC-hashed message
+    # PBKDF2 HMAC- it is a type of algorithm-Password-Based Key Derivation Function 2,HMAC-hashed message
     # authentication code
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA3_256(),
