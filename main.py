@@ -884,7 +884,7 @@ class main_window(Frame):
         global var
         status_name = False
         parent.unbind("<Return>")
-
+        parent.title("Password Manager")
         self.parent = parent
         self.var = var
         self.object = my_cursor
@@ -1418,6 +1418,7 @@ class Profile_view(Frame):
     ):
         self.master = master
         Frame.__init__(self, self.master)
+        self.master.title("Profile")
         self.config(bg="white")
         self.username = args[0]
         self.window = window
