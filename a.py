@@ -1,4 +1,4 @@
-from tkinter import *
+rom tkinter import *
 
 root = Tk()
 
