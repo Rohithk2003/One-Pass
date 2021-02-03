@@ -900,7 +900,8 @@ class main_window(Frame):
         self.sidebar = Frame(
             self, width=5, bg="#292A2D", height=661, relief="sunken", borderwidth=1
         )
-        self.sidebar_icon = Label(self.sidebar, text=f'ONE-PASS\n{self.username}',compound='top', font=('Segoe UI SemiBold', 15),fg='white',image=main_ic, bg='#292A2D')
+        self.sidebar_icon = Label(self.sidebar, text=f'ONE-PASS\n{self.username}', compound='top', font=(
+            'Segoe UI SemiBold', 15), fg='white', image=main_ic, bg='#292A2D')
         self.sidebar_icon.image = main_ic
         self.mainarea = Frame(self, bg="#292A2D", width=1000, height=661)
         self.button = Button(
@@ -911,6 +912,7 @@ class main_window(Frame):
             compound=CENTER,
             border=0,
             bd=0,
+            width=132,
             borderwidth=0,
             highlightthickness=0,
             highlightcolor='#292A2D',
@@ -940,6 +942,7 @@ class main_window(Frame):
             image=new_button,
             text=f'Profile',
             bg='#292A2D',
+            width=132,
             compound=CENTER,
             command=lambda: self.switchframe(
                 Profile_view, parent, self.username, self.password_new, self.email_id,
@@ -1099,7 +1102,7 @@ class Password_display(Frame):
         values = []
         if os.stat(f"{self.username}decrypted.bin").st_size != 0:
             with open(f"{self.username}decrypted.bin", "rb") as f:
-                    values = p.load(f)
+                values = p.load(f)
 
         length_list = len(values)
         self.add_button.grid(row=length_list, column=0)
@@ -1139,21 +1142,20 @@ class Password_display(Frame):
                     i.grid(row=d[i][0], column=0)
                 values = []
                 if os.stat(f"{self.username}decrypted.bin").st_size != 0:
-                    
+
                     with open(f"{self.username}decrypted.bin", "rb") as f:
                         values = p.load(f)
                 length_list = len(values)
                 self.add_button.grid(row=length_list + 1, column=0)
 
-
     def verify(self):
         file_name = f"{self.username}decrypted.bin"
         if os.stat(file_name).st_size != 0:
             with open(file_name, "rb") as f:
-                    test_values = p.load(f)
-                    for user in test_values:
-                        if user[2] == str(self.name_of_social_entry.get()):
-                            return True
+                test_values = p.load(f)
+                for user in test_values:
+                    if user[2] == str(self.name_of_social_entry.get()):
+                        return True
 
     def save(self):
 
@@ -1176,10 +1178,10 @@ class Password_display(Frame):
                 messagebox.showerror("Error", "The account already exists")
             else:
                 name_file = self.username + "decrypted.bin"
-                if os.stat(f"{self.username}decrypted.bin").st_size != 0:    
+                if os.stat(f"{self.username}decrypted.bin").st_size != 0:
                     with open(f"{self.username}decrypted.bin", "rb") as f:
-                            line = p.load(f)
-                            line.append(list_account)
+                        line = p.load(f)
+                        line.append(list_account)
                     with open(name_file, "wb") as f1:
                         p.dump(line, f1)
                         f.close()
@@ -1313,7 +1315,7 @@ class Password_display(Frame):
         username = ''
         password = ''
         if os.stat(f"{self.username}decrypted.bin").st_size != 0:
-        
+
             with open(f'{self.username}decrypted.bin', 'rb') as f:
                 values = p.load(f)
                 for i in values:
@@ -1932,7 +1934,7 @@ class Deletion:
                 self.delete_med_account,
                 fg="white",
                 bg="#292A2D", font=("Yu Gothic Ui", 15),
-                text="Select account to be deleted",
+                text="Select account to be deleted:",
             )
             selectaccount.grid(column=1, row=0)
             change_account_label.grid(column=0, row=0)
@@ -1943,8 +1945,9 @@ class Deletion:
             a = Tk()
             a.overrideredirect(1)
             a.withdraw()
+            a.focus_force()
             result = messagebox.askyesno(
-                "Delete Account", "Are you sure you want to delete you account?"
+                "Delete Account", "Are you sure you want to delete your account?"
             )
             a.destroy()
             if result:
