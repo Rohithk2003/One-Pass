@@ -1,6 +1,7 @@
 import mysql.connector as m
 import glob
 import pickle as p
+import platform
 from mysql.connector.constants import CharacterSet
 import pyperclip
 from tkscrolledframe import ScrolledFrame
@@ -47,7 +48,8 @@ var = 0
 
 # database
 
-connection = m.connect(host='localhost', user='root', passwd='rohithk123',autocommit=True)
+connection = m.connect(host='localhost', user='root',
+                       passwd='rohithk123', autocommit=True)
 my_cursor = connection.cursor()
 my_cursor.execute("create database if not exists users")
 my_cursor.execute("use users")
@@ -883,7 +885,7 @@ class main_window(Frame):
         global var
         status_name = False
         parent.unbind("<Return>")
-
+        parent.title("Password Manager")
         self.parent = parent
         self.var = var
         self.object = my_cursor
@@ -1063,7 +1065,8 @@ class Password_display(Frame):
                             )
         self.subbar.place(x=0, y=0)
         self.subbar.grid_propagate(False)
-        scrollbar = ScrolledFrame(self.subbar, width=129, height=661,bg='#1E1E1E')
+        scrollbar = ScrolledFrame(
+            self.subbar, width=129, height=661, bg='#1E1E1E')
 
         scrollbar.pack(expand=1, fill=Y)
         # configure the canvas
@@ -1095,11 +1098,10 @@ class Password_display(Frame):
         )
         self.add_button.photo = image_new
         values = []
-        with open(f"{self.username}decrypted.bin", "rb") as f:
-            try:
-                values = p.load(f)
-            except:
-                pass
+        if os.stat(f"{self.username}decrypted.bin").st_size != 0:
+            with open(f"{self.username}decrypted.bin", "rb") as f:
+                    values = p.load(f)
+
         length_list = len(values)
         self.add_button.grid(row=length_list, column=0)
         self.buttons_blit()
@@ -1107,7 +1109,7 @@ class Password_display(Frame):
     def buttons_blit(self):
 
         new = []
-        try:
+        if os.stat(f"{self.username}decrypted.bin").st_size != 0:
             with open(f"{self.username}decrypted.bin", "rb") as f:
                 val = p.load(f)
                 for i in val:
@@ -1136,26 +1138,23 @@ class Password_display(Frame):
                 for i in d:
                     i.image = d[i][1]
                     i.grid(row=d[i][0], column=0)
-                with open(f"{self.username}decrypted.bin", "rb") as f:
-                    try:
+                values = []
+                if os.stat(f"{self.username}decrypted.bin").st_size != 0:
+                    
+                    with open(f"{self.username}decrypted.bin", "rb") as f:
                         values = p.load(f)
-                    except:
-                        values = []
                 length_list = len(values)
                 self.add_button.grid(row=length_list + 1, column=0)
-        except:
-            pass
+
 
     def verify(self):
         file_name = f"{self.username}decrypted.bin"
-        with open(file_name, "rb") as f:
-            try:
-                test_values = p.load(f)
-                for user in test_values:
-                    if user[2] == str(self.name_of_social_entry.get()):
-                        return True
-            except:
-                pass
+        if os.stat(file_name).st_size != 0:
+            with open(file_name, "rb") as f:
+                    test_values = p.load(f)
+                    for user in test_values:
+                        if user[2] == str(self.name_of_social_entry.get()):
+                            return True
 
     def save(self):
 
@@ -1178,23 +1177,21 @@ class Password_display(Frame):
                 messagebox.showerror("Error", "The account already exists")
             else:
                 name_file = self.username + "decrypted.bin"
-                with open(name_file, "rb") as f:
-                    try:
-                        line = p.load(f)
-                    except:
-                        line = []
-                    line.append(list_account)
-                    f.close()
-                with open(name_file, "wb") as f1:
-                    p.dump(line, f1)
-                    f.close()
+                if os.stat(f"{self.username}decrypted.bin").st_size != 0:    
+                    with open(f"{self.username}decrypted.bin", "rb") as f:
+                            line = p.load(f)
+                            line.append(list_account)
+                    with open(name_file, "wb") as f1:
+                        p.dump(line, f1)
+                        f.close()
                 os.remove(self.username + ".bin.aes")
                 pyAesCrypt.encryptFile(
                     name_file, f'{self.username}.bin.aes', self.hashed_password, bufferSize
                 )
                 messagebox.showinfo("Success", "Your account has been saved")
-                with open(f"{self.username}decrypted.bin", "rb") as f:
-                    val = p.load(f)
+                if os.stat(f"{self.username}decrypted.bin").st_size != 0:
+                    with open(f"{self.username}decrypted.bin", "rb") as f:
+                        val = p.load(f)
                     self.add_button.grid(row=len(val) + 1, column=0)
                 self.root1.destroy()
                 self.handler.switchframe(Password_display, self.main_window, self.username,
@@ -1316,11 +1313,13 @@ class Password_display(Frame):
         # getting the username and password
         username = ''
         password = ''
-        with open(f'{self.username}decrypted.bin', 'rb') as f:
-            values = p.load(f)
-            for i in values:
-                if i[2] == account_name:
-                    username, password = i[0], i[1]
+        if os.stat(f"{self.username}decrypted.bin").st_size != 0:
+        
+            with open(f'{self.username}decrypted.bin', 'rb') as f:
+                values = p.load(f)
+                for i in values:
+                    if i[2] == account_name:
+                        username, password = i[0], i[1]
         image_path = f'{path}followers.png'
 
         username_label = Label(
@@ -1420,6 +1419,7 @@ class Profile_view(Frame):
     ):
         self.master = master
         Frame.__init__(self, self.master)
+        self.master.title("Profile")
         self.config(bg="white")
         self.username = args[0]
         self.window = window
