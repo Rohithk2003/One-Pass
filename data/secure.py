@@ -17,7 +17,6 @@ alphabet = string.ascii_lowercase
 upper_alpha = string.ascii_uppercase
 key = 6
 
-
 # password generator
 
 
@@ -63,10 +62,7 @@ def pass_generator(entry):
         ok.config(command=lambda: threading.Thread(
             target=display, args=(length.get(), value)).start())
 
-    # Dictionary to create multiple buttons
     var = StringVar()
-    # Loop is used to create multiple Radiobuttons
-    # rather than creating each button separately
     d = Radiobutton(de, text='Strong', variable=var, tristatevalue=0,
                     value='HIGH', command=lambda p='HIGH': pd(p))
     d.place(x=160, y=100)
@@ -106,32 +102,26 @@ def pass_generator(entry):
                         d = string.ascii_uppercase
                         spec = '@#$%*!_?\/)([]}{'
                         numbers = "0123456789"
-                        passw = ""
+                        password = ""
                         if strength == 'HIGH':
-                            for i in range(int(length)):
-                                new_list = [a, d, spec, numbers]
-                                val = random.choice(new_list)
-                                passw += random.choice(val)
+                            letters = a + d + spec + numbers
+                            password = "".join(random.sample(letters, length))
                         elif strength == "MEDIUM":
-                            for i in range(int(length)):
-                                new_list = [a, spec, numbers]
-                                val = random.choice(new_list)
-                                passw += random.choice(val)
+                            letters = a + spec + numbers
+                            password = "".join(random.sample(letters, length))
                         else:
-                            for i in range(int(length)):
-                                new_list = [a, numbers]
-                                val = random.choice(new_list)
-                                passw += random.choice(val)
+                            letters = a + numbers
+                            password = "".join(random.sample(letters, length))
 
                         new_label = Entry(
                             de, foreground='green', font=('Segoe UI', 12))
                         new_label.place(x=160, y=155)
-                        new_label.insert(0, passw)
+                        new_label.insert(0, password)
                         copy = Button(de, text="Copy", font=(
-                            'Segoe UI', 10), command=lambda: copy_clip(passw))
+                            'Segoe UI', 10), command=lambda: copy_clip(password))
                         copy.place(x=100, y=153)
                         ok = Button(de, text='Save', font=(
-                            'Segoe UI', 10), command=lambda: quitting(entry, passw))
+                            'Segoe UI', 10), command=lambda: quitting(entry, password))
                         ok.place(x=350, y=97)
                     except:
                         pass
@@ -191,7 +181,7 @@ def simple_decrypt(message):
 def create_key(password, message):
     password_key = password.encode()  # convert string to bytes
     salt = os.urandom(64)  # create a random 64 bit byte
-    # PBKDF2 HMAC- it is a type of encryption-Password-Based Key Derivation Function 2,HMAC-hashed message
+    # PBKDF2 HMAC- it is a type of algorithm-Password-Based Key Derivation Function 2,HMAC-hashed message
     # authentication code
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA3_256(),
