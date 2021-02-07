@@ -63,8 +63,6 @@ def destroy_all(root):
     for widget in root.winfo_children():
         if isinstance(widget, tix.Toplevel):
             widget.destroy()
-
-
 # log out
 
 
@@ -721,7 +719,7 @@ class Register_page(Frame):
 
         login_button = Button(
             labelframe1,
-            text="B A C K",
+            text="L O G I N",
             width=20,
             height=2,
             font=("consolas"),
@@ -1038,7 +1036,7 @@ class main_window(Frame):
         self.button.grid(row=1, column=1)
         self.button.place(x=0, y=150 + 50)
         self.profile_button.grid(row=2, column=1)
-        self.profile_button.place(x=0, y=140 + 20 + 20 + 3 + 14 + 30)
+        self.profile_button.place(x=0, y=140 + 20 + 20 + 3 + 14+30)
         self.settings_button.grid(row=10, column=1, columnspan=1)
         self.settings_button.place(x=30 + 50 + 10, y=620)
         self.sidebar_icon.grid(row=0, column=0)
@@ -1167,6 +1165,7 @@ class Password_display(Frame):
                     i.grid(row=d[i][0], column=0)
                 values = []
                 if os.stat(f"{self.username}decrypted.bin").st_size != 0:
+
                     with open(f"{self.username}decrypted.bin", "rb") as f:
                         values = p.load(f)
                 length_list = len(values)
@@ -1201,7 +1200,6 @@ class Password_display(Frame):
             if verifying:
                 messagebox.showerror("Error", "The account already exists")
             else:
-                line = []
                 name_file = self.username + "decrypted.bin"
                 if os.stat(f"{self.username}decrypted.bin").st_size != 0:
                     with open(f"{self.username}decrypted.bin", "rb") as f:
@@ -1210,7 +1208,6 @@ class Password_display(Frame):
                     with open(name_file, "wb") as f1:
                         p.dump(line, f1)
                         f.close()
-                index_value = line.index(list_account)
                 os.remove(self.username + ".bin.aes")
                 pyAesCrypt.encryptFile(
                     name_file, f'{self.username}.bin.aes', self.hashed_password, bufferSize
@@ -1221,7 +1218,8 @@ class Password_display(Frame):
                         val = p.load(f)
                     self.add_button.grid(row=len(val) + 1, column=0)
                 self.root1.destroy()
-                self.show_account(index_value, list_account[2])
+                self.handler.switchframe(Password_display, self.main_window, self.username,
+                                         self.hashed_password, self.object, self.password)
 
     def addaccount(self):
         self.root1 = Toplevel()
@@ -2064,6 +2062,7 @@ class Deletion:
 
 
 if __name__ == "__main__":
+
     # initialising the main class
     app = main_class()
     app.mainloop()
