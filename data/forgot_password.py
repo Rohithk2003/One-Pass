@@ -118,16 +118,11 @@ def change(window, object, email, rec_pass, username12, new_password, new_userna
 
 def login_password(title1, object):
     window = Toplevel()
-    window.config(bg="#1E1E1E")
+    window.config(bg="white")
     window.resizable(False, False)
     window.focus_force()
     window.title(title1)
-    text = (
-        "Please provide the recovery email  and recovery email password \n that you entered while creating an "
-        "account "
-    )
-    text_label = Label(window, text=text, font=(
-        "Yu Gothic Ui", 13), fg="#994422", bg="#1E1E1E")
+
     width_window = 450
     height_window = 400
     screen_width = window.winfo_screenwidth()
@@ -136,50 +131,51 @@ def login_password(title1, object):
     y = screen_height / 2 - height_window / 2
     window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 
-    logo_image = tk_image.PhotoImage(image.open(f"{path}member.png"))
-    main_label = Label(window, image=logo_image, bg="#1E1E1E")
+    logo_image = tk_image.PhotoImage(image.open(f"{path}change_pass.png"))
+    main_label = Label(window, fg='black', font=(
+        "Yu Gothic Ui", 20), text="Change Password", compound='right', image=logo_image, bg="white")
     main_label.photo = logo_image
-    main_label.place(x=150, y=50)
+    main_label.place(x=70, y=50)
 
     username_forgot = Label(window, text="Username:",
-                            fg="white",
-                            bg="#1E1E1E",
+                            fg="black",
+                            bg="white",
                             font=("Yu Gothic Ui", 15), )
     recover_email = Label(window, text="Recovery Email:",
-                          fg="white",
-                          bg="#1E1E1E",
+                          fg="black",
+                          bg="white",
                           font=("Yu Gothic Ui", 15), )
-    recover_password = Label(window, text="Recovery Password:", fg="white",
-                             bg="#1E1E1E",
+    recover_password = Label(window, text="Recovery Password:", fg="black",
+                             bg="white",
                              font=("Yu Gothic Ui", 15), )
     recover_email_entry = Entry(window,
                                 width=13,
-                                bg="#1E1E1E",
-                                foreground="white",
+                                bg="white",
+                                foreground="black",
                                 border=0,
                                 bd=0,
-                                fg='white',
+                                fg='black',
                                 font=("consolas", 15, "normal"),
-                                insertbackground="white", )
+                                insertbackground="black", )
     recover_password_entry = Entry(window,
                                    width=13,
-                                   bg="#1E1E1E",
-                                   foreground="white",
-                                   fg='white',
+                                   bg="white",
+                                   foreground="black",
+                                   fg='black',
                                    border=0,
                                    bd=0,
                                    font=("consolas", 15, "normal"),
-                                   insertbackground="white", )
+                                   insertbackground="black", )
     username_forgot_entry = Entry(window,
                                   width=13,
-                                  bg="#1E1E1E",
+                                  bg="white",
                                   border=0,
                                   bd=0,
-                                  fg='white',
+                                  fg='black',
 
                                   font=("consolas", 15, "normal"),
-                                  foreground="white",
-                                  insertbackground="white", )
+                                  foreground="black",
+                                  insertbackground="black", )
 
     username_forgot.place(x=0, y=70 + 100 + 3)
     recover_password.place(x=0, y=130 + 100 + 30 + 3)
@@ -187,7 +183,6 @@ def login_password(title1, object):
     username_forgot_entry.place(x=250, y=70 + 100 + 5)
     recover_password_entry.place(x=250, y=130 + 100 + 30 + 5)
     recover_email_entry.place(x=250, y=100 + 100 + 15 + 5)
-    text_label.place(x=20, y=0)
     main_key = ""
     alphabets = string.ascii_lowercase
     for letters in range(7):
@@ -273,7 +268,7 @@ def login_password(title1, object):
         new_username.place(x=50, y=200)
         new_password.place(x=50, y=250)
         new_username_entry.place(x=200, y=203)
-        new_password_entry.place(x=200, y=250+3)
+        new_password_entry.place(x=200, y=250 + 3)
 
         new_username_entry.bind(
             "<FocusIn>",
@@ -318,7 +313,8 @@ def login_password(title1, object):
         show_both_12.place(x=340, y=245)
 
         save = Button(root, text='Save!', font=("Segoe Ui", 13), fg='white', bg="#1E1E1E", command=lambda: change(
-            root, object, email, password1, username12, str(new_password_entry.get()), str(new_username_entry.get()), original_password, main_pass))
+            root, object, email, password1, username12, str(new_password_entry.get()), str(new_username_entry.get()),
+            original_password, main_pass))
         save.place(x=150, y=290)
 
     def Verification(password, otp_entry, email, email_password, username12, button, original_password, main_pass):
@@ -434,8 +430,8 @@ def login_password(title1, object):
                         ))
 
                     otp_entry_button.grid(row=8, column=1)
-                    otp_entry_button.place(x=70, y=200 + 120+40)
-                    otp_entry.place(x=200+40, y=200 + 120+45)
+                    otp_entry_button.place(x=70, y=200 + 120 + 40)
+                    otp_entry.place(x=200 + 40, y=200 + 120 + 45)
                     digits = "1234567890"
                     OTP = ""
                     for i in range(6):
@@ -447,7 +443,7 @@ def login_password(title1, object):
                         f.close()
                     generate_key1("otp.bin", str(main_key), button)
                     forgot_password(recover_email_entry_verify,
-                                    OTP,  username_verify)
+                                    OTP, username_verify)
             else:
                 messagebox.showerror("Error", "No such account exists")
 
@@ -467,12 +463,12 @@ def login_password(title1, object):
 
     # removing border for entry
     # then adding frames like a line
-    Frame(window, width=150, height=2, bg="white").place(
+    Frame(window, width=150, height=2, bg="black").place(
         x=250, y=70 + 100 + 10 + 16 + 5
     )
-    Frame(window, width=150, height=2, bg="white").place(
+    Frame(window, width=150, height=2, bg="black").place(
         x=250, y=130 + 100 + 10 + 16 + 30 + 5
     )
-    Frame(window, width=150, height=2, bg="white").place(
+    Frame(window, width=150, height=2, bg="black").place(
         x=250, y=100 + 100 + 10 + 16 + 15 + 5
     )

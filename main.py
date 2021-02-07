@@ -395,7 +395,7 @@ class Login_page(Frame):
             command=lambda: self.login_checking_1(master),
         )
         master.bind("<Return>", lambda event,
-                                       a=master: self.login_checking_1(a))
+                    a=master: self.login_checking_1(a))
         sub_button.place(x=50 + 3, y=300 + 30)
 
         show_both_1.place(x=300, y=200 + 30 - 5)
@@ -1178,6 +1178,7 @@ class Password_display(Frame):
             if verifying:
                 messagebox.showerror("Error", "The account already exists")
             else:
+                line = []
                 name_file = self.username + "decrypted.bin"
                 if os.stat(f"{self.username}decrypted.bin").st_size != 0:
                     with open(f"{self.username}decrypted.bin", "rb") as f:
@@ -1786,7 +1787,7 @@ class Change_details:
             encrypted_pass,
             simple_encrypt(self.real_username),
         ),
-                            )
+        )
         pyAesCrypt.encryptFile(
             self.real_username + "decrypted.bin",
             self.real_username + ".bin.aes",
