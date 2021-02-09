@@ -116,9 +116,9 @@ def change(window, object, email, rec_pass, username12, new_password, new_userna
             "Length", "length of the password must be greater than 5")
 
 
-def login_password(title1, object):
+def login_password(title1, object, *number):
     window = Toplevel()
-    window.config(bg="white")
+    window.config(bg="#1F1F1F")
     window.resizable(False, False)
     window.focus_force()
     window.title(title1)
@@ -131,51 +131,51 @@ def login_password(title1, object):
     y = screen_height / 2 - height_window / 2
     window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
 
-    logo_image = tk_image.PhotoImage(image.open(f"{path}change_pass.png"))
-    main_label = Label(window, fg='black', font=(
-        "Yu Gothic Ui", 20), text="Change Password", compound='right', image=logo_image, bg="white")
+    logo_image = tk_image.PhotoImage(image.open(f"{path}rec.png"))
+    main_label = Label(window, fg='white', font=(
+        "Yu Gothic Ui", 20), text="Change Password", compound='right', image=logo_image, bg="#1F1F1F")
     main_label.photo = logo_image
     main_label.place(x=70, y=50)
 
     username_forgot = Label(window, text="Username:",
-                            fg="black",
-                            bg="white",
+                            fg="white",
+                            bg="#1F1F1F",
                             font=("Yu Gothic Ui", 15), )
     recover_email = Label(window, text="Recovery Email:",
-                          fg="black",
-                          bg="white",
+                          fg="white",
+                          bg="#1F1F1F",
                           font=("Yu Gothic Ui", 15), )
-    recover_password = Label(window, text="Recovery Password:", fg="black",
-                             bg="white",
+    recover_password = Label(window, text="Recovery Password:", fg="white",
+                             bg="#1F1F1F",
                              font=("Yu Gothic Ui", 15), )
     recover_email_entry = Entry(window,
                                 width=13,
-                                bg="white",
-                                foreground="black",
+                                bg="#1F1F1F",
+                                foreground="white",
                                 border=0,
                                 bd=0,
-                                fg='black',
-                                font=("consolas", 15, "normal"),
-                                insertbackground="black", )
+                                fg='white',
+                                font=("", 15, "normal"),
+                                insertbackground="white", )
     recover_password_entry = Entry(window,
                                    width=13,
-                                   bg="white",
-                                   foreground="black",
-                                   fg='black',
+                                   bg="#1F1F1F",
+                                   foreground="white",
+                                   fg='white',
                                    border=0,
                                    bd=0,
-                                   font=("consolas", 15, "normal"),
-                                   insertbackground="black", )
+                                   font=("", 15, "normal"),
+                                   insertbackground="white", )
     username_forgot_entry = Entry(window,
                                   width=13,
-                                  bg="white",
+                                  bg="#1F1F1F",
                                   border=0,
                                   bd=0,
-                                  fg='black',
+                                  fg='white',
 
-                                  font=("consolas", 15, "normal"),
-                                  foreground="black",
-                                  insertbackground="black", )
+                                  font=("", 15, "normal"),
+                                  foreground="white",
+                                  insertbackground="white", )
 
     username_forgot.place(x=0, y=70 + 100 + 3)
     recover_password.place(x=0, y=130 + 100 + 30 + 3)
@@ -183,12 +183,47 @@ def login_password(title1, object):
     username_forgot_entry.place(x=250, y=70 + 100 + 5)
     recover_password_entry.place(x=250, y=130 + 100 + 30 + 5)
     recover_email_entry.place(x=250, y=100 + 100 + 15 + 5)
+
     main_key = ""
     alphabets = string.ascii_lowercase
     for letters in range(7):
         main_key += random.choice(alphabets)
 
-    def verify_rec_password(window, email, password, main_key, but, object):
+    def pin_save():
+        if self.ent.get():
+            self.running, self.al = False, False
+            self.pin = str(self.ent.get())
+            self.hash_value = hashlib.sha512(
+                self.pin.encode()).hexdigest()
+            with open("pin.json", 'r') as f:
+                data = json.load(f)
+            username = hashlib.sha512(self.username.encode()).hexdigest()
+            for i in data:
+                if i == username:
+                    if data[i] == self.hash_value:
+                        messagebox.showinfo(
+                            "Success", 'Your pin has been verified')
+                        main_pass = self.username + str(ent.get())
+                        self.cipher = ''
+                        self.salt = ''
+                        my_cursor.execute(
+                            "select password,salt from userspin where username =(%s)", (self.username,))
+                        for i in my_cursor.fetchall():
+                            self.cipher = i[0]
+                            self.salt = i[1]
+                        st = retreive_key(
+                            main_pass, self.cipher, self.salt)
+                        self.password = simple_decrypt(st)
+                        print(self.password)
+                        self.master.switch_frame(
+                            main_window, self.username, self.password)
+                    else:
+                        messagebox.showinfo("Incorrect", 'Incorrect Pin')
+
+        else:
+            messagebox.showinfo('Error', 'Please provide a pin')
+
+    def verify_rec_password(window, email, password, main_key, but, object, *number):
         object.execute(
             "select password,salt from usersdata where email_id = (%s)", (
                 simple_encrypt(email),)
@@ -218,7 +253,7 @@ def login_password(title1, object):
                     break
                 else:
                     decrypted_string += i
-            main(main_key, window, but, decrypted_string, main_pass)
+            main(main_key, window, but, decrypted_string, main_pass, *number)
         except:
             messagebox.showerror("Wrong Password", "Invalid recovery password")
 
@@ -236,88 +271,232 @@ def login_password(title1, object):
 
         a.destroy()
 
-    def change_password(email, password1, username12, original_password, main_pass):
+    def change_password(email, password1, username12, original_password, main_pass, *number):
+        value = number[0]
 
         window.destroy()
-        root = Toplevel()
-        new_img = tk_image.PhotoImage(image.open(f"{path}member.png"))
-        new_img_label = Label(root, image=new_img, bg="#1E1E1E")
-        new_img_label.photo = new_img
-        root.resizable(False, False)
-        file_name_reentry = 'kiren' + ".bin.aes"
+        if value == 0:
+            root = Toplevel()
+            new_img = tk_image.PhotoImage(image.open(f"{path}member.png"))
+            new_img_label = Label(root, image=new_img, bg="#1E1E1E")
+            new_img_label.photo = new_img
+            root.resizable(False, False)
+            file_name_reentry = 'kiren' + ".bin.aes"
 
-        width_window = 400
-        height_window = 400
-        screen_width = root.winfo_screenwidth()
-        screen_height = root.winfo_screenheight()
-        x = screen_width / 2 - width_window / 2
-        y = screen_height / 2 - height_window / 2
-        root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-        root.title("Change Details")
-        root.config(bg="#1E1E1E")
+            width_window = 400
+            height_window = 400
+            screen_width = root.winfo_screenwidth()
+            screen_height = root.winfo_screenheight()
+            x = screen_width / 2 - width_window / 2
+            y = screen_height / 2 - height_window / 2
+            root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+            root.title("Change Details")
+            root.config(bg="#1E1E1E")
 
-        new_username = Label(root, text="New Username", font=("Segoe Ui", 13),
-                             fg="white", bg="#1E1E1E")
-        new_password = Label(root, text="New Password", font=("Segoe Ui", 13),
-                             fg="white", bg="#1E1E1E")
+            new_username = Label(root, text="New Username", font=("Segoe Ui", 13),
+                                 fg="white", bg="#1E1E1E")
+            new_password = Label(root, text="New Password", font=("Segoe Ui", 13),
+                                 fg="white", bg="#1E1E1E")
 
-        new_username_entry = Entry(root)
-        new_password_entry = Entry(root, show="*")
+            new_username_entry = Entry(root)
+            new_password_entry = Entry(root, show="*")
 
-        new_img_label.place(x=130, y=0)
-        new_username.place(x=50, y=200)
-        new_password.place(x=50, y=250)
-        new_username_entry.place(x=200, y=203)
-        new_password_entry.place(x=200, y=250 + 3)
+            new_img_label.place(x=130, y=0)
+            new_username.place(x=50, y=200)
+            new_password.place(x=50, y=250)
+            new_username_entry.place(x=200, y=203)
+            new_password_entry.place(x=200, y=250 + 3)
 
-        new_username_entry.bind(
-            "<FocusIn>",
-            lambda event, val_val=new_username_entry, index=1: handle_focus_in(
-                val_val, index
-            ),
-        )
-        new_username_entry.bind(
-            "<FocusOut>",
-            lambda event, val_val=new_username_entry, val="Username", index=1: handle_focus_out(
-                val_val, val, index
-            ),
-        )
+            new_username_entry.bind(
+                "<FocusIn>",
+                lambda event, val_val=new_username_entry, index=1: handle_focus_in(
+                    val_val, index
+                ),
+            )
+            new_username_entry.bind(
+                "<FocusOut>",
+                lambda event, val_val=new_username_entry, val="Username", index=1: handle_focus_out(
+                    val_val, val, index
+                ),
+            )
 
-        new_password_entry.bind(
-            "<FocusIn>",
-            lambda event, val_val=new_password_entry, index=2: handle_focus_in(
-                val_val, index
-            ),
-        )
-        new_password_entry.bind(
-            "<FocusOut>",
-            lambda event, val_val=new_password_entry, val="Password", index=2: handle_focus_out(
-                val_val, val, index
-            ),
-        )
+            new_password_entry.bind(
+                "<FocusIn>",
+                lambda event, val_val=new_password_entry, index=2: handle_focus_in(
+                    val_val, index
+                ),
+            )
+            new_password_entry.bind(
+                "<FocusOut>",
+                lambda event, val_val=new_password_entry, val="Password", index=2: handle_focus_out(
+                    val_val, val, index
+                ),
+            )
 
-        unhide_img = tk_image.PhotoImage(image.open(f"{path}eye.png"))
+            unhide_img = tk_image.PhotoImage(image.open(f"{path}eye.png"))
 
-        show_both_12 = Button(
-            root,
-            image=unhide_img,
-            bd=0,
-            command=lambda: password_sec(new_password_entry, show_both_12),
-            fg="white",
-            bg="#1E1E1E",
-            highlightcolor="#1E1E1E",
-            activebackground="#1E1E1E",
-            activeforeground="white",
-            relief=RAISED,
-        )
-        show_both_12.place(x=340, y=245)
+            show_both_12 = Button(
+                root,
+                image=unhide_img,
+                bd=0,
+                command=lambda: password_sec(new_password_entry, show_both_12),
+                fg="white",
+                bg="#1E1E1E",
+                highlightcolor="#1E1E1E",
+                activebackground="#1E1E1E",
+                activeforeground="white",
+                relief=RAISED,
+            )
+            show_both_12.place(x=340, y=245)
 
-        save = Button(root, text='Save!', font=("Segoe Ui", 13), fg='white', bg="#1E1E1E", command=lambda: change(
-            root, object, email, password1, username12, str(new_password_entry.get()), str(new_username_entry.get()),
-            original_password, main_pass))
-        save.place(x=150, y=290)
+            save = Button(root, text='Save!', font=("Segoe Ui", 13), fg='white', bg="#1E1E1E", command=lambda: change(
+                root, object, email, password1, username12, str(
+                    new_password_entry.get()), str(new_username_entry.get()),
+                original_password, main_pass))
+            save.place(x=150, y=290)
+        elif value == 1:
+            root = Tk()
+            new_img = tk_image.PhotoImage(image.open(f"{path}member.png"))
+            new_img_label = Label(root, image=new_img, bg="#121212")
+            new_img_label.photo = new_img
+            root.resizable(False, False)
+            file_name_reentry = 'kiren' + ".bin.aes"
+            running = running
+            al = al
+            width_window = 1057
 
-    def Verification(password, otp_entry, email, email_password, username12, button, original_password, main_pass):
+            def alpha():
+                global running, al
+                if str(enter_alpha['text']) == 'Enter Alphanumeric \npin':
+                    running = False
+                    al = True
+                    enter_alpha.config(text="Enter Number \npin")
+                    threading.Thread(target=for_alpha).start()
+                elif enter_alpha['text'] == 'Enter Number \npin':
+                    running = True
+                    al = False
+                    enter_alpha.config(text="Enter Alphanumeric \npin")
+                    threading.Thread(target=getting).start()
+
+            def for_alpha():
+                global al
+                while al:
+                    try:
+                        if ent.get():
+                            if len(ent.get()) >= 4:
+                                a = ent.get()[:4]
+                                ent.delete(4, END)
+                    except:
+                        pass
+
+            def getting():
+
+                while running:
+                    try:
+                        if ent.get():
+                            int(ent.get())
+                            if len(ent.get()) >= 4:
+                                a = ent.get()[:4]
+
+                                ent.delete(4, END)
+                    except ValueError:
+                        a = str(ent.get())
+                        d = list(map(str, a))
+                        f = 0
+                        for i in d:
+                            if i.isalpha():
+                                f = d.index(i)
+                        ent.delete(f, END)
+
+            enter_alpha = Button(root, text='Enter Alphanumeric \npin', fg="#2A7BCF",
+                                 activeforeground="#2A7BCF",
+                                 bg="#121212", command=alpha,
+                                 activebackground="#121212",  bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
+            enter_alpha.place(x=150, y=300)
+            # adding the check box button
+
+            t1 = threading.Thread(target=getting)
+
+            width_window = 400
+            height_window = 400
+            screen_width = root.winfo_screenwidth()
+            screen_height = root.winfo_screenheight()
+            x = screen_width / 2 - width_window / 2
+            y = screen_height / 2 - height_window / 2
+            root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+            root.title("Change Details")
+            root.config(bg="#121212")
+
+            new_username = Label(root, text="New Username", font=("Segoe Ui", 13),
+                                 fg="white", bg="#121212")
+            new_password = Label(root, text="New Password", font=("Segoe Ui", 13),
+                                 fg="white", bg="#121212")
+            new_pin = Label(root, text="PIN:", font=("Segoe Ui", 13),
+                            fg="white", bg="#121212")
+            ent = Entry(root)
+            new_username_entry = Entry(root)
+            new_password_entry = Entry(root, show="*")
+
+            new_img_label.place(x=130, y=0)
+            new_username.place(x=50, y=200-50)
+            new_password.place(x=50, y=250-50)
+            new_pin.place(x=50, y=300-50)
+            ent.place(x=200, y=250)
+            new_username_entry.place(x=200, y=203-50)
+            new_password_entry.place(x=200, y=250 + 3-50)
+
+            new_username_entry.bind(
+                "<FocusIn>",
+                lambda event, val_val=new_username_entry, index=1: handle_focus_in(
+                    val_val, index
+                ),
+            )
+            new_username_entry.bind(
+                "<FocusOut>",
+                lambda event, val_val=new_username_entry, val="Username", index=1: handle_focus_out(
+                    val_val, val, index
+                ),
+            )
+
+            new_password_entry.bind(
+                "<FocusIn>",
+                lambda event, val_val=new_password_entry, index=2: handle_focus_in(
+                    val_val, index
+                ),
+            )
+            new_password_entry.bind(
+                "<FocusOut>",
+                lambda event, val_val=new_password_entry, val="Password", index=2: handle_focus_out(
+                    val_val, val, index
+                ),
+            )
+
+            unhide_img = tk_image.PhotoImage(image.open(f"{path}eye.png"))
+
+            show_both_12 = Button(
+                root,
+                image=unhide_img,
+                bd=0,
+                command=lambda: password_sec(new_password_entry, show_both_12),
+                fg="white",
+                bg="#121212",
+                highlightcolor="#121212",
+                activebackground="#121212",
+                activeforeground="white",
+                relief=RAISED,
+            )
+            show_both_12.place(x=340, y=245-50)
+
+            save = Button(root, text='Save!', font=("Segoe Ui", 13), fg='white', bg="#121212", command=lambda: change(
+                root, object, email, password1, username12, str(
+                    new_password_entry.get()), str(new_username_entry.get()),
+                original_password, main_pass))
+            save.place(x=50, y=300)
+            t1.start()
+
+            root.mainloop()
+
+    def Verification(password, otp_entry, email, email_password, username12, button, original_password, main_pass, *number):
         ot = str(otp_entry)
         if ot != "":
             pyAesCrypt.decryptFile(
@@ -338,7 +517,7 @@ def login_password(title1, object):
                     os.remove("otp_decyrpted.bin")
                     os.remove("otp.bin.aes")
                     change_password(email, email_password,
-                                    username12, original_password, main_pass)
+                                    username12, original_password, main_pass, *number)
                 else:
                     messagebox.showinfo(
                         "Error", "Incorrect OTP Please verify it again")
@@ -348,7 +527,7 @@ def login_password(title1, object):
             messagebox.showinfo(
                 "Error", "Please provide the OTP  send to your email")
 
-    def main(main_key, otp_window, button, original_password, main_pass):
+    def main(main_key, otp_window, button, original_password, main_pass, *number):
         run = False
         global running
         username_verify = str(username_forgot_entry.get())
@@ -426,7 +605,7 @@ def login_password(title1, object):
                             username_verify,
                             button,
                             original_password,
-                            main_pass
+                            main_pass, *number
                         ))
 
                     otp_entry_button.grid(row=8, column=1)
@@ -450,7 +629,7 @@ def login_password(title1, object):
     forgot_password_button = Button(
         window,
         command=lambda: verify_rec_password(window, str(recover_email_entry.get()), str(
-            recover_password_entry.get()), main_key, forgot_password_button, object),
+            recover_password_entry.get()), main_key, forgot_password_button, object, *number),
         width=15,
         text="V E R I F Y",
         font="consolas",
@@ -463,12 +642,13 @@ def login_password(title1, object):
 
     # removing border for entry
     # then adding frames like a line
-    Frame(window, width=150, height=2, bg="black").place(
+
+    Frame(window, width=150, height=2, bg="white").place(
         x=250, y=70 + 100 + 10 + 16 + 5
     )
-    Frame(window, width=150, height=2, bg="black").place(
+    Frame(window, width=150, height=2, bg="white").place(
         x=250, y=130 + 100 + 10 + 16 + 30 + 5
     )
-    Frame(window, width=150, height=2, bg="black").place(
+    Frame(window, width=150, height=2, bg="white").place(
         x=250, y=100 + 100 + 10 + 16 + 15 + 5
     )

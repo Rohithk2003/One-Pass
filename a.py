@@ -4,7 +4,6 @@ import pickle as p
 from mysql.connector.constants import CharacterSet
 import pyperclip
 from tkscrolledframe import ScrolledFrame
-from tkinter import tiximport platform
 from data.checkupdates import *
 from data.secure import *
 from data.forgot_password import *

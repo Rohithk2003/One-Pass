@@ -60,6 +60,20 @@ my_cursor.execute(
     "ALTER DATABASE `%s` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'" % "users")
 my_cursor.execute(
     "create table if not exists usersdata (username varchar(255) primary key,email_id longtext,password blob ,salt blob, recovery_password LONGBLOB, salt_recovery blob) ")
+my_cursor.execute(
+    "create table if not exists userspin (username varchar(255) primary key,password blob ,salt blob) ")
+
+
+def remove_decrypted():
+    with open("settings.json", 'r') as f:
+        values = json.load(f)
+    files = glob.glob("*decrypted.bin")
+    for i in values:
+        if f'{i}decrypted.bin' not in files:
+            try:
+                os.remove(i)
+            except OSError:
+                pass
 
 
 def destroy_all(root):
@@ -69,12 +83,145 @@ def destroy_all(root):
 
 
 # log out
+class PinDecryption(Frame):
+    def __init__(self, master, username):
+        self.master = master
+        Frame.__init__(self, self.master)
+        self.username = username
+        self.master.title("Pin")
+        self.config(bg="#121212")
+        global running, al
+        self.running = running
+        self.al = al
+        width_window = 1057
+
+        def alpha():
+            if str(enter_alpha['text']) == 'Enter Alphanumeric pin':
+                self.running = False
+                self.al = True
+                enter_alpha.config(text="Enter Number pin")
+                threading.Thread(target=for_alpha).start()
+            elif enter_alpha['text'] == 'Enter Number pin':
+                self.running = True
+                self.al = False
+                enter_alpha.config(text="Enter Alphanumeric pin")
+                threading.Thread(target=getting).start()
+
+        def for_alpha():
+            while self.al:
+
+                try:
+                    if self.ent.get():
+                        if len(self.ent.get()) >= 4:
+                            a = self.ent.get()[:4]
+                            self.ent.delete(4, END)
+                except:
+                    pass
+
+        def getting():
+
+            while self.running:
+                try:
+                    print("ds'")
+                    print()
+                    if self.ent.get():
+                        int(self.ent.get())
+                        if len(self.ent.get()) >= 4:
+                            a = self.ent.get()[:4]
+
+                            self.ent.delete(4, END)
+                except ValueError:
+                    print("ads")
+                    a = str(self.ent.get())
+                    d = list(map(str, a))
+                    f = 0
+                    for i in d:
+                        if i.isalpha():
+                            f = d.index(i)
+                    self.ent.delete(f, END)
+
+        lab = Label(self, text='Verify the security pin', bg='#121212',
+                    fg='white', font=("Segoe Ui", 20))
+        lab.place(x=width_window/2-60-5-45, y=160)
+        second_label = Label(self, justify='left', text='If you have lost your password you have to \nreset your account password', bg='#121212',
+                             fg='white', font=("Segoe Ui", 15))
+        second_label.place(x=0, y=160)
+        ent = Entry(self, width=20, font=("Segoe Ui", 15))
+        ent.place(x=width_window/2-40-5-5-30-10, y=250)
+        enter_alpha = Button(self, text='Enter Alphanumeric pin', fg="#2A7BCF",
+                             activeforeground="#2A7BCF",
+                             bg="#121212", command=alpha,
+                             activebackground="#121212",  bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
+        enter_alpha.place(x=width_window/2+200-30-10, y=250)
+        # adding the check box button
+
+        t1 = threading.Thread(target=getting)
+
+        # t1.start()
+        # adding the save button
+
+        forgot_pass = Button(self, text='Forgot Password?', fg="#2A7BCF",
+                             activeforeground="#2A7BCF",
+                             bg="#121212", command=lambda: login_password("Forgot Password", my_cursor, 1),
+                             activebackground="#121212",  bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
+
+        forgot_pass.place(x=100, y=250)
+        save = Button(self, text="S A V E", fg="#292A2D",
+                      activeforeground="#292A2D",
+                      bg="#994422",
+                      activebackground="#994422", height=1, width=10, bd=0, borderwidth=0, font=("Consolas", 14))
+        save.place(x=width_window/2-30-5-10, y=350)
+
+        def pin_save():
+            if self.ent.get():
+                self.running, self.al = False, False
+                self.pin = str(self.ent.get())
+                self.hash_value = hashlib.sha512(
+                    self.pin.encode()).hexdigest()
+                with open("pin.json", 'r') as f:
+                    data = json.load(f)
+                username = hashlib.sha512(self.username.encode()).hexdigest()
+                for i in data:
+                    if i == username:
+                        if data[i] == self.hash_value:
+                            messagebox.showinfo(
+                                "Success", 'Your pin has been verified')
+                            main_pass = self.username + str(ent.get())
+                            self.cipher = ''
+                            self.salt = ''
+                            my_cursor.execute(
+                                "select password,salt from userspin where username =(%s)", (self.username,))
+                            for i in my_cursor.fetchall():
+                                self.cipher = i[0]
+                                self.salt = i[1]
+                            st = retreive_key(
+                                main_pass, self.cipher, self.salt)
+                            self.password = simple_decrypt(st)
+                            print(self.password)
+                            self.master.switch_frame(
+                                main_window, self.username, self.password)
+                        else:
+                            messagebox.showinfo("Incorrect", 'Incorrect Pin')
+
+            else:
+                messagebox.showinfo('Error', 'Please provide a pin')
+        # adding the save button
+        save = Button(self, text="S A V E", fg="#292A2D",
+                      activeforeground="#292A2D",
+                      bg="#994422", command=pin_save,
+                      activebackground="#994422", height=1, width=10, bd=0, borderwidth=0, font=("Consolas", 14))
+        save.place(x=width_window/2-30-5-10, y=350)
 
 
-def log_out(*window):
+def log_out(*window, username):
     for windows in window:
         windows.destroy()
-
+    users = {}
+    with open("settings.json", 'r') as f:
+        users = json.load(f)
+    for i in users:
+        if i == username:
+            users[i] = 0
     a = Tk()
     a.withdraw()
     messagebox.showinfo(
@@ -214,7 +361,7 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
     settings_window.mainloop()
 
 
-# main clas
+# main class
 class main_class(Tk):
     def __init__(self):
         tix.Tk.__init__(self)
@@ -231,7 +378,20 @@ class main_class(Tk):
         y = screen_height / 2 - height_window / 2
         self.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
         self._frame = None
-        self.switch_frame(Login_page)
+        username = ''
+        frame_class = ''
+        if os.path.exists("settings.json") and os.stat("settings.json").st_size != 0:
+            with open("settings.json", 'r') as f:
+                values = json.load(f)
+            for i in values:
+                if values[i] == 1:
+                    username = str(i)
+                    break
+            if username:
+                self.switch_frame(PinDecryption, username)
+
+        else:
+            self.switch_frame(Login_page)
 
     def switch_frame(self, frame_class, *args):
         global new_frame
@@ -1976,7 +2136,7 @@ class PinFrame(Frame):
         lab = Label(self, text='Add a security pin', bg='#121212',
                     fg='white', font=("Segoe Ui", 15))
         lab.place(x=width_window/2-60-5-10, y=100)
-        lab1 = Label(self, text='This 4 digit security pin is used for further security\nYou cannot recover it.',
+        lab1 = Label(self, text='This 4 digit  pin is used for further security\nYou cannot recover it.\nIf you lost the pin you may have to reset your account password.',
                      bg='#121212', fg='white', justify='center', font=("Segoe Ui", 15))
         pintext = Label(self, text="PIN:", bg='#121212', fg='white',
                         justify='center', font=("Segoe Ui", 15))
@@ -2023,10 +2183,29 @@ class PinFrame(Frame):
                     else:
                         with open('pin.json', 'w') as f:
                             json.dump(values, f)
+                    main_pass = self.username + str(self.pin)
+                    static_salt_password = simple_encrypt(self.password)
+                    cipher_text, salt_for_decryption = create_key(
+                        main_pass, static_salt_password
+                    )
+                    my_cursor.execute("insert into userspin values(%s,%s,%s)",
+                                      (self.username, cipher_text, salt_for_decryption))
+                    if os.path.exists("settings.json"):
+                        with open("settings.json", "r") as f:
+                            value = json.load(f)
+                        value[self.username] = 0
+                        with open("settings.json", 'w') as f:
+                            json.dump(value, f)
+                    else:
+                        value = {}
+                        value[self.username] = 0
+                        with open("settings.json", 'w') as f:
+                            json.dump(value, f)
                     a = Tk()
                     a.withdraw()
                     messagebox.showinfo(
                         'Saved', "PIN has been successfully registered")
+                    a.destroy()
                     self.master.switch_frame(
                         main_window, self.username, self.password)
                 else:
@@ -2205,8 +2384,3 @@ if __name__ == "__main__":
     quit()
 """ to remove all decrypted files
 the glob function returns a list of files ending with decrypted.bin"""
-for i in glob.glob("*decrypted.bin"):
-    try:
-        os.remove(str(i))
-    except OSError:
-        pass
