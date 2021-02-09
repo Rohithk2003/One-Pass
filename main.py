@@ -900,7 +900,7 @@ class Register_page(Frame):
             ".aes", f"{self.username}decrypted.bin", hash_pass, bufferSize
         )
         self.master.switch_frame(
-            Alphanumericcode, self.username, self.password)
+            PinFrame, self.username, self.password)
 
 
 # class which handles the main window for seeing the password
@@ -1914,7 +1914,7 @@ class Change_details:
         show_both_12.place(x=320, y=100 + 53 + 20)
 
 
-class Alphanumericcode(Frame):
+class PinFrame(Frame):
     def __init__(self, master, username, password):
         self.master = master
         Frame.__init__(self, self.master)
@@ -1992,9 +1992,9 @@ class Alphanumericcode(Frame):
         enter_alpha.place(x=width_window/2+200-30-10, y=250)
         # adding the check box button
         self.var = IntVar()
-        check = Checkbutton(self, variable=self.var, text="I understand that this security code cannot be recovered once it is lost", font=("Consolas", 14), bg='#121212', fg='white',
+        check = Checkbutton(self, text="I understand that this security code cannot be recovered once it is lost", font=("Segoe Ui", 14), bg='#121212', fg='white',
                             justify='center', activebackground="#121212", activeforeground='white', selectcolor='black')
-        check.place(x=200, y=300)
+        check.place(x=240, y=300)
 
         t1 = threading.Thread(target=getting)
 
