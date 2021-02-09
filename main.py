@@ -31,6 +31,7 @@ if platform.system() == "Windows":
         if i != 'data':
             dir_path += i + '\\'
     path = dir_path + "images\\"
+    json_path = dir_path + "json_files\\"
 if platform.system() == 'Darwin':
     l = os.path.dirname(os.path.realpath(__file__)).split("/")
     dir_path = ''
@@ -38,6 +39,7 @@ if platform.system() == 'Darwin':
         if i != 'data':
             dir_path += i + '/'
     path = dir_path + "/images/"
+    json_path = dir_path + "json_files\\"
 if platform.system() == "Linux":
     l = os.path.dirname(os.path.realpath(__file__)).split("/")
     dir_path = ''
@@ -45,6 +47,7 @@ if platform.system() == "Linux":
         if i != 'data':
             dir_path += i + '/'
     path = dir_path + "/images/"
+    json_path = dir_path + "json_files\\"
 fa = None
 testing_strng = ''
 var = 0
@@ -65,7 +68,7 @@ my_cursor.execute(
 
 
 def remove_decrypted():
-    with open("settings.json", 'r') as f:
+    with open(f"{json_path}settings.json", 'r') as f:
         values = json.load(f)
     files = glob.glob("*decrypted.bin")
     for i in values:
@@ -122,8 +125,6 @@ class PinDecryption(Frame):
 
             while self.running:
                 try:
-                    print("ds'")
-                    print()
                     if self.ent.get():
                         int(self.ent.get())
                         if len(self.ent.get()) >= 4:
@@ -131,7 +132,6 @@ class PinDecryption(Frame):
 
                             self.ent.delete(4, END)
                 except ValueError:
-                    print("ads")
                     a = str(self.ent.get())
                     d = list(map(str, a))
                     f = 0
@@ -146,8 +146,8 @@ class PinDecryption(Frame):
         second_label = Label(self, justify='left', text='If you have lost your password you have to \nreset your account password', bg='#121212',
                              fg='white', font=("Segoe Ui", 15))
         second_label.place(x=0, y=160)
-        ent = Entry(self, width=20, font=("Segoe Ui", 15))
-        ent.place(x=width_window/2-40-5-5-30-10, y=250)
+        self.ent = Entry(self, width=20, font=("Segoe Ui", 15))
+        self.ent.place(x=width_window/2-40-5-5-30-10, y=250)
         enter_alpha = Button(self, text='Enter Alphanumeric pin', fg="#2A7BCF",
                              activeforeground="#2A7BCF",
                              bg="#121212", command=alpha,
@@ -157,7 +157,7 @@ class PinDecryption(Frame):
 
         t1 = threading.Thread(target=getting)
 
-        # t1.start()
+        t1.start()
         # adding the save button
 
         forgot_pass = Button(self, text='Forgot Password?', fg="#2A7BCF",
@@ -178,15 +178,13 @@ class PinDecryption(Frame):
                 self.pin = str(self.ent.get())
                 self.hash_value = hashlib.sha512(
                     self.pin.encode()).hexdigest()
-                with open("pin.json", 'r') as f:
+                with open(f"{json_path}pin.json", 'r') as f:
                     data = json.load(f)
                 username = hashlib.sha512(self.username.encode()).hexdigest()
                 for i in data:
                     if i == username:
                         if data[i] == self.hash_value:
-                            messagebox.showinfo(
-                                "Success", 'Your pin has been verified')
-                            main_pass = self.username + str(ent.get())
+                            main_pass = self.username + str(self.ent.get())
                             self.cipher = ''
                             self.salt = ''
                             my_cursor.execute(
@@ -196,8 +194,10 @@ class PinDecryption(Frame):
                                 self.salt = i[1]
                             st = retreive_key(
                                 main_pass, self.cipher, self.salt)
-                            self.password = simple_decrypt(st)
-                            print(self.password)
+                            self.password = st
+                            messagebox.showinfo(
+                                "Success", 'Your pin has been verified')
+
                             self.master.switch_frame(
                                 main_window, self.username, self.password)
                         else:
@@ -217,7 +217,7 @@ def log_out(*window, username):
     for windows in window:
         windows.destroy()
     users = {}
-    with open("settings.json", 'r') as f:
+    with open(f"{json_path}settings.json", 'r') as f:
         users = json.load(f)
     for i in users:
         if i == username:
@@ -251,33 +251,35 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
     settings_window.title("Settings")
     settings_window.config(bg="#1E1E1E")
     v = IntVar()
-    if os.stat("settings.json").st_size != 0:
-        with open("settings.json", 'r') as f:
+    if os.stat(f"{json_path}settings.json").st_size != 0:
+        with open(f"{json_path}settings.json", 'r') as f:
             values = json.load(f)
         if real_username in values.keys():
-            v.set(1)
+            if values[real_username] == 1:
+                v.set(1)
     delete_object = Deletion(handler, real_username, original_password,
                              hashed_password, window, my_cursor, master_main)
     change_object = Change_details(master_main,
                                    real_username, original_password, hashed_password, my_cursor)
+    deselectbutton = Button(settings_window, text='')
 
     def write_value(value):
         values = {}
-        if os.path.exists("settings.json"):
-            with open("settings.json", 'r') as f:
+        if os.path.exists(f"{json_path}settings.json"):
+            with open(f"{json_path}settings.json", 'r') as f:
                 values = json.load(f)
                 values[real_username] = value
-            with open("settings.json", "w") as f:
+            with open(f"{json_path}settings.json", "w") as f:
                 json.dump(values, f)
         else:
             values[real_username] = value
-            with open("settings.json", "w") as f:
+            with open(f"{json_path}settings.json", "w") as f:
                 json.dump(values, f)
 
-    keepmeloggedin = Radiobutton(settings_window, bg="#1E1E1E", foreground='green', fg='white', selectcolor='green', font=("Segoe Ui", 13), activebackground="#1E1E1E",
+    keepmeloggedin = Checkbutton(settings_window, bg="#1E1E1E", foreground='green', fg='white', selectcolor='green', font=("Segoe Ui", 13), activebackground="#1E1E1E",
                                  activeforeground='white',
-                                 text="Keep Me Logged In", var=v,
-                                 padx=20, command=lambda: write_value(v.get()), value=1)
+                                 text="Keep Me Logged In", variable=v,
+                                 padx=20, command=lambda: write_value(v.get()))
     log_label = Button(
         settings_window,
         text="Log out",
@@ -380,17 +382,21 @@ class main_class(Tk):
         self._frame = None
         username = ''
         frame_class = ''
-        if os.path.exists("settings.json") and os.stat("settings.json").st_size != 0:
-            with open("settings.json", 'r') as f:
+        if os.path.exists(f"{json_path}settings.json") and os.stat(f"{json_path}settings.json").st_size != 0:
+            with open(f"{json_path}settings.json", 'r') as f:
                 values = json.load(f)
             for i in values:
                 if values[i] == 1:
                     username = str(i)
                     break
             if username:
+                print("Sd")
                 self.switch_frame(PinDecryption, username)
+            else:
+                self.switch_frame(Login_page)
 
         else:
+            print("Ds")
             self.switch_frame(Login_page)
 
     def switch_frame(self, frame_class, *args):
@@ -2102,7 +2108,6 @@ class PinFrame(Frame):
             while self.al:
 
                 try:
-                    print("ds")
                     if self.ent.get():
                         if len(self.ent.get()) >= 4:
                             a = self.ent.get()[:4]
@@ -2114,8 +2119,7 @@ class PinFrame(Frame):
 
             while self.running:
                 try:
-                    print("ds'")
-                    print()
+
                     if self.ent.get():
                         int(self.ent.get())
                         if len(self.ent.get()) >= 4:
@@ -2123,7 +2127,6 @@ class PinFrame(Frame):
 
                             self.ent.delete(4, END)
                 except ValueError:
-                    print("ads")
                     a = str(self.ent.get())
                     d = list(map(str, a))
                     f = 0
@@ -2135,26 +2138,26 @@ class PinFrame(Frame):
         width_window = 1057
         lab = Label(self, text='Add a security pin', bg='#121212',
                     fg='white', font=("Segoe Ui", 15))
-        lab.place(x=width_window/2-60-5-10, y=100)
+        lab.place(x=width_window/2-60-5-10-10, y=100)
         lab1 = Label(self, text='This 4 digit  pin is used for further security\nYou cannot recover it.\nIf you lost the pin you may have to reset your account password.',
                      bg='#121212', fg='white', justify='center', font=("Segoe Ui", 15))
         pintext = Label(self, text="PIN:", bg='#121212', fg='white',
                         justify='center', font=("Segoe Ui", 15))
-        pintext.place(x=width_window/2-130-5-30-10, y=248)
-        lab1.place(x=width_window/2-190-5-10, y=150)
+        pintext.place(x=width_window/2-130-5-30-10-10, y=248)
+        lab1.place(x=width_window/2-190-5-60-10, y=150)
 
         self.ent = Entry(self, width=20, font=("Segoe Ui", 15))
-        self.ent.place(x=width_window/2-40-5-5-30-10, y=250)
+        self.ent.place(x=width_window/2-40-5-5-30-10-10, y=250)
         enter_alpha = Button(self, text='Enter Alphanumeric pin', fg="#2A7BCF",
                              activeforeground="#2A7BCF",
                              bg="#121212", command=alpha,
                              activebackground="#121212",  bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
-        enter_alpha.place(x=width_window/2+200-30-10, y=250)
+        enter_alpha.place(x=width_window/2+200-30-10-10, y=250)
         # adding the check box button
         self.var = IntVar()
         check = Checkbutton(self, text="I understand that this security code cannot be recovered once it is lost", font=("Segoe Ui", 14), bg='#121212', fg='white',
-                            justify='center', activebackground="#121212", activeforeground='white', selectcolor='black')
-        check.place(x=240, y=300)
+                            justify='center', variable=self.var, activebackground="#121212", activeforeground='white', selectcolor='black')
+        check.place(x=240-10, y=300)
 
         t1 = threading.Thread(target=getting)
 
@@ -2163,6 +2166,7 @@ class PinFrame(Frame):
         # adding the entry widget
 
         def pin_save():
+            print(self.var.get())
             if self.ent.get():
                 if self.var.get() == 1:
                     self.running, self.al = False, False
@@ -2173,33 +2177,33 @@ class PinFrame(Frame):
                     values[hashlib.sha512(
                         self.username.encode()).hexdigest()] = str(self.hash_value)
 
-                    if os.path.exists("pin.json") and os.stat("pin.json").st_size != 0:
-                        with open("pin.json", "r") as f:
+                    if os.path.exists(f"{json_path}pin.json") and os.stat(f"{json_path}pin.json").st_size != 0:
+                        with open(f"{json_path}pin.json", "r") as f:
                             data = json.load(f)
                         data[hashlib.sha512(
                             self.username.encode()).hexdigest()] = str(self.hash_value)
-                        with open("pin.json", 'w') as f:
+                        with open(f"{json_path}pin.json", 'w') as f:
                             json.dump(data, f)
                     else:
-                        with open('pin.json', 'w') as f:
+                        with open(f"{json_path}pin.json", 'w') as f:
                             json.dump(values, f)
                     main_pass = self.username + str(self.pin)
-                    static_salt_password = simple_encrypt(self.password)
+                    static_salt_password = (self.password)
                     cipher_text, salt_for_decryption = create_key(
                         main_pass, static_salt_password
                     )
                     my_cursor.execute("insert into userspin values(%s,%s,%s)",
                                       (self.username, cipher_text, salt_for_decryption))
-                    if os.path.exists("settings.json"):
-                        with open("settings.json", "r") as f:
+                    if os.path.exists(f"{json_path}settings.json") and os.stat(f"{json_path}settings.json").st_size != 0:
+                        with open(f"{json_path}settings.json", "r") as f:
                             value = json.load(f)
                         value[self.username] = 0
-                        with open("settings.json", 'w') as f:
+                        with open(f"{json_path}settings.json", 'w') as f:
                             json.dump(value, f)
                     else:
                         value = {}
                         value[self.username] = 0
-                        with open("settings.json", 'w') as f:
+                        with open(f"{json_path}settings.json", 'w') as f:
                             json.dump(value, f)
                     a = Tk()
                     a.withdraw()
@@ -2217,7 +2221,7 @@ class PinFrame(Frame):
                       activeforeground="#292A2D",
                       bg="#994422", command=pin_save,
                       activebackground="#994422", height=1, width=10, bd=0, borderwidth=0, font=("Consolas", 14))
-        save.place(x=width_window/2-30-5-10, y=350)
+        save.place(x=width_window/2-30-5-10-10, y=350)
 
 
 class Deletion:

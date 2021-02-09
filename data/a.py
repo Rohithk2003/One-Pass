@@ -47,147 +47,160 @@ if platform.system() == "Linux":
 running = True
 al = False
 number = 1
-if number == 1:
-    root = Tk()
-    new_img = tk_image.PhotoImage(image.open(f"{path}member.png"))
-    new_img_label = Label(root, image=new_img, bg="#121212")
-    new_img_label.photo = new_img
-    root.resizable(False, False)
-    file_name_reentry = 'kiren' + ".bin.aes"
-    running = running
-    al = al
-    width_window = 1057
+master = Tk()
+username = 'rohith'
+password = 'rohithk123'
+username = username
+master.title("hello")
+password = password
+master.config(bg="#121212")
+width_window = 1057
+height_window = 661
+screen_width = master.winfo_screenwidth()
+screen_height = master.winfo_screenheight()
+x = screen_width / 2 - width_window / 2
+y = screen_height / 2 - height_window / 2
 
-    def alpha():
-        global running,al
-        if str(enter_alpha['text']) == 'Enter Alphanumeric \npin':
-            running = False
-            al = True
-            enter_alpha.config(text="Enter Number \npin")
-            threading.Thread(target=for_alpha).start()
-        elif enter_alpha['text'] == 'Enter Number \npin':
-            running = True
-            al = False
-            enter_alpha.config(text="Enter Alphanumeric \npin")
-            threading.Thread(target=getting).start()
+master.geometry("%dx%d+%d+%d" %
+                         (width_window, height_window, x, y))
 
-    def for_alpha():
-        global al
-        while al:
-            try:
-                if ent.get():
-                    if len(ent.get()) >= 4:
-                        a = ent.get()[:4]
-                        ent.delete(4, END)
-            except:
-                pass
 
-    def getting():
+# def alpha():
+#     global running, al
+#     if str(enter_alpha['text']) == 'Enter Alphanumeric pin':
+#         running = False
+#         al = True
+#         enter_alpha.config(text="Enter Number pin")
+#         threading.Thread(target=for_alpha).start()
+#     elif enter_alpha['text'] == 'Enter Number pin':
+#         running = True
+#         al = False
+#         enter_alpha.config(text="Enter Alphanumeric pin")
+#         threading.Thread(target=getting).start()
 
-        while running:
-            try:
-                if ent.get():
-                    int(ent.get())
-                    if len(ent.get()) >= 4:
-                        a = ent.get()[:4]
 
-                        ent.delete(4, END)
-            except ValueError:
-                a = str(ent.get())
-                d = list(map(str, a))
-                f = 0
-                for i in d:
-                    if i.isalpha():
-                        f = d.index(i)
-                ent.delete(f, END)
+# def for_alpha():
+#     global running, al
+#     while al:
 
-    enter_alpha = Button(root, text='Enter Alphanumeric \npin', fg="#2A7BCF",
-                         activeforeground="#2A7BCF",
-                         bg="#121212", command=alpha,
-                         activebackground="#121212",  bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
-    enter_alpha.place(x=150, y=300)
-    # adding the check box button
+#         try:
+#             if ent.get():
+#                 if len(ent.get()) >= 4:
+#                     a = ent.get()[:4]
+#                     ent.delete(4, END)
+#         except:
+#             pass
 
-    t1 = threading.Thread(target=getting)
 
-    width_window = 400
-    height_window = 400
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    x = screen_width / 2 - width_window / 2
-    y = screen_height / 2 - height_window / 2
-    root.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
-    root.title("Change Details")
-    root.config(bg="#121212")
+# def getting():
+#     global running, al
+#     while running:
+#         try:
 
-    new_username = Label(root, text="New Username", font=("Segoe Ui", 13),
-                         fg="white", bg="#121212")
-    new_password = Label(root, text="New Password", font=("Segoe Ui", 13),
-                         fg="white", bg="#121212")
-    new_pin = Label(root, text="PIN:", font=("Segoe Ui", 13),
-                    fg="white", bg="#121212")
-    ent = Entry(root)
-    new_username_entry = Entry(root)
-    new_password_entry = Entry(root, show="*")
+#             if ent.get():
+#                 int(ent.get())
+#                 if len(ent.get()) >= 4:
+#                     a = ent.get()[:4]
 
-    new_img_label.place(x=130, y=0)
-    new_username.place(x=50, y=200-50)
-    new_password.place(x=50, y=250-50)
-    new_pin.place(x=50, y=300-50)
-    ent.place(x=200, y=250)
-    new_username_entry.place(x=200, y=203-50)
-    new_password_entry.place(x=200, y=250 + 3-50)
+#                     ent.delete(4, END)
+#         except ValueError:
+#             a = str(ent.get())
+#             d = list(map(str, a))
+#             f = 0
+#             for i in d:
+#                 if i.isalpha():
+#                     f = d.index(i)
+#             ent.delete(f, END)
 
-    new_username_entry.bind(
-        "<FocusIn>",
-        lambda event, val_val=new_username_entry, index=1: handle_focus_in(
-            val_val, index
-        ),
-    )
-    new_username_entry.bind(
-        "<FocusOut>",
-        lambda event, val_val=new_username_entry, val="Username", index=1: handle_focus_out(
-            val_val, val, index
-        ),
-    )
 
-    new_password_entry.bind(
-        "<FocusIn>",
-        lambda event, val_val=new_password_entry, index=2: handle_focus_in(
-            val_val, index
-        ),
-    )
-    new_password_entry.bind(
-        "<FocusOut>",
-        lambda event, val_val=new_password_entry, val="Password", index=2: handle_focus_out(
-            val_val, val, index
-        ),
-    )
+width_window = 1057
+lab = Label(master, text='Provide  a security pin', bg='#121212',
+            fg='white', font=("Segoe Ui", 15))
+lab.place(x=width_window/2-60-5-10-10, y=100)
+lab1 = Label(master, text='This 4 digit  pin is used for further security\nYou cannot recover it.\nIf you lost the pin you may have to reset your account password.',
+             bg='#121212', fg='white', justify='center', font=("Segoe Ui", 15))
+pintext = Label(master, text="PIN:", bg='#121212', fg='white',
+                justify='center', font=("Segoe Ui", 15))
+pintext.place(x=width_window/2-130-5-30-10-10, y=248)
+lab1.place(x=width_window/2-190-5-60-10, y=150)
 
-    unhide_img = tk_image.PhotoImage(image.open(f"{path}eye.png"))
+ent = Entry(master, width=20, font=("Segoe Ui", 15))
+ent.place(x=width_window/2-40-5-5-30-10-10, y=250)
+enter_alpha = Button(master, text='Enter Alphanumeric pin', fg="#2A7BCF",
+                     activeforeground="#2A7BCF",
+                     bg="#121212", 
+                     activebackground="#121212",  bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
+enter_alpha.place(x=width_window/2+200-30-10-10, y=250)
+# adding the check box button
+var = IntVar()
+check = Checkbutton(master, text="I understand that this security code cannot be recovered once it is lost", font=("Segoe Ui", 14), bg='#121212', fg='white',
+                    justify='center', variable=var, activebackground="#121212", activeforeground='white', selectcolor='black')
+check.place(x=240-10, y=300)
 
-    show_both_12 = Button(
-        root,
-        image=unhide_img,
-        bd=0,
-        command=lambda: password_sec(new_password_entry, show_both_12),
-        fg="white",
-        bg="#121212",
-        highlightcolor="#121212",
-        activebackground="#121212",
-        activeforeground="white",
-        relief=RAISED,
-    )
-    show_both_12.place(x=340, y=245-50)
+# t1 = threading.Thread(target=getting)
 
-    save = Button(root, text='Save!', font=("Segoe Ui", 13), fg='white', bg="#121212", command=lambda: change(
-        root, object, email, password1, username12, str(
-            new_password_entry.get()), str(new_username_entry.get()),
-        original_password, main_pass))
-    save.place(x=50, y=300)
-    t1.start()
+# t1.start()
 
-    root.mainloop()
+# adding the entry widget
 
-else:
-    pass
+
+# def pin_save():
+#     print(var.get())
+#     if ent.get():
+#         if var.get() == 1:
+#             running, al = False, False
+#             pin = str(ent.get())
+#             values = {}
+#             hash_value = hashlib.sha512(
+#                 pin.encode()).hexdigest()
+#             values[hashlib.sha512(
+#                 username.encode()).hexdigest()] = str(hash_value)
+
+#             if os.path.exists("pin.json") and os.stat("pin.json").st_size != 0:
+#                 with open("pin.json", "r") as f:
+#                     data = json.load(f)
+#                 data[hashlib.sha512(
+#                     username.encode()).hexdigest()] = str(hash_value)
+#                 with open("pin.json", 'w') as f:
+#                     json.dump(data, f)
+#             else:
+#                 with open('pin.json', 'w') as f:
+#                     json.dump(values, f)
+#             main_pass = username + str(pin)
+#             static_salt_password = simple_encrypt(password)
+#             cipher_text, salt_for_decryption = create_key(
+#                 main_pass, static_salt_password
+#             )
+#             my_cursor.execute("insert into userspin values(%s,%s,%s)",
+#                               (username, cipher_text, salt_for_decryption))
+#             if os.path.exists("settings.json") and os.stat("settings.json").st_size != 0:
+#                 with open("settings.json", "r") as f:
+#                     value = json.load(f)
+#                 value[username] = 0
+#                 with open("settings.json", 'w') as f:
+#                     json.dump(value, f)
+#             else:
+#                 value = {}
+#                 value[username] = 0
+#                 with open("settings.json", 'w') as f:
+#                     json.dump(value, f)
+#             a = Tk()
+#             a.withdraw()
+#             messagebox.showinfo(
+#                 'Saved', "PIN has been successfully registered")
+#             a.destroy()
+#             master.switch_frame(
+#                 main_window, username, password)
+#         else:
+#             messagebox.showinfo('Error', 'Checkbox is not ticked')
+#     else:
+#         messagebox.showinfo('Error', 'Please provide a pin')
+
+
+# adding the save button
+save = Button(master, text="S A V E", fg="#292A2D",
+              activeforeground="#292A2D",
+              bg="#994422", 
+              activebackground="#994422", height=1, width=10, bd=0, borderwidth=0, font=("Consolas", 14))
+save.place(x=width_window/2-30-5-10-10, y=350)
+master.mainloop()

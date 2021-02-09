@@ -5,7 +5,7 @@ import pickle
 import sqlite3
 from data.show_hide import *
 from data.secure import *
-
+import json
 # set the buffer size
 
 bufferSize = 64 * 1024
@@ -18,6 +18,7 @@ if platform.system() == "Windows":
         if i != 'data':
             dir_path += i + '\\'
     path = dir_path + "images\\"
+    json_path = dir_path + "json_files\\"
 if platform.system() == 'Darwin':
     l = os.path.dirname(os.path.realpath(__file__)).split("/")
     dir_path = ''
@@ -25,7 +26,15 @@ if platform.system() == 'Darwin':
         if i != 'data':
             dir_path += i + '/'
     path = dir_path + "/images/"
-
+    json_path = dir_path + "json_files\\"
+if platform.system() == "Linux":
+    l = os.path.dirname(os.path.realpath(__file__)).split("/")
+    dir_path = ''
+    for i in l:
+        if i != 'data':
+            dir_path += i + '/'
+    path = dir_path + "/images/"
+    json_path = dir_path + "json_files\\"
 
 def check_pass_integrity(username, password):
     if username == password:
@@ -189,34 +198,34 @@ def login_password(title1, object, *number):
     for letters in range(7):
         main_key += random.choice(alphabets)
 
-    def pin_save():
-        if self.ent.get():
-            self.running, self.al = False, False
-            self.pin = str(self.ent.get())
-            self.hash_value = hashlib.sha512(
-                self.pin.encode()).hexdigest()
-            with open("pin.json", 'r') as f:
+    def pin_save(ent,master,username,main_window):
+        if ent.get():
+            running, al = False, False
+            pin = str(ent.get())
+            hash_value = hashlib.sha512(
+                pin.encode()).hexdigest()
+            with open(f"{json_path}pin.json", 'r') as f:
                 data = json.load(f)
-            username = hashlib.sha512(self.username.encode()).hexdigest()
+            username = hashlib.sha512(username.encode()).hexdigest()
             for i in data:
                 if i == username:
-                    if data[i] == self.hash_value:
+                    if data[i] == hash_value:
                         messagebox.showinfo(
                             "Success", 'Your pin has been verified')
-                        main_pass = self.username + str(ent.get())
-                        self.cipher = ''
-                        self.salt = ''
-                        my_cursor.execute(
-                            "select password,salt from userspin where username =(%s)", (self.username,))
-                        for i in my_cursor.fetchall():
-                            self.cipher = i[0]
-                            self.salt = i[1]
+                        main_pass = username + str(ent.get())
+                        cipher = ''
+                        salt = ''
+                        object.execute(
+                            "select password,salt from userspin where username =(%s)", (username,))
+                        for i in object.fetchall():
+                            cipher = i[0]
+                            salt = i[1]
                         st = retreive_key(
-                            main_pass, self.cipher, self.salt)
-                        self.password = simple_decrypt(st)
-                        print(self.password)
-                        self.master.switch_frame(
-                            main_window, self.username, self.password)
+                            main_pass, cipher, salt)
+                        password = simple_decrypt(st)
+                        print(password)
+                        master.switch_frame(
+                            main_window, username, password)
                     else:
                         messagebox.showinfo("Incorrect", 'Incorrect Pin')
 
@@ -246,16 +255,15 @@ def login_password(title1, object, *number):
         for i in values_password:
             has = i[0]
             salt = i[1]
-        try:
-            string = retreive_key(main_pass, has, salt)
-            for i in string:
-                if i == "@":
-                    break
-                else:
-                    decrypted_string += i
-            main(main_key, window, but, decrypted_string, main_pass, *number)
-        except:
-            messagebox.showerror("Wrong Password", "Invalid recovery password")
+        string = retreive_key(main_pass, has, salt)
+        for i in string:
+            if i == "@":
+                break
+            else:
+                decrypted_string += i
+        main(main_key, window, but, decrypted_string, main_pass, *number)
+        # except:
+        #     messagebox.showerror("Wrong Password", "Invalid recovery password")
 
     def generate_key1(file, main_key, button):
 
@@ -360,7 +368,6 @@ def login_password(title1, object, *number):
             new_img_label = Label(root, image=new_img, bg="#121212")
             new_img_label.photo = new_img
             root.resizable(False, False)
-            file_name_reentry = 'kiren' + ".bin.aes"
             running = running
             al = al
             width_window = 1057
