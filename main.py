@@ -18,8 +18,11 @@ from tkinter import messagebox
 from tkinter import simpledialog
 from tkinter import ttk
 from tkinter import *
-
+import time
 bufferSize = 64 * 1024
+running = True
+
+al = False
 
 if platform.system() == "Windows":
     l = os.path.dirname(os.path.realpath(__file__)).split("\\")
@@ -56,7 +59,7 @@ my_cursor.execute("use users")
 my_cursor.execute(
     "ALTER DATABASE `%s` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'" % "users")
 my_cursor.execute(
-    "create table if not exists usersdata (username varchar(100) primary key,email_id longtext,password blob ,salt blob, recovery_password LONGBLOB, salt_recovery blob) ")
+    "create table if not exists usersdata (username varchar(255) primary key,email_id longtext,password blob ,salt blob, recovery_password LONGBLOB, salt_recovery blob) ")
 
 
 def destroy_all(root):
@@ -560,7 +563,7 @@ class Register_page(Frame):
         image1_label.image = image1
         image1_label.place(x=0, y=0)
         iconimage = tk_image.PhotoImage(image.open(f"{path}member.png"))
-        labelframe1 = LabelFrame(
+        self.labelframe1 = LabelFrame(
             self,
             bg="#292A2D",
             width=550,
@@ -568,16 +571,15 @@ class Register_page(Frame):
             borderwidth=2,
             relief="solid",
         )
-        labelframe1.place(x=270, y=75)
+        self.labelframe1.place(x=270, y=75)
 
-        icon_label = Label(labelframe1, image=iconimage, bg="#292A2D")
+        icon_label = Label(self.labelframe1, image=iconimage, bg="#292A2D")
         icon_label.image = iconimage
         icon_label.place(x=180, y=20 + 30)
 
         # ------------------Labels---------------------------
-
         username = Label(
-            labelframe1,
+            self. labelframe1,
             fg="#ebebeb",
             text="Username",
             bd=5,
@@ -585,7 +587,7 @@ class Register_page(Frame):
             font=("Yu Gothic Ui", 15),
         )
         password = Label(
-            labelframe1,
+            self.labelframe1,
             fg="#ebebeb",
             text="Master Password",
             bd=5,
@@ -593,7 +595,7 @@ class Register_page(Frame):
             font=("Yu Gothic Ui", 15),
         )
         email_id = Label(
-            labelframe1,
+            self.labelframe1,
             fg="#ebebeb",
             text="Recovery Email",
             bg="#292A2D",
@@ -601,7 +603,7 @@ class Register_page(Frame):
             font=("Yu Gothic Ui", 15),
         )
         email_password = Label(
-            labelframe1,
+            self.labelframe1,
             fg="#ebebeb",
             text="Recovery Password",
             bg="#292A2D",
@@ -616,7 +618,7 @@ class Register_page(Frame):
 
         # ------------------Entry---------------------------
         self.username_entry = Entry(
-            labelframe1,
+            self.labelframe1,
             width=20,
             borderwidth=0,
             fg="#ebebeb",
@@ -626,7 +628,7 @@ class Register_page(Frame):
             font=("segoe ui", 15, "normal"),
         )
         self.password_entry = Entry(
-            labelframe1,
+            self.labelframe1,
             show="*",
             fg="#ebebeb",
             bg="#292A2D",
@@ -636,7 +638,7 @@ class Register_page(Frame):
             font=("segoe ui", 15, "normal"),
         )
         self.email_id_entry = Entry(
-            labelframe1,
+            self.labelframe1,
             borderwidth=0,
             fg="#ebebeb",
             bg="#292A2D",
@@ -645,7 +647,7 @@ class Register_page(Frame):
             font=("segoe ui", 15, "normal"),
         )
         self.email_password_entry = Entry(
-            labelframe1,
+            self.labelframe1,
             borderwidth=0,
             fg="#ebebeb",
             bg="#292A2D",
@@ -660,21 +662,21 @@ class Register_page(Frame):
         self.email_id_entry.place(x=230 - 20, y=270 + 18 + 40 + 4 - 2)
         self.email_password_entry.place(x=230 - 20, y=320 + 18 + 40 + 4 - 2)
 
-        Frame(labelframe1, width=220, height=2, bg="#ebebeb").place(
+        Frame(self.labelframe1, width=220, height=2, bg="#ebebeb").place(
             x=230 - 20, y=170 + 18 + 40 + 4 + 20 + 7 - 2
         )
-        Frame(labelframe1, width=220, height=2, bg="#ebebeb").place(
+        Frame(self.labelframe1, width=220, height=2, bg="#ebebeb").place(
             x=230 - 20, y=220 + 18 + 40 + 4 + 20 + 7 - 2
         )
-        Frame(labelframe1, width=220, height=2, bg="#ebebeb").place(
+        Frame(self.labelframe1, width=220, height=2, bg="#ebebeb").place(
             x=230 - 20, y=270 + 18 + 40 + 4 + 20 + 7 - 2
         )
-        Frame(labelframe1, width=220, height=2, bg="#ebebeb").place(
+        Frame(self.labelframe1, width=220, height=2, bg="#ebebeb").place(
             x=230 - 20, y=320 + 18 + 40 + 4 + 20 + 7 - 2
         )
 
         self.submit_but = Button(
-            labelframe1,
+            self.labelframe1,
             bd=0,
             width=20,
             height=2,
@@ -689,7 +691,7 @@ class Register_page(Frame):
         unhide_img = tk_image.PhotoImage(image.open(f"{path}eye.png"))
 
         show_both_1 = Button(
-            labelframe1,
+            self.labelframe1,
             image=unhide_img,
             command=lambda: password_sec(self.password_entry, show_both_1),
             fg="#292A2D",
@@ -702,7 +704,7 @@ class Register_page(Frame):
         )
         show_both_1.image = unhide_img
         show_both_12 = Button(
-            labelframe1,
+            self.labelframe1,
             image=unhide_img,
             command=lambda: password_sec(
                 self.email_password_entry, show_both_12),
@@ -720,7 +722,7 @@ class Register_page(Frame):
         show_both_12.place(x=420 - 20, y=320 + 18 + 34)
 
         login_button = Button(
-            labelframe1,
+            self.labelframe1,
             text="B A C K",
             width=20,
             height=2,
@@ -732,12 +734,11 @@ class Register_page(Frame):
             relief=SUNKEN,
             command=lambda: master.switch_frame(Login_page),
         )
-        # creating a check button
 
         login_button.place(x=30, y=470)
         self.submit_but.place(x=320, y=470)
 
-        generate = Button(labelframe1,
+        generate = Button(self.labelframe1,
                           text="Generate",
                           fg="#292A2D",
                           bg="#994422",
@@ -747,7 +748,7 @@ class Register_page(Frame):
                           relief=SUNKEN,
                           command=lambda: pass_generator(self.password_entry))
         generate.place(x=440, y=220 + 18 + 39)
-        generate1 = Button(labelframe1,
+        generate1 = Button(self.labelframe1,
                            text="Generate",
                            fg="#292A2D",
                            bg="#994422",
@@ -759,26 +760,25 @@ class Register_page(Frame):
         generate1.place(x=440, y=320 + 18 + 40 + 4 - 2)
 
     def register_saving(self):
+
         self.submit_but.config(state=DISABLED)
         self.username = str(self.username_entry.get())
         self.password = str(self.password_entry.get())
         self.email_password = str(self.email_password_entry.get())
         self.email = str(self.email_id_entry.get())
-
         if self.username == "" or self.password == "":
             messagebox.showinfo("Fields Empty", "Fields cannot be empty")
         else:
-
             if self.check_pass_length():
                 if self.check_password_integrity():
                     if self.email_exists():
                         registering = self.saving()
                         if registering:
-                            print()
                             messagebox.showinfo(
                                 "Error", "Username or email is unavailable")
                             self.submit_but.config(state=NORMAL)
                         if not registering:
+
                             self.creation()
 
                     else:
@@ -820,7 +820,7 @@ class Register_page(Frame):
         return True
 
     def email_exists(self):
-        return self.email.endswith(("gmail.com", "yahho.com"))
+        return self.email.endswith(("gmail.com", "yahoo.com"))
 
     def check_pass_length(self):  # checking if the entered password is lesser than 5
         return len(self.password) >= 5
@@ -829,6 +829,7 @@ class Register_page(Frame):
 
     def saving(self):
         my_cursor.execute("select username from usersdata")
+
         values_username = my_cursor.fetchall()
         for i in values_username:
             for usernames in i:
@@ -873,7 +874,6 @@ class Register_page(Frame):
                 encrypted_pass,
                 passwordSalt,
             ))
-        print("d")
         return False
 
     # adding the account
@@ -899,7 +899,8 @@ class Register_page(Frame):
             file_name +
             ".aes", f"{self.username}decrypted.bin", hash_pass, bufferSize
         )
-        self.master.switch_frame(main_window, self.username, self.password)
+        self.master.switch_frame(
+            Alphanumericcode, self.username, self.password)
 
 
 # class which handles the main window for seeing the password
@@ -1202,6 +1203,7 @@ class Password_display(Frame):
                 messagebox.showerror("Error", "The account already exists")
             else:
                 line = []
+
                 name_file = self.username + "decrypted.bin"
                 if os.stat(f"{self.username}decrypted.bin").st_size != 0:
                     with open(f"{self.username}decrypted.bin", "rb") as f:
@@ -1210,6 +1212,11 @@ class Password_display(Frame):
                     with open(name_file, "wb") as f1:
                         p.dump(line, f1)
                         f.close()
+                else:
+                    with open(f'{self.username}decrypted.bin', 'wb') as f:
+                        line.append(list_account)
+                        pickle.dump(line, f)
+
                 index_value = line.index(list_account)
                 os.remove(self.username + ".bin.aes")
                 pyAesCrypt.encryptFile(
@@ -1221,6 +1228,7 @@ class Password_display(Frame):
                         val = p.load(f)
                     self.add_button.grid(row=len(val) + 1, column=0)
                 self.root1.destroy()
+                self.buttons_blit()
                 self.show_account(index_value, list_account[2])
 
     def addaccount(self):
@@ -1906,6 +1914,133 @@ class Change_details:
         show_both_12.place(x=320, y=100 + 53 + 20)
 
 
+class Alphanumericcode(Frame):
+    def __init__(self, master, username, password):
+        self.master = master
+        Frame.__init__(self, self.master)
+        self.username = username
+        self.master.title("hello")
+        self.password = password
+        self.config(bg="#121212")
+        global running, al
+        self.running = running
+        self.al = al
+
+        def alpha():
+            if str(enter_alpha['text']) == 'Enter Alphanumeric pin':
+                self.running = False
+                self.al = True
+                enter_alpha.config(text="Enter Number pin")
+                threading.Thread(target=for_alpha).start()
+            elif enter_alpha['text'] == 'Enter Number pin':
+                self.running = True
+                self.al = False
+                enter_alpha.config(text="Enter Alphanumeric pin")
+                threading.Thread(target=getting).start()
+
+        def for_alpha():
+            while self.al:
+
+                try:
+                    print("ds")
+                    if self.ent.get():
+                        if len(self.ent.get()) >= 4:
+                            a = self.ent.get()[:4]
+                            self.ent.delete(4, END)
+                except:
+                    pass
+
+        def getting():
+
+            while self.running:
+                try:
+                    print("ds'")
+                    print()
+                    if self.ent.get():
+                        int(self.ent.get())
+                        if len(self.ent.get()) >= 4:
+                            a = self.ent.get()[:4]
+
+                            self.ent.delete(4, END)
+                except ValueError:
+                    print("ads")
+                    a = str(self.ent.get())
+                    d = list(map(str, a))
+                    f = 0
+                    for i in d:
+                        if i.isalpha():
+                            f = d.index(i)
+                    self.ent.delete(f, END)
+
+        width_window = 1057
+        lab = Label(self, text='Add a security pin', bg='#121212',
+                    fg='white', font=("Segoe Ui", 15))
+        lab.place(x=width_window/2-60-5-10, y=100)
+        lab1 = Label(self, text='This 4 digit security pin is used for further security\nYou cannot recover it.',
+                     bg='#121212', fg='white', justify='center', font=("Segoe Ui", 15))
+        pintext = Label(self, text="PIN:", bg='#121212', fg='white',
+                        justify='center', font=("Segoe Ui", 15))
+        pintext.place(x=width_window/2-130-5-30-10, y=248)
+        lab1.place(x=width_window/2-190-5-10, y=150)
+
+        self.ent = Entry(self, width=20, font=("Segoe Ui", 15))
+        self.ent.place(x=width_window/2-40-5-5-30-10, y=250)
+        enter_alpha = Button(self, text='Enter Alphanumeric pin', fg="#2A7BCF",
+                             activeforeground="#2A7BCF",
+                             bg="#121212", command=alpha,
+                             activebackground="#121212",  bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
+        enter_alpha.place(x=width_window/2+200-30-10, y=250)
+        # adding the check box button
+        self.var = IntVar()
+        check = Checkbutton(self, variable=self.var, text="I understand that this security code cannot be recovered once it is lost", font=("Consolas", 14), bg='#121212', fg='white',
+                            justify='center', activebackground="#121212", activeforeground='white', selectcolor='black')
+        check.place(x=200, y=300)
+
+        t1 = threading.Thread(target=getting)
+
+        t1.start()
+
+        # adding the entry widget
+
+        def pin_save():
+            if self.ent.get():
+                if self.var.get() == 1:
+                    self.running, self.al = False, False
+                    self.pin = str(self.ent.get())
+                    values = {}
+                    self.hash_value = hashlib.sha512(
+                        self.pin.encode()).hexdigest()
+                    values[hashlib.sha512(
+                        self.username.encode()).hexdigest()] = str(self.hash_value)
+
+                    if os.path.exists("pin.json") and os.stat("pin.json").st_size != 0:
+                        with open("pin.json", "r") as f:
+                            data = json.load(f)
+                        data[hashlib.sha512(
+                            self.username.encode()).hexdigest()] = str(self.hash_value)
+                        with open("pin.json", 'w') as f:
+                            json.dump(data, f)
+                    else:
+                        with open('pin.json', 'w') as f:
+                            json.dump(values, f)
+                    a = Tk()
+                    a.withdraw()
+                    messagebox.showinfo(
+                        'Saved', "PIN has been successfully registered")
+                    self.master.switch_frame(
+                        main_window, self.username, self.password)
+                else:
+                    messagebox.showinfo('Error', 'Checkbox is not ticked')
+            else:
+                messagebox.showinfo('Error', 'Please provide a pin')
+        # adding the save button
+        save = Button(self, text="S A V E", fg="#292A2D",
+                      activeforeground="#292A2D",
+                      bg="#994422", command=pin_save,
+                      activebackground="#994422", height=1, width=10, bd=0, borderwidth=0, font=("Consolas", 14))
+        save.place(x=width_window/2-30-5-10, y=350)
+
+
 class Deletion:
     def __init__(self, handler, real_username, password, hashed_password, window, object, master):
         self.real_username = real_username
@@ -2067,7 +2202,7 @@ if __name__ == "__main__":
     # initialising the main class
     app = main_class()
     app.mainloop()
-
+    quit()
 """ to remove all decrypted files
 the glob function returns a list of files ending with decrypted.bin"""
 for i in glob.glob("*decrypted.bin"):
