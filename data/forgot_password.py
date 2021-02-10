@@ -36,6 +36,7 @@ if platform.system() == "Linux":
     path = dir_path + "/images/"
     json_path = dir_path + "json_files\\"
 
+
 def check_pass_integrity(username, password):
     if username == password:
         return False
@@ -52,7 +53,7 @@ def forgot_password(email, *OTP):
         global running
         running = True
         SUBJECT = "EMAIL verification for ONE-PASS-MANAGER"
-        otp = f"Hey {OTP[1]}!\nOTP to change password is {OTP[0]}"
+        otp = f"Hey {OTP[1]}!\nOTP to change password is {OTP[0]}.Use this code to reset to password"
         msg = f"Subject: {SUBJECT}\n\n{otp}"
         s = smtplib.SMTP("smtp.gmail.com", 587)
         s.starttls()
@@ -164,7 +165,7 @@ def login_password(title1, object, *number):
                                 border=0,
                                 bd=0,
                                 fg='white',
-                                font=("", 15, "normal"),
+                                font=("Consolas", 15, "normal"),
                                 insertbackground="white", )
     recover_password_entry = Entry(window,
                                    width=13,
@@ -173,7 +174,7 @@ def login_password(title1, object, *number):
                                    fg='white',
                                    border=0,
                                    bd=0,
-                                   font=("", 15, "normal"),
+                                   font=("Consolas", 15, "normal"),
                                    insertbackground="white", )
     username_forgot_entry = Entry(window,
                                   width=13,
@@ -182,7 +183,7 @@ def login_password(title1, object, *number):
                                   bd=0,
                                   fg='white',
 
-                                  font=("", 15, "normal"),
+                                  font=("Consolas", 15, "normal"),
                                   foreground="white",
                                   insertbackground="white", )
 
@@ -198,7 +199,7 @@ def login_password(title1, object, *number):
     for letters in range(7):
         main_key += random.choice(alphabets)
 
-    def pin_save(ent,master,username,main_window):
+    def pin_save(ent, master, username, main_window):
         if ent.get():
             running, al = False, False
             pin = str(ent.get())
@@ -280,8 +281,11 @@ def login_password(title1, object, *number):
         a.destroy()
 
     def change_password(email, password1, username12, original_password, main_pass, *number):
-        value = number[0]
-
+        try:
+            value = number[0]
+        except:
+            value = 0
+            pass
         window.destroy()
         if value == 0:
             root = Toplevel()

@@ -18,7 +18,9 @@ from tkinter import messagebox
 from tkinter import simpledialog
 from tkinter import ttk
 from tkinter import *
+from tkhtmlview import HTMLLabel
 import time
+
 bufferSize = 64 * 1024
 running = True
 
@@ -68,15 +70,18 @@ my_cursor.execute(
 
 
 def remove_decrypted():
+    file_name = ''
     with open(f"{json_path}settings.json", 'r') as f:
-        values = json.load(f)
-    files = glob.glob("*decrypted.bin")
-    for i in values:
-        if f'{i}decrypted.bin' not in files:
-            try:
-                os.remove(i)
-            except OSError:
-                pass
+        value = json.load(f)
+    for i in value:
+        if value[i] == 1:
+            file_name = f'{i}decrypted.bin'
+            break
+    ls = glob.glob("*decrypted.bin")
+    if file_name in ls:
+        ls.remove(file_name)
+    for i in ls:
+        os.remove(i)
 
 
 def destroy_all(root):
@@ -142,17 +147,19 @@ class PinDecryption(Frame):
 
         lab = Label(self, text='Verify the security pin', bg='#121212',
                     fg='white', font=("Segoe Ui", 20))
-        lab.place(x=width_window/2-60-5-45, y=160)
-        second_label = Label(self, justify='left', text='If you have lost your password you have to \nreset your account password', bg='#121212',
+        lab.place(x=width_window / 2 - 60 - 5 - 45, y=160)
+        second_label = Label(self, justify='left',
+                             text='If you have lost your password you have to \nreset your account password',
+                             bg='#121212',
                              fg='white', font=("Segoe Ui", 15))
         second_label.place(x=0, y=160)
         self.ent = Entry(self, width=20, font=("Segoe Ui", 15))
-        self.ent.place(x=width_window/2-40-5-5-30-10, y=250)
+        self.ent.place(x=width_window / 2 - 40 - 5 - 5 - 30 - 10, y=250)
         enter_alpha = Button(self, text='Enter Alphanumeric pin', fg="#2A7BCF",
                              activeforeground="#2A7BCF",
                              bg="#121212", command=alpha,
-                             activebackground="#121212",  bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
-        enter_alpha.place(x=width_window/2+200-30-10, y=250)
+                             activebackground="#121212", bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
+        enter_alpha.place(x=width_window / 2 + 200 - 30 - 10, y=250)
         # adding the check box button
 
         t1 = threading.Thread(target=getting)
@@ -163,14 +170,14 @@ class PinDecryption(Frame):
         forgot_pass = Button(self, text='Forgot Password?', fg="#2A7BCF",
                              activeforeground="#2A7BCF",
                              bg="#121212", command=lambda: login_password("Forgot Password", my_cursor, 1),
-                             activebackground="#121212",  bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
+                             activebackground="#121212", bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
 
         forgot_pass.place(x=100, y=250)
         save = Button(self, text="S A V E", fg="#292A2D",
                       activeforeground="#292A2D",
                       bg="#994422",
                       activebackground="#994422", height=1, width=10, bd=0, borderwidth=0, font=("Consolas", 14))
-        save.place(x=width_window/2-30-5-10, y=350)
+        save.place(x=width_window / 2 - 30 - 5 - 10, y=350)
 
         def pin_save():
             if self.ent.get():
@@ -205,12 +212,13 @@ class PinDecryption(Frame):
 
             else:
                 messagebox.showinfo('Error', 'Please provide a pin')
+
         # adding the save button
         save = Button(self, text="S A V E", fg="#292A2D",
                       activeforeground="#292A2D",
                       bg="#994422", command=pin_save,
                       activebackground="#994422", height=1, width=10, bd=0, borderwidth=0, font=("Consolas", 14))
-        save.place(x=width_window/2-30-5-10, y=350)
+        save.place(x=width_window / 2 - 30 - 5 - 10, y=350)
 
 
 def log_out(*window, username):
@@ -276,7 +284,8 @@ def settings(handler, real_username, master_main, hashed_password, window, passw
             with open(f"{json_path}settings.json", "w") as f:
                 json.dump(values, f)
 
-    keepmeloggedin = Checkbutton(settings_window, bg="#1E1E1E", foreground='green', fg='white', selectcolor='green', font=("Segoe Ui", 13), activebackground="#1E1E1E",
+    keepmeloggedin = Checkbutton(settings_window, bg="#1E1E1E", foreground='green', fg='white', selectcolor='blue',
+                                 font=("Segoe Ui", 13), activebackground="#1E1E1E",
                                  activeforeground='white',
                                  text="Keep Me Logged In", variable=v,
                                  padx=20, command=lambda: write_value(v.get()))
@@ -745,7 +754,7 @@ class Register_page(Frame):
 
         # ------------------Labels---------------------------
         username = Label(
-            self. labelframe1,
+            self.labelframe1,
             fg="#ebebeb",
             text="Username",
             bd=5,
@@ -944,7 +953,6 @@ class Register_page(Frame):
                                 "Error", "Username or email is unavailable")
                             self.submit_but.config(state=NORMAL)
                         if not registering:
-
                             self.creation()
 
                     else:
@@ -1260,7 +1268,8 @@ class Password_display(Frame):
         self.subbar.place(x=0, y=0)
         self.subbar.grid_propagate(False)
         scrollbar = ScrolledFrame(
-            self.subbar, width=129, borderwidth=0, bd=0, height=661, highlightcolor='#1E1E1E', background='#1E1E1E', bg='#1E1E1E')
+            self.subbar, width=129, borderwidth=0, bd=0, height=661, highlightcolor='#1E1E1E', background='#1E1E1E',
+            bg='#1E1E1E')
 
         scrollbar.pack(expand=1, fill=Y)
         # configure the canvas
@@ -1327,7 +1336,7 @@ class Password_display(Frame):
                             compound="top",
                             command=lambda a=i, value=new[i]: self.show_account(a, value))
 
-                    ]=[i, button_img]
+                    ] = [i, button_img]
 
                 for i in d:
                     i.image = d[i][1]
@@ -1354,6 +1363,7 @@ class Password_display(Frame):
             str(self.username_window_entry.get()),
             str(self.password_entry.get()),
             str(self.name_of_social_entry.get()),
+            str(self.website_ent.get())
         ]
         if str(self.username_window_entry.get()) == "":
             messagebox.showwarning("Warning", "Username cannot be empty")
@@ -1419,21 +1429,25 @@ class Password_display(Frame):
                                 fg="white", bg="#292A2D")
         password_window = Label(self.root1, text="Password:", font=("Yu Gothic Ui", 15),
                                 fg="white", bg="#292A2D")
+        website_label = Label(self.root1, text='Website', font=("Yu Gothic Ui", 15),
+                              fg="white", bg="#292A2D")
         self.username_window_entry = Entry(
             self.root1, font=("Yu Gothic Ui", 10))
         self.password_entry = Entry(self.root1, font=("Yu Gothic Ui", 10))
         self.name_of_social_entry = Entry(
             self.root1, font=("Yu Gothic Ui", 10))
-
+        self.website_ent = Entry(self.root1, font=("Yu Gothic Ui", 10))
         username_window.place(x=10, y=100 + 100)
         password_window.place(x=10, y=130 + 110)
         name_of_social.place(x=10, y=60 + 100)
+        website_label.place(x=10, y=280)
         self.username_window_entry.place(
             x=200 + 10, y=100 + 110, height=20, width=150)
         self.password_entry.place(
             x=200 + 10, y=130 + 118, height=20, width=150)
         self.name_of_social_entry.place(
             x=200 + 10, y=70 + 100, height=20, width=150)
+        self.website_ent.place(x=200 + 10, y=290, height=20, width=150)
 
         new_id = tk_image.PhotoImage(image.open(f"{path}photo.png"))
         self.add_icon_button = Label(
@@ -1456,7 +1470,7 @@ class Password_display(Frame):
                                   bg="#994422",
                                   activebackground="#994422",
                                   command=lambda: self.save(), )
-        self.save_button.place(x=130, y=170 + 130)
+        self.save_button.place(x=130, y=200 + 130)
         self.add_icon_button.place(x=150, y=50)
         self.root1.mainloop()
 
@@ -1476,8 +1490,8 @@ class Password_display(Frame):
         background = Label(new_frame, bd=0, borderwidth=0, image=bg_img)
         background.place(x=0, y=0)
         background.image = bg_img
-        new_s = Frame(new_frame, bg="#1E1E1E", width=500, height=400, bd=0)
-        new_s.place(x=150, y=150)
+        new_s = Frame(new_frame, bg="#1E1E1E", width=500, height=460, bd=0)
+        new_s.place(x=150, y=120)
 
         def copy(value):
             pyperclip.copy(value)
@@ -1486,6 +1500,8 @@ class Password_display(Frame):
         dot_text = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
         dot_text1 = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
         dot_text2 = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
+        dot_text3 = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
+
         with open(f'{self.username}decrypted.bin', 'rb') as f:
             lists = pickle.load(f)
         delete_account = Button(
@@ -1514,12 +1530,11 @@ class Password_display(Frame):
         username = ''
         password = ''
         if os.stat(f"{self.username}decrypted.bin").st_size != 0:
-
             with open(f'{self.username}decrypted.bin', 'rb') as f:
                 values = p.load(f)
                 for i in values:
                     if i[2] == account_name:
-                        username, password = i[0], i[1]
+                        username, password, website = i[0], i[1], i[3]
         image_path = f'{path}followers.png'
 
         username_label = Label(
@@ -1536,6 +1551,9 @@ class Password_display(Frame):
             fg="white",
             font=("Yu Gothic Ui", 15),
         )
+        website_text = Label(new_s, text='Website', bg="#1E1E1E",
+                             fg="white",
+                             font=("Yu Gothic Ui", 15), )
         social_account = Label(
             new_s,
             text="Account Name",
@@ -1565,6 +1583,37 @@ class Password_display(Frame):
             fg="white",
             font=("Yu Gothic Ui", 15),
         )
+
+        website_label1 = HTMLLabel(
+            new_s, html=f''' 
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <link rel="stylesheet" href="style.css">
+                </head>
+            <body>
+                <a   style='color:white;text-align:center;font-family:sans-serif'  href={website}>Open Website</a>
+            </body>
+            </html>
+            ''',
+            background="#1E1E1E", foreground='white', width=20, height=2)
+        try:
+            tip = tix.Balloon(new_s)
+            tip.config(background='white')
+            tip.label.config(bg='white', fg='white')
+            try:
+                for sub in tip.subwidgets_all():
+                    sub.configure(bg='white')
+            except:
+                pass
+            tip.subwidget('label').forget()
+            tip.message.config(bg='white', fg='#06090F',
+                               font=('Segoe UI SemiBold', 10))
+            # display the ballon text
+            tip.bind_widget(website_label1, balloonmsg=f'Open {website}')
+
+        except:
+            pass
         copy_but_password = Button(new_s, text="Copy Password", bd=0,
                                    font=("consolas"),
                                    fg="#292A2D",
@@ -1593,20 +1642,25 @@ class Password_display(Frame):
         dot_text.place(x=170 + 20, y=175 + 3)
         dot_text1.place(x=170 + 20, y=200 + 25 + 3)
         dot_text2.place(x=170 + 20, y=250 + 25 + 3)
+        dot_text3.place(x=170 + 20, y=300 + 25 + 3)
 
-        delete_account.place(x=0 + 25, y=340)
+        delete_account.place(x=0 + 25, y=340 + 50)
         username_label.place(x=30, y=250 + 25)
+        website_text.place(x=30, y=325)
         password_label.place(x=30, y=200 + 25)
         social_account.place(x=30, y=175)
         username_text.place(x=250, y=250 + 25)
         password_text.place(x=250, y=200 + 25)
         social_account_text.place(x=250, y=175)
-        ChangeAccount.place(x=340, y=340)
+        ChangeAccount.place(x=340, y=340 + 50)
         copy_but_username.place(x=360, y=30)
         copy_but_password.place(x=360, y=80)
+        website_label1.place(x=250, y=300 + 20 + 5)
 
 
 # for seeing the profile
+
+
 class Profile_view(Frame):
     def __init__(
             self,
@@ -2138,26 +2192,29 @@ class PinFrame(Frame):
         width_window = 1057
         lab = Label(self, text='Add a security pin', bg='#121212',
                     fg='white', font=("Segoe Ui", 15))
-        lab.place(x=width_window/2-60-5-10-10, y=100)
-        lab1 = Label(self, text='This 4 digit  pin is used for further security\nYou cannot recover it.\nIf you lost the pin you may have to reset your account password.',
+        lab.place(x=width_window / 2 - 60 - 5 - 10 - 10, y=100)
+        lab1 = Label(self,
+                     text='This 4 digit  pin is used for further security\nYou cannot recover it.\nIf you lost the pin you may have to reset your account password.',
                      bg='#121212', fg='white', justify='center', font=("Segoe Ui", 15))
         pintext = Label(self, text="PIN:", bg='#121212', fg='white',
                         justify='center', font=("Segoe Ui", 15))
-        pintext.place(x=width_window/2-130-5-30-10-10, y=248)
-        lab1.place(x=width_window/2-190-5-60-10, y=150)
+        pintext.place(x=width_window / 2 - 130 - 5 - 30 - 10 - 10, y=248)
+        lab1.place(x=width_window / 2 - 190 - 5 - 60 - 10, y=150)
 
         self.ent = Entry(self, width=20, font=("Segoe Ui", 15))
-        self.ent.place(x=width_window/2-40-5-5-30-10-10, y=250)
+        self.ent.place(x=width_window / 2 - 40 - 5 - 5 - 30 - 10 - 10, y=250)
         enter_alpha = Button(self, text='Enter Alphanumeric pin', fg="#2A7BCF",
                              activeforeground="#2A7BCF",
                              bg="#121212", command=alpha,
-                             activebackground="#121212",  bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
-        enter_alpha.place(x=width_window/2+200-30-10-10, y=250)
+                             activebackground="#121212", bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
+        enter_alpha.place(x=width_window / 2 + 200 - 30 - 10 - 10, y=250)
         # adding the check box button
         self.var = IntVar()
-        check = Checkbutton(self, text="I understand that this security code cannot be recovered once it is lost", font=("Segoe Ui", 14), bg='#121212', fg='white',
-                            justify='center', variable=self.var, activebackground="#121212", activeforeground='white', selectcolor='black')
-        check.place(x=240-10, y=300)
+        check = Checkbutton(self, text="I understand that this security code cannot be recovered once it is lost",
+                            font=("Segoe Ui", 14), bg='#121212', fg='white',
+                            justify='center', variable=self.var, activebackground="#121212", activeforeground='white',
+                            selectcolor='black')
+        check.place(x=240 - 10, y=300)
 
         t1 = threading.Thread(target=getting)
 
@@ -2194,7 +2251,8 @@ class PinFrame(Frame):
                     )
                     my_cursor.execute("insert into userspin values(%s,%s,%s)",
                                       (self.username, cipher_text, salt_for_decryption))
-                    if os.path.exists(f"{json_path}settings.json") and os.stat(f"{json_path}settings.json").st_size != 0:
+                    if os.path.exists(f"{json_path}settings.json") and os.stat(
+                            f"{json_path}settings.json").st_size != 0:
                         with open(f"{json_path}settings.json", "r") as f:
                             value = json.load(f)
                         value[self.username] = 0
@@ -2216,12 +2274,13 @@ class PinFrame(Frame):
                     messagebox.showinfo('Error', 'Checkbox is not ticked')
             else:
                 messagebox.showinfo('Error', 'Please provide a pin')
+
         # adding the save button
         save = Button(self, text="S A V E", fg="#292A2D",
                       activeforeground="#292A2D",
                       bg="#994422", command=pin_save,
                       activebackground="#994422", height=1, width=10, bd=0, borderwidth=0, font=("Consolas", 14))
-        save.place(x=width_window/2-30-5-10-10, y=350)
+        save.place(x=width_window / 2 - 30 - 5 - 10 - 10, y=350)
 
 
 class Deletion:
@@ -2385,6 +2444,4 @@ if __name__ == "__main__":
     # initialising the main class
     app = main_class()
     app.mainloop()
-    quit()
-""" to remove all decrypted files
-the glob function returns a list of files ending with decrypted.bin"""
+    remove_decrypted()
