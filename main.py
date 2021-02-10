@@ -70,6 +70,7 @@ my_cursor.execute(
 
 
 def remove_decrypted():
+    global running, al
     file_name = ''
     with open(f"{json_path}settings.json", 'r') as f:
         value = json.load(f)
@@ -82,6 +83,9 @@ def remove_decrypted():
         ls.remove(file_name)
     for i in ls:
         os.remove(i)
+
+    running = False
+    al = False
 
 
 def destroy_all(root):
@@ -399,13 +403,12 @@ class main_class(Tk):
                     username = str(i)
                     break
             if username:
-                print("Sd")
+
                 self.switch_frame(PinDecryption, username)
             else:
                 self.switch_frame(Login_page)
 
         else:
-            print("Ds")
             self.switch_frame(Login_page)
 
     def switch_frame(self, frame_class, *args):
@@ -1114,6 +1117,7 @@ class main_window(Frame):
             bd=0,
             width=132,
             borderwidth=0,
+            activebackground='#292A2D',
             highlightthickness=0,
             highlightcolor='#292A2D',
             command=lambda: self.testing(parent))
@@ -1143,6 +1147,7 @@ class main_window(Frame):
             text=f'Profile',
             bg='#292A2D',
             width=132,
+            activebackground='#292A2D',
             compound=CENTER,
             command=lambda: self.switchframe(
                 Profile_view, parent, self.username, self.password_new, self.email_id,
@@ -1475,7 +1480,7 @@ class Password_display(Frame):
         self.root1.mainloop()
 
     def show_account(self, button, account_name):
-
+        website = ''
         change_object = Change_details(self.main_window, self.username, self.password,
                                        self.hashed_password, my_cursor)
         delete_object = Deletion(self.handler, self.username, self.password, self.hashed_password, self.main_window,
@@ -1586,17 +1591,17 @@ class Password_display(Frame):
 
         website_label1 = HTMLLabel(
             new_s, html=f''' 
-            <!DOCTYPE html>
             <html>
                 <head>
                     <link rel="stylesheet" href="style.css">
                 </head>
+
             <body>
-                <a   style='color:white;text-align:center;font-family:sans-serif'  href={website}>Open Website</a>
+                <a style='color:white;text-align:center;font-family:sans-serif;'  href={website}>{website}</a>
             </body>
             </html>
             ''',
-            background="#1E1E1E", foreground='white', width=20, height=2)
+            background="#1E1E1E", foreground='white', width=2000, height=2)
         try:
             tip = tix.Balloon(new_s)
             tip.config(background='white')
@@ -2223,7 +2228,6 @@ class PinFrame(Frame):
         # adding the entry widget
 
         def pin_save():
-            print(self.var.get())
             if self.ent.get():
                 if self.var.get() == 1:
                     self.running, self.al = False, False
