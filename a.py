@@ -17,175 +17,94 @@ from tkinter import ttk
 from tkinter import *
 from tkhtmlview import HTMLLabel
 from tkinter import tix
-root = tix.Tk()
-root.geometry("1000x1000")
-# root = Frame(
-#     self, width=1000 + 50, height=1057, bd="0", highlightthickness=0
-# )
-# root.place(x=120 + 34, y=0)
 username = 'rohith'
-new_s = Frame(root, bg="#1E1E1E", width=500, height=500, bd=0)
-new_s.place(x=150, y=150)
+master = Tk()
+width_window = 1057
+height_window = 661
+master.focus_force()
+master.config(bg="#292A2D")
+screen_width = master.winfo_screenwidth()
+screen_height = master.winfo_screenheight()
+x = screen_width / 2 - width_window / 2
+y = screen_height / 2 - height_window / 2
+master.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+running = True
+al = False
+username = username
+master.title("Pin")
+master.config(bg="#121212")
+running = running
+al = al
+width_window = 1057
 
+def alpha():
+    if str(enter_alpha['text']) == 'Enter Alphanumeric pin':
+        running = False
+        al = True
+        enter_alpha.config(text="Enter Number pin")
+        threading.Thread(target=for_alpha).start()
+    elif enter_alpha['text'] == 'Enter Number pin':
+        running = True
+        al = False
+        enter_alpha.config(text="Enter Alphanumeric pin")
+        threading.Thread(target=getting).start()
 
-def copy(value):
-    pyperclip.copy(value)
-    messagebox.showinfo("Copied", "Copied!!!")
+def for_alpha():
+    while al:
 
+        try:
+            if ent.get():
+                if len(ent.get()) >= 4:
+                    a = ent.get()[:4]
+                    ent.delete(4, END)
+        except:
+            pass
 
-dot_text = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
-dot_text1 = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
-dot_text2 = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
-dot_text3 = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
+def getting():
 
-# with open(f'{username}decrypted.bin', 'rb') as f:
-#     lists = pickle.load(f)
-delete_account = Button(
-    new_s,
-    text="Delete Account",
-    bd=0,
-    font=("consolas"),
-    fg="#292A2D",
-    activeforeground="#292A2D",
-    bg="#994422",
-    activebackground="#994422",
-    command=lambda: delete_object.delete_social_media_account(
-        button, False, lists[button][2]), )
+    while running:
+        try:
+            if ent.get():
+                int(ent.get())
+                if len(ent.get()) >= 4:
+                    a = ent.get()[:4]
 
-ChangeAccount = Button(
-    new_s,
-    text="Change Details",
-    bd=0,
-    font=("consolas"),
-    fg="#292A2D",
-    activeforeground="#292A2D",
-    bg="#994422",
-    activebackground="#994422",
-    command=lambda: change_object.change_window_creation(lists[button][0], button))
-# getting the username and password
-username = ''
-account_name = 'facebook'
-password = ''
-i = ['rohith', 'rohithk123', '', 'www.facebook.com']
-username, password, website = i[0], i[1], i[3]
-image_path = f'{path}followers.png'
+                    ent.delete(4, END)
+        except ValueError:
+            a = str(ent.get())
+            d = list(map(str, a))
+            f = 0
+            for i in d:
+                if i.isalpha():
+                    f = d.index(i)
+            ent.delete(f, END)
 
-username_label = Label(
-    new_s,
-    text="Username",
-    bg="#1E1E1E",
-    fg="white",
-    font=("Yu Gothic Ui", 15),
-)
+lab = Label(master, text='Verify the security pin', bg='#121212',
+            fg='white', font=("Segoe Ui", 20))
+lab.place(x=width_window / 2 - 60 - 5 - 45, y=160)
 
-password_label = Label(
-    new_s,
-    text="Password",
-    bg="#1E1E1E",
-    fg="white",
-    font=("Yu Gothic Ui", 15),
-)
-social_account = Label(
-    new_s,
-    text="Account Name",
-    bg="#1E1E1E",
-    fg="white",
-    font=("Yu Gothic Ui", 15),
-)
-website_text = Label(new_s, text='Website',    bg="#1E1E1E",
-                     fg="white",
-                     font=("Yu Gothic Ui", 15),)
-username_text = Label(
-    new_s,
-    text=username,
-    bg="#1E1E1E",
-    fg="white",
-    font=("Yu Gothic Ui", 15),
-)
-password_text = Label(
-    new_s,
-    text=password,
-    bg="#1E1E1E",
-    fg="white",
-    font=("Yu Gothic Ui", 15),
-)
-social_account_text = Label(
-    new_s,
-    text=account_name,
-    bg="#1E1E1E",
-    fg="white",
-    font=("Yu Gothic Ui", 15),
-)
-website_label1 = HTMLLabel(
-    new_s, html=f''' 
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <link rel="stylesheet" href="style.css">
-        </head>
-    <body>
-        <a   style='color:white;text-align:center;font-family:sans-serif'  href={website}>Open Website</a>
-    </body>
-    </html>
-    ''',
-    background="#1E1E1E", foreground='white', width=20, height=2)
-try:
-    tip = tix.Balloon(new_s)
-    tip.config(background='white')
-    tip.label.config(bg='white', fg='white')
-    try:
-        for sub in tip.subwidgets_all():
-            sub.configure(bg='white')
-    except:
-        pass
-    tip.subwidget('label').forget()
-    tip.message.config(bg='white', fg='#06090F',
-                       font=('Segoe UI SemiBold', 10))
-    # display the ballon text
-    tip.bind_widget(website_label1, balloonmsg=f'Open {website}')
+ent = Entry(master, width=20, font=("Segoe Ui", 15))
+ent.place(x=width_window / 2 - 40 - 5 - 5 - 30 - 10, y=250)
+enter_alpha = Button(master, text='Enter Alphanumeric pin', fg="#2A7BCF",
+                        activeforeground="#2A7BCF",
+                        bg="#121212", command=alpha,
+                        activebackground="#121212", bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
+enter_alpha.place(x=width_window / 2 + 200 - 30 - 10, y=250)
+# adding the check box button
 
-except:
-    pass
-copy_but_password = Button(new_s, text="Copy Password", bd=0,
-                           font=("consolas"),
-                           fg="#292A2D",
-                           activeforeground="#292A2D",
-                           bg="#994422",
-                           activebackground="#994422", command=lambda: copy(password))
-copy_but_username = Button(new_s, text="Copy Username", bd=0,
-                           font=("consolas"),
-                           fg="#292A2D",
-                           activeforeground="#292A2D",
-                           bg="#994422",
-                           activebackground="#994422", command=lambda: copy(username))
+t1 = threading.Thread(target=getting)
 
-img = tk_image.PhotoImage(image.open(image_path))
+# adding the save button
 
-img_button = Label(
-    new_s,
-    image=img,
-    border="0",
-    bg="#1E1E1E",
-    activebackground="#1E1E1E",
+forgot_pass = Button(master, text='Forgot Password?', fg="#2A7BCF",
+                        activeforeground="#2A7BCF",
+                        bg="#121212", command=lambda: login_password("Forgot Password", my_cursor, 1),
+                        activebackground="#121212", bd=0, borderwidth=0, font=("Consolas", 14, UNDERLINE))
 
-)
-img_button.photo = img
-img_button.place(x=160, y=30)
-dot_text.place(x=170 + 20, y=175 + 3)
-dot_text1.place(x=170 + 20, y=200 + 25 + 3)
-dot_text2.place(x=170 + 20, y=250 + 25 + 3)
-dot_text3.place(x=170 + 20, y=300 + 25 + 3)
-
-delete_account.place(x=0 + 25, y=340+50)
-username_label.place(x=30, y=250 + 25)
-website_text.place(x=30, y=325)
-password_label.place(x=30, y=200 + 25)
-social_account.place(x=30, y=175)
-username_text.place(x=250, y=250 + 25)
-password_text.place(x=250, y=200 + 25)
-social_account_text.place(x=250, y=175)
-ChangeAccount.place(x=340, y=340+50)
-copy_but_username.place(x=360, y=30)
-copy_but_password.place(x=360, y=80)
-website_label1.place(x=250, y=300 + 20+5)
-root.mainloop()
+forgot_pass.place(x=550, y=300+30)
+save = Button(master, text="S A V E", fg="#292A2D",
+                activeforeground="#292A2D",
+                bg="#994422",
+                activebackground="#994422", height=1, width=10, bd=0, borderwidth=0, font=("Consolas", 14))
+save.place(x=width_window / 2 - 30 - 5 - 100, y=300+30)
+master.mainloop()

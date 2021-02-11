@@ -256,6 +256,10 @@ def login_password(title1, object, *number):
         for i in values_password:
             has = i[0]
             salt = i[1]
+        print(salt)
+        print(has)
+        print(type(salt))
+        print(type(has))
         string = retreive_key(main_pass, has, salt)
         for i in string:
             if i == "@":
@@ -293,7 +297,6 @@ def login_password(title1, object, *number):
             new_img_label = Label(root, image=new_img, bg="#1E1E1E")
             new_img_label.photo = new_img
             root.resizable(False, False)
-            file_name_reentry = 'kiren' + ".bin.aes"
 
             width_window = 400
             height_window = 400
@@ -367,7 +370,7 @@ def login_password(title1, object, *number):
                 original_password, main_pass))
             save.place(x=150, y=290)
         elif value == 1:
-            root = Tk()
+            root = Toplevel()
             new_img = tk_image.PhotoImage(image.open(f"{path}member.png"))
             new_img_label = Label(root, image=new_img, bg="#121212")
             new_img_label.photo = new_img
