@@ -324,7 +324,7 @@ class PinDecryption(Frame):
         self.master.bind("<Return>", lambda event: pin_save())
 
 
-def log_out(*window, username):
+def log_out(username, *window):
     for windows in window:
         windows.destroy()
     users = {}
@@ -413,7 +413,8 @@ def settings(
         activebackground="#1E1E1E",
         activeforeground="white",
         bg="#1E1E1E",
-        command=lambda: log_out(settings_window, window, master_main),
+        command=lambda: log_out(
+            real_username, settings_window, window, master_main),
     )
 
     Delete_account_button = Button(
@@ -1019,6 +1020,7 @@ class Register_page(Frame):
         )
 
         unhide_img = tk_image.PhotoImage(image.open(f"{path}eye.png"))
+        self.master.bind("<Return>", lambda event: self.register_saving())
 
         show_both_1 = Button(
             self.labelframe1,
@@ -1093,7 +1095,7 @@ class Register_page(Frame):
         )
         generate1.place(x=440, y=320 + 18 + 40 + 4 - 2)
 
-    def register_saving(self):
+    def register_saving(self, event=None):
 
         self.submit_but.config(state=DISABLED)
         self.username = str(self.username_entry.get())
@@ -1748,7 +1750,7 @@ class Password_display(Frame):
             new_s,
             text="Delete Account",
             bd=0,
-            font=("consolas"),
+            font=("Yu Gothic Ui", 12),
             fg="#292A2D",
             activeforeground="#292A2D",
             bg="#994422",
@@ -1762,7 +1764,7 @@ class Password_display(Frame):
             new_s,
             text="Change Details",
             bd=0,
-            font=("consolas"),
+            font=("Yu Gothic Ui", 12),
             fg="#292A2D",
             activeforeground="#292A2D",
             bg="#994422",
@@ -1872,10 +1874,11 @@ class Password_display(Frame):
             new_s,
             text="Copy Password",
             bd=0,
-            font=("consolas"),
+            font=("Yu Gothic Ui", 12),
             fg="#292A2D",
             activeforeground="#292A2D",
             bg="#994422",
+            width=13,
             activebackground="#994422",
             command=lambda: copy(password),
         )
@@ -1883,8 +1886,9 @@ class Password_display(Frame):
             new_s,
             text="Copy Username",
             bd=0,
-            font=("consolas"),
+            font=("Yu Gothic Ui", 12),
             fg="#292A2D",
+            width=13,
             activeforeground="#292A2D",
             bg="#994422",
             activebackground="#994422",
