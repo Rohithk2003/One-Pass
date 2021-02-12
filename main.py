@@ -150,7 +150,8 @@ def write_value(real_username, value, variable):
 
     else:
         variable.set(0)
-        messagebox.showinfo("Details not provided", "Please provide your username")
+        messagebox.showinfo("Details not provided",
+                            "Please provide your username")
 
 
 class PinDecryption(Frame):
@@ -183,6 +184,7 @@ class PinDecryption(Frame):
 
                 try:
                     if self.ent.get():
+                        save.config(state=NORMAL)
                         if len(self.ent.get()) >= 4:
                             a = self.ent.get()[:4]
                             self.ent.delete(4, END)
@@ -194,6 +196,7 @@ class PinDecryption(Frame):
             while self.running:
                 try:
                     if self.ent.get():
+                        save.config(state=NORMAL)
                         int(self.ent.get())
                         if len(self.ent.get()) >= 4:
                             a = self.ent.get()[:4]
@@ -254,17 +257,19 @@ class PinDecryption(Frame):
             font=("Consolas", 14, UNDERLINE),
         )
 
-        forgot_pass.place(x=550, y=300 + 30)
+        forgot_pass.place(x=700, y=300 + 30)
 
-        def pin_save():
+        def pin_save(event=None):
             if len(str(self.ent.get())) == 4:
                 if self.ent.get():
                     self.running, self.al = False, False
                     self.pin = str(self.ent.get())
-                    self.hash_value = hashlib.sha512(self.pin.encode()).hexdigest()
+                    self.hash_value = hashlib.sha512(
+                        self.pin.encode()).hexdigest()
                     with open(f"{json_path}pin.json", "r") as f:
                         data = json.load(f)
-                    username = hashlib.sha512(self.username.encode()).hexdigest()
+                    username = hashlib.sha512(
+                        self.username.encode()).hexdigest()
                     for i in data:
                         if i == username:
                             if data[i] == self.hash_value:
@@ -278,7 +283,8 @@ class PinDecryption(Frame):
                                 for i in my_cursor.fetchall():
                                     self.cipher = i[0]
                                     self.salt = i[1]
-                                st = retreive_key(main_pass, self.cipher, self.salt)
+                                st = retreive_key(
+                                    main_pass, self.cipher, self.salt)
                                 self.password = st
                                 messagebox.showinfo(
                                     "Success", "Your pin has been verified"
@@ -288,7 +294,8 @@ class PinDecryption(Frame):
                                     main_window, self.username, self.password
                                 )
                             else:
-                                messagebox.showinfo("Incorrect", "Incorrect Pin")
+                                messagebox.showinfo(
+                                    "Incorrect", "Incorrect Pin")
 
                 else:
                     messagebox.showinfo("Error", "Please provide a pin")
@@ -300,11 +307,12 @@ class PinDecryption(Frame):
         # adding the save button
         save = Button(
             self,
-            text="S A V E",
+            text="L O G I N",
             fg="#292A2D",
             activeforeground="#292A2D",
             bg="#994422",
             command=pin_save,
+            state=DISABLED,
             activebackground="#994422",
             height=1,
             width=10,
@@ -312,7 +320,8 @@ class PinDecryption(Frame):
             borderwidth=0,
             font=("Consolas", 14),
         )
-        save.place(x=width_window / 2 - 30 - 5 - 100, y=300 + 30)
+        save.place(x=width_window / 2 - 30 - 5, y=300 + 30)
+        self.master.bind("<Return>", lambda event: pin_save())
 
 
 def log_out(*window, username):
@@ -355,7 +364,8 @@ def settings(
     x = screen_width / 2 - width_window / 2
     y = screen_height / 2 - height_window / 2
 
-    settings_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+    settings_window.geometry("%dx%d+%d+%d" %
+                             (width_window, height_window, x, y))
 
     settings_window.title("Settings")
     settings_window.config(bg="#1E1E1E")
@@ -409,7 +419,8 @@ def settings(
     Delete_account_button = Button(
         settings_window,
         text="Delete main account",
-        command=lambda: delete_object.delete_main_account(master_main, settings_window),
+        command=lambda: delete_object.delete_main_account(
+            master_main, settings_window),
         font=("Segoe Ui", 13),
         width=20,
         fg="white",
@@ -640,8 +651,10 @@ class Login_page(Frame):
 
         # dot label
 
-        Frame(labelframe, width=280, height=2, bg="#CACBC7").place(x=50 + 3, y=230 + 30)
-        Frame(labelframe, width=280, height=2, bg="#CACBC7").place(x=50 + 3, y=150 + 30)
+        Frame(labelframe, width=280, height=2,
+              bg="#CACBC7").place(x=50 + 3, y=230 + 30)
+        Frame(labelframe, width=280, height=2,
+              bg="#CACBC7").place(x=50 + 3, y=150 + 30)
 
         # ------------------Button---------------------------
 
@@ -678,7 +691,8 @@ class Login_page(Frame):
         register_button.place(x=485 + 2, y=100)
 
         forgot.place(x=485, y=340)
-        bar_label = Label(labelframe, text="|", bg="white", fg="white", font=(100))
+        bar_label = Label(labelframe, text="|", bg="white",
+                          fg="white", font=(100))
 
         bar_label.place(x=200, y=470 - 10 + 2)
 
@@ -720,7 +734,8 @@ class Login_page(Frame):
             anchor="center",
             command=lambda: self.login_checking_1(master),
         )
-        master.bind("<Return>", lambda event, a=master: self.login_checking_1(a))
+        master.bind("<Return>", lambda event,
+                    a=master: self.login_checking_1(a))
         sub_button.place(x=50 + 3, y=300 + 30)
 
         show_both_1.place(x=300, y=200 + 30 - 5)
@@ -734,7 +749,8 @@ class Login_page(Frame):
             except:
                 pass
             tip.subwidget("label").forget()
-            tip.message.config(bg="white", fg="#06090F", font=("Segoe UI SemiBold", 10))
+            tip.message.config(bg="white", fg="#06090F",
+                               font=("Segoe UI SemiBold", 10))
             # display the ballon text
             tip.bind_widget(sub_button, balloonmsg="Login")
             tip.bind_widget(forgot, balloonmsg="Forgot password?")
@@ -1020,7 +1036,8 @@ class Register_page(Frame):
         show_both_12 = Button(
             self.labelframe1,
             image=unhide_img,
-            command=lambda: password_sec(self.email_password_entry, show_both_12),
+            command=lambda: password_sec(
+                self.email_password_entry, show_both_12),
             fg="#292A2D",
             bg="#292A2D",
             bd=0,
@@ -1108,7 +1125,8 @@ class Register_page(Frame):
                 else:
                     root2 = Tk()
                     root2.withdraw()
-                    messagebox.showinfo("Error", "Please provide a stronger password")
+                    messagebox.showinfo(
+                        "Error", "Please provide a stronger password")
                     self.submit_but.config(state=NORMAL)
                     root2.destroy()
 
@@ -1200,7 +1218,8 @@ class Register_page(Frame):
 
         file_name = self.username + ".bin"
         with open(file_name, "wb"):
-            pyAesCrypt.encryptFile(file_name, file_name + ".aes", hash_pass, bufferSize)
+            pyAesCrypt.encryptFile(
+                file_name, file_name + ".aes", hash_pass, bufferSize)
         os.remove(file_name)
         # to display that his account has been created
         windows = Tk()
@@ -1209,7 +1228,8 @@ class Register_page(Frame):
         windows.destroy()
         # for opening the main section where he can store his passwords and use notepad so the file has to be decrypted
         pyAesCrypt.decryptFile(
-            file_name + ".aes", f"{self.username}decrypted.bin", hash_pass, bufferSize
+            file_name +
+            ".aes", f"{self.username}decrypted.bin", hash_pass, bufferSize
         )
         self.master.switch_frame(PinFrame, self.username, self.password)
 
@@ -1221,7 +1241,7 @@ class main_window(Frame):
         global var
         status_name = False
         parent.unbind("<Return>")
-
+        parent.title("Password Manager")
         self.parent = parent
         self.var = var
         self.object = my_cursor
@@ -1240,7 +1260,7 @@ class main_window(Frame):
         )
         self.sidebar_icon = Label(
             self.sidebar,
-            text=f"ONE-PASS\n{self.username}",
+            text=f"ONE-PASS",
             compound="top",
             font=("Segoe UI SemiBold", 15),
             fg="white",
@@ -1265,7 +1285,8 @@ class main_window(Frame):
             command=lambda: self.testing(parent),
         )
 
-        settings_image = tk_image.PhotoImage(image.open(f"{path}\\settings.png"))
+        settings_image = tk_image.PhotoImage(
+            image.open(f"{path}\\settings.png"))
         self.settings_button = Button(
             self.sidebar,
             activebackground="#292A2D",
@@ -1325,7 +1346,8 @@ class main_window(Frame):
             except:
                 pass
             tip.subwidget("label").forget()
-            tip.message.config(bg="white", fg="#06090F", font=("Segoe UI SemiBold", 10))
+            tip.message.config(bg="white", fg="#06090F",
+                               font=("Segoe UI SemiBold", 10))
             # display the ballon text
             tip.bind_widget(self.profile_button, balloonmsg="View Profile")
             tip.bind_widget(self.settings_button, balloonmsg="View Settings")
@@ -1496,7 +1518,8 @@ class Password_display(Frame):
                     new.append(i[2])
                 d = {}
                 for i in range(len(new)):
-                    button_img = tk_image.PhotoImage(image.open(f"{path}a.png"))
+                    button_img = tk_image.PhotoImage(
+                        image.open(f"{path}a.png"))
                     d[
                         Button(
                             self.second_frame,
@@ -1548,7 +1571,8 @@ class Password_display(Frame):
         elif str(self.password_entry.get()) == "":
             messagebox.showwarning("Warning", "Password cannot be empty")
         elif str(self.name_of_social_entry.get()) == "":
-            messagebox.showwarning("Warning", "Name of the account cannot be empty")
+            messagebox.showwarning(
+                "Warning", "Name of the account cannot be empty")
         else:
             verifying = self.verify()
 
@@ -1601,7 +1625,8 @@ class Password_display(Frame):
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
         self.root1.config(bg="#292A2D")
-        self.root1.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+        self.root1.geometry("%dx%d+%d+%d" %
+                            (width_window, height_window, x, y))
         name_of_social = Label(
             self.root1,
             text="Account Name:",
@@ -1630,17 +1655,22 @@ class Password_display(Frame):
             fg="white",
             bg="#292A2D",
         )
-        self.username_window_entry = Entry(self.root1, font=("Yu Gothic Ui", 10))
+        self.username_window_entry = Entry(
+            self.root1, font=("Yu Gothic Ui", 10))
         self.password_entry = Entry(self.root1, font=("Yu Gothic Ui", 10))
-        self.name_of_social_entry = Entry(self.root1, font=("Yu Gothic Ui", 10))
+        self.name_of_social_entry = Entry(
+            self.root1, font=("Yu Gothic Ui", 10))
         self.website_ent = Entry(self.root1, font=("Yu Gothic Ui", 10))
         username_window.place(x=10, y=100 + 100)
         password_window.place(x=10, y=130 + 110)
         name_of_social.place(x=10, y=60 + 100)
         website_label.place(x=10, y=280)
-        self.username_window_entry.place(x=200 + 10, y=100 + 110, height=20, width=150)
-        self.password_entry.place(x=200 + 10, y=130 + 118, height=20, width=150)
-        self.name_of_social_entry.place(x=200 + 10, y=70 + 100, height=20, width=150)
+        self.username_window_entry.place(
+            x=200 + 10, y=100 + 110, height=20, width=150)
+        self.password_entry.place(
+            x=200 + 10, y=130 + 118, height=20, width=150)
+        self.name_of_social_entry.place(
+            x=200 + 10, y=70 + 100, height=20, width=150)
         self.website_ent.place(x=200 + 10, y=290, height=20, width=150)
 
         new_id = tk_image.PhotoImage(image.open(f"{path}photo.png"))
@@ -1831,7 +1861,8 @@ class Password_display(Frame):
             except:
                 pass
             tip.subwidget("label").forget()
-            tip.message.config(bg="white", fg="#06090F", font=("Segoe UI SemiBold", 10))
+            tip.message.config(bg="white", fg="#06090F",
+                               font=("Segoe UI SemiBold", 10))
             # display the ballon text
             tip.bind_widget(website_label1, balloonmsg=f"Open {website}")
 
@@ -1877,12 +1908,12 @@ class Password_display(Frame):
         dot_text3.place(x=170 + 20, y=300 + 25 + 3)
 
         delete_account.place(x=0 + 25, y=340 + 50)
-        username_label.place(x=30, y=250 + 25)
+        username_label.place(x=30, y=200 + 25)
         website_text.place(x=30, y=325)
-        password_label.place(x=30, y=200 + 25)
+        password_label.place(x=30, y=250 + 25)
         social_account.place(x=30, y=175)
-        username_text.place(x=250, y=250 + 25)
-        password_text.place(x=250, y=200 + 25)
+        username_text.place(x=250, y=200 + 25)
+        password_text.place(x=250, y=250 + 25)
         social_account_text.place(x=250, y=175)
         ChangeAccount.place(x=340, y=340 + 50)
         copy_but_username.place(x=360, y=30)
@@ -1932,7 +1963,8 @@ class Profile_view(Frame):
         # profile window image
         member = tk_image.PhotoImage(image.open(f"{path}member.png"))
 
-        profileimg = tk_image.PhotoImage(image.open(f"{path}profile_image.png"))
+        profileimg = tk_image.PhotoImage(
+            image.open(f"{path}profile_image.png"))
         new_canvas = Canvas(self, width=1270, height=700, highlightthickness=0)
         new_canvas.place(x=0, y=0)
         new_canvas.background = profileimg
@@ -2105,7 +2137,8 @@ class Change_details:
         screen_height = change_acccount.winfo_screenheight()
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
-        change_acccount.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+        change_acccount.geometry("%dx%d+%d+%d" %
+                                 (width_window, height_window, x, y))
 
         iamge_load = tk_image.PhotoImage(image.open(f"{path}member.png"))
         iamge = Label(change_acccount, image=iamge_load, bg="#292A2D")
@@ -2211,7 +2244,8 @@ class Change_details:
                 i[0] = str(new_username)
                 i[1] = str(new_password)
                 i[2] = str(account_name)
-                messagebox.showinfo("Success", "The Account details has been changed")
+                messagebox.showinfo(
+                    "Success", "The Account details has been changed")
                 os.remove(f"{self.real_username}decrypted.bin")
                 with open(f"{self.real_username}decrypted.bin", "wb") as f:
                     pickle.dump(value1, f)
@@ -2224,7 +2258,8 @@ class Change_details:
                     bufferSize,
                 )
                 destroy_all(self.hand)
-                self.hand.switch_frame(main_window, self.real_username, self.password)
+                self.hand.switch_frame(
+                    main_window, self.real_username, self.password)
 
     def save_email(self):
 
@@ -2301,7 +2336,8 @@ class Change_details:
         screen_height = self.new_window.winfo_screenheight()
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
-        self.new_window.geometry("%dx%d+%d+%d" % (width_window, height_window, x, y))
+        self.new_window.geometry("%dx%d+%d+%d" %
+                                 (width_window, height_window, x, y))
         self.new_window.title("Change Recovery details")
         self.new_window.config(bg="#1E1E1E")
 
@@ -2376,7 +2412,8 @@ class Change_details:
         show_both_12 = Button(
             self.new_window,
             image=unhide_img,
-            command=lambda: password_sec(self.new_email_password_entry, show_both_12),
+            command=lambda: password_sec(
+                self.new_email_password_entry, show_both_12),
             fg="white",
             bd="0",
             bg="#1E1E1E",
@@ -2394,7 +2431,7 @@ class PinFrame(Frame):
         self.master = master
         Frame.__init__(self, self.master)
         self.username = username
-        self.master.title("hello")
+        self.master.title("PIN")
         self.password = password
         self.config(bg="#121212")
         global running, al
@@ -2514,7 +2551,8 @@ class PinFrame(Frame):
                     self.running, self.al = False, False
                     self.pin = str(self.ent.get())
                     values = {}
-                    self.hash_value = hashlib.sha512(self.pin.encode()).hexdigest()
+                    self.hash_value = hashlib.sha512(
+                        self.pin.encode()).hexdigest()
                     values[hashlib.sha512(self.username.encode()).hexdigest()] = str(
                         self.hash_value
                     )
@@ -2560,9 +2598,11 @@ class PinFrame(Frame):
                             json.dump(value, f)
                     a = Tk()
                     a.withdraw()
-                    messagebox.showinfo("Saved", "PIN has been successfully registered")
+                    messagebox.showinfo(
+                        "Saved", "PIN has been successfully registered")
                     a.destroy()
-                    self.master.switch_frame(main_window, self.username, self.password)
+                    self.master.switch_frame(
+                        main_window, self.username, self.password)
                 else:
                     messagebox.showinfo("Error", "Checkbox is not ticked")
             else:
@@ -2584,13 +2624,6 @@ class PinFrame(Frame):
             font=("Consolas", 14),
         )
         save.place(x=width_window / 2 - 30 - 5 - 10 - 10, y=350)
-
-
-def g():
-    sys.exit()
-
-
-atexit.register(g)
 
 
 class Deletion:
@@ -2623,7 +2656,8 @@ class Deletion:
             )
             self.delete_med_account.config(bg="#292A2D")
             self.delete_med_account.title("Delete Account")
-            selectaccount = Combobox(self.delete_med_account, width=27, state="#292A2D")
+            selectaccount = Combobox(
+                self.delete_med_account, width=27, state="#292A2D")
             # Adding combobox drop down list
             values = ()
             with open(f"{self.real_username}decrypted.bin", "rb") as selectfile:
@@ -2665,7 +2699,8 @@ class Deletion:
             )
             a.destroy()
             if result:
-                self.change_account_name(account_name[0], password_button, False)
+                self.change_account_name(
+                    account_name[0], password_button, False)
 
     def change_account_name(self, account_name, button, val):
         if val:
@@ -2702,7 +2737,8 @@ class Deletion:
             messagebox.showinfo("Success", f"The account  has been  deleted")
             a.destroy()
             destroy_all(self.master)
-            self.master.switch_frame(main_window, self.real_username, self.password)
+            self.master.switch_frame(
+                main_window, self.real_username, self.password)
             try:
                 self.delete_med_account.destroy()
 
