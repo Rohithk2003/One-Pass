@@ -308,9 +308,9 @@ class PinDecryption(Frame):
         # adding the save button
         save = Button(
             self,
-            text="L O G I N",
-            fg="#292A2D",
-            activeforeground="#292A2D",
+            text="Confirm",
+            fg="white",
+            activeforeground="white",
             bg="#994422",
             command=pin_save,
             state=DISABLED,
@@ -1751,7 +1751,7 @@ class Password_display(Frame):
                     if i[2] == account_name:
                         self.account_username, self.account_password, self.website = i[0], i[1], i[3]
         image_path = f"{path}followers.png"
-
+        edit_text = tk_image.PhotoImage(image.open(f'{path}edit_text.png'))
         username_label = Label(
             new_s,
             text="Username",
@@ -1868,13 +1868,15 @@ class Password_display(Frame):
                                 width=13,
                                 activebackground="#994422", command=replace_text)
         self.show_settings = Button(
-            new_s, text='Config',            bd=0,
+            new_s, text='Edit', image=edit_text,            bd=0,
             font=("Yu Gothic Ui", 12),
             fg="white",
             activeforeground="white",
             bg="#994422",
-            width=13,
+            width=115,
+            compound='right',
             activebackground="#994422", command=lambda: self.settings_account(lists, button))
+        self.show_settings.photo = edit_text
         img_button.photo = img
         img_button.place(x=190, y=30)
         dot_text.place(x=170 + 20, y=175 + 3)
