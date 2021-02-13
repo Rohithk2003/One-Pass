@@ -494,7 +494,7 @@ def settings(
 class main_class(Tk):
     def __init__(self):
         tix.Tk.__init__(self)
-        self.resizable(False, False)
+        # self.resizable(False, False)
         self.title("Password Manager")
         width_window = 1057
         height_window = 661
@@ -1720,22 +1720,6 @@ class Password_display(Frame):
         global ind
         ind = button
         website = ""
-        change_object = Change_details(
-            self.main_window,
-            self.username,
-            self.password,
-            self.hashed_password,
-            my_cursor,
-        )
-        delete_object = Deletion(
-            self.handler,
-            self.username,
-            self.password,
-            self.hashed_password,
-            self.main_window,
-            my_cursor,
-            self.main_window,
-        )
 
         self.config(bg="#1E1E1E")
         bg_img = tk_image.PhotoImage(image.open(f"{path}log.jpg"))
@@ -1749,10 +1733,6 @@ class Password_display(Frame):
         new_s = Frame(new_frame, bg="#1E1E1E", width=500, height=460, bd=0)
         new_s.place(x=150, y=120)
 
-        def copy(value):
-            pyperclip.copy(value)
-            messagebox.showinfo("Copied", "Copied!!!")
-
         dot_text = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
         dot_text1 = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
         dot_text2 = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
@@ -1760,42 +1740,16 @@ class Password_display(Frame):
 
         with open(f"{self.username}decrypted.bin", "rb") as f:
             lists = pickle.load(f)
-        delete_account = Button(
-            new_s,
-            text="Delete Account",
-            bd=0,
-            font=("Yu Gothic Ui", 12),
-            fg="#292A2D",
-            activeforeground="#292A2D",
-            bg="#994422",
-            activebackground="#994422",
-            command=lambda: delete_object.delete_social_media_account(
-                self.button, False, lists[button][2]
-            ),
-        )
 
-        ChangeAccount = Button(
-            new_s,
-            text="Change Details",
-            bd=0,
-            font=("Yu Gothic Ui", 12),
-            fg="#292A2D",
-            activeforeground="#292A2D",
-            bg="#994422",
-            activebackground="#994422",
-            command=lambda: change_object.change_window_creation(
-                lists[button][0], self.button, self.handler
-            ),
-        )
         # getting the username and password
-        username = ""
-        password = ""
+        self.account_username = ""
+        self.account_password = ""
         if os.stat(f"{self.username}decrypted.bin").st_size != 0:
             with open(f"{self.username}decrypted.bin", "rb") as f:
                 values = p.load(f)
                 for i in values:
                     if i[2] == account_name:
-                        username, password, website = i[0], i[1], i[3]
+                        self.account_username, self.account_password, self.website = i[0], i[1], i[3]
         image_path = f"{path}followers.png"
 
         username_label = Label(
@@ -1829,14 +1783,17 @@ class Password_display(Frame):
 
         username_text = Label(
             new_s,
-            text=username,
+            text=self.account_username,
             bg="#1E1E1E",
             fg="white",
             font=("Yu Gothic Ui", 15),
         )
+
+        list_val = list(self.account_password)
+        length = len(list_val)
         password_text = Label(
             new_s,
-            text=password,
+            text='*'*length,
             bg="#1E1E1E",
             fg="white",
             font=("Yu Gothic Ui", 15),
@@ -1853,7 +1810,7 @@ class Password_display(Frame):
             new_s,
             html=f"""
             <body>
-                <a style='color:white;text-align:center;font-family:sans-serif;'  href={website}>{website}</a>
+                <a style='color:white;text-align:center;font-family:sans-serif;'  href={self.website}>{self.website}</a>
             </body>
             """,
             background="#1E1E1E",
@@ -1866,6 +1823,17 @@ class Password_display(Frame):
             width=2000,
             height=2,
         )
+
+        # hiding the password
+        def replace_text():
+            if '*' in password_text['text']:
+                password_text.config(text=self.account_password)
+                self.show_pass.config(text='Hide Password')
+            else:
+                list_val = list(password_text['text'])
+                length = len(list_val)
+                self.show_pass.config(text='Show Password')
+                password_text.config(text='*'*length)
 
         try:
             tip = tix.Balloon(new_s)
@@ -1884,30 +1852,6 @@ class Password_display(Frame):
 
         except:
             pass
-        copy_but_password = Button(
-            new_s,
-            text="Copy Password",
-            bd=0,
-            font=("Yu Gothic Ui", 12),
-            fg="#292A2D",
-            activeforeground="#292A2D",
-            bg="#994422",
-            width=13,
-            activebackground="#994422",
-            command=lambda: copy(password),
-        )
-        copy_but_username = Button(
-            new_s,
-            text="Copy Username",
-            bd=0,
-            font=("Yu Gothic Ui", 12),
-            fg="#292A2D",
-            width=13,
-            activeforeground="#292A2D",
-            bg="#994422",
-            activebackground="#994422",
-            command=lambda: copy(username),
-        )
 
         img = tk_image.PhotoImage(image.open(image_path))
 
@@ -1918,14 +1862,28 @@ class Password_display(Frame):
             bg="#1E1E1E",
             activebackground="#1E1E1E",
         )
+        self.show_pass = Button(new_s,text='Show Password' ,bd=0,
+            font=("Yu Gothic Ui", 12),
+            fg="white",
+            activeforeground="white",
+            bg="#994422",
+            width=13,
+            activebackground="#994422",command=replace_text)
+        self.show_settings = Button(
+            new_s, text='Config',            bd=0,
+            font=("Yu Gothic Ui", 12),
+            fg="white",
+            activeforeground="white",
+            bg="#994422",
+            width=13,
+            activebackground="#994422", command=lambda: self.settings_account(lists, button))
         img_button.photo = img
-        img_button.place(x=160, y=30)
+        img_button.place(x=190, y=30)
         dot_text.place(x=170 + 20, y=175 + 3)
         dot_text1.place(x=170 + 20, y=200 + 25 + 3)
         dot_text2.place(x=170 + 20, y=250 + 25 + 3)
         dot_text3.place(x=170 + 20, y=300 + 25 + 3)
-
-        delete_account.place(x=0 + 25, y=340 + 50)
+        self.show_pass.place(x=0 + 25, y=340 + 50)
         username_label.place(x=30, y=200 + 25)
         website_text.place(x=30, y=325)
         password_label.place(x=30, y=250 + 25)
@@ -1933,12 +1891,106 @@ class Password_display(Frame):
         username_text.place(x=250, y=200 + 25)
         password_text.place(x=250, y=250 + 25)
         social_account_text.place(x=250, y=175)
-        ChangeAccount.place(x=340, y=340 + 50)
-        copy_but_username.place(x=360, y=30)
-        copy_but_password.place(x=360, y=80)
+        self.show_settings.place(x=340, y=340 + 50)
         website_label1.place(x=250, y=300 + 20 + 5)
 
+    def settings_account(self, lists, button):
+        self.second = Toplevel()
+        self.second.geometry("400x200")
+        self.second.resizable(False, False)
+        self.second.config(bg='black')
+        self.second.title("Config")
+        width_window = 400
+        height_window = 200
+        screen_width = self.second.winfo_screenwidth()
+        screen_height = self.second.winfo_screenheight()
+        x = screen_width / 2 - width_window / 2
+        y = screen_height / 2 - height_window / 2
 
+        self.second.geometry("%dx%d+%d+%d" %
+                             (width_window, height_window, x, y))
+        # initialising the class
+        change_object = Change_details(
+            self.main_window,
+            self.username,
+            self.password,
+            self.hashed_password,
+            my_cursor,
+        )
+        delete_object = Deletion(
+            self.handler,
+            self.username,
+            self.password,
+            self.hashed_password,
+            self.main_window,
+            my_cursor,
+            self.main_window,
+        )
+
+        # creating the main buttons
+        copy_but_password = Button(
+            self.second,
+            text="Copy Password",
+            bd=0,
+            font=("Yu Gothic Ui", 12),
+            fg="#292A2D",
+            activeforeground="#292A2D",
+            bg="#994422",
+            width=13,
+            activebackground="#994422",
+            command=lambda: self.copy(self.account_password),
+        )
+        copy_but_username = Button(
+            self.second,
+            text="Copy Username",
+            bd=0,
+            font=("Yu Gothic Ui", 12),
+            fg="#292A2D",
+            width=13,
+            activeforeground="#292A2D",
+            bg="#994422",
+            activebackground="#994422",
+            command=lambda: self.copy(self.account_username),
+        )
+
+        delete_account = Button(
+            self.second,
+            text="Delete Account",
+            bd=0,
+            font=("Yu Gothic Ui", 12),
+            fg="#292A2D",
+            width=13,
+            activeforeground="#292A2D",
+            bg="#994422",
+            activebackground="#994422",
+            command=lambda: delete_object.delete_social_media_account(
+                self.button, False, lists[button][2]
+            ),
+        )
+
+        ChangeAccount = Button(
+            self.second,
+            text="Change Details",
+            bd=0,
+            width=13,
+            font=("Yu Gothic Ui", 12),
+            fg="#292A2D",
+            activeforeground="#292A2D",
+            bg="#994422",
+            activebackground="#994422",
+            command=lambda: change_object.change_self.second_creation(
+                lists[button][0], self.button, self.handler
+            ),
+        )
+
+        copy_but_password.place(x=20, y=20)
+        copy_but_username.place(x=260, y=20)
+        delete_account.place(x=20, y=120)
+        ChangeAccount.place(x=260, y=120)
+
+    def copy(self, value):
+        pyperclip.copy(value)
+        messagebox.showinfo("Copied", "Copied!!!")
 # for seeing the profile
 
 
@@ -2156,7 +2208,7 @@ class Change_details:
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
         self.change_acccount.geometry("%dx%d+%d+%d" %
-                                 (width_window, height_window, x, y))
+                                      (width_window, height_window, x, y))
 
         iamge_load = tk_image.PhotoImage(image.open(f"{path}member.png"))
         iamge = Label(self.change_acccount, image=iamge_load, bg="#292A2D")
