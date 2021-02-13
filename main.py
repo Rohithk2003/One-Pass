@@ -1259,7 +1259,7 @@ class main_window(Frame):
         new_button = tk_image.PhotoImage(image.open(f"{path}_new_but.jpg"))
 
         self.sidebar = Frame(
-            self, width=5, bg="#292A2D", height=661, relief="sunken", borderwidth=1
+            self, width=5, bg="#292A2D", height=661, relief="sunken", borderwidth=1, highlightcolor='blue'
         )
         self.sidebar_icon = Label(
             self.sidebar,
@@ -1280,7 +1280,7 @@ class main_window(Frame):
             compound=CENTER,
             border=0,
             bd=0,
-            width=134,
+            width=132,
             borderwidth=0,
             activebackground="#292A2D",
             highlightthickness=0,
@@ -1320,7 +1320,7 @@ class main_window(Frame):
             image=new_button,
             text=f"Profile",
             bg="#292A2D",
-            width=134,
+            width=132,
             activebackground="#292A2D",
             compound=CENTER,
             command=lambda: self.temp(),
@@ -1860,13 +1860,13 @@ class Password_display(Frame):
             bg="#1E1E1E",
             activebackground="#1E1E1E",
         )
-        self.show_pass = Button(new_s,text='Show Password' ,bd=0,
-            font=("Yu Gothic Ui", 12),
-            fg="white",
-            activeforeground="white",
-            bg="#994422",
-            width=13,
-            activebackground="#994422",command=replace_text)
+        self.show_pass = Button(new_s, text='Show Password', bd=0,
+                                font=("Yu Gothic Ui", 12),
+                                fg="white",
+                                activeforeground="white",
+                                bg="#994422",
+                                width=13,
+                                activebackground="#994422", command=replace_text)
         self.show_settings = Button(
             new_s, text='Config',            bd=0,
             font=("Yu Gothic Ui", 12),
@@ -1892,7 +1892,12 @@ class Password_display(Frame):
         self.show_settings.place(x=340, y=340 + 50)
         website_label1.place(x=250, y=300 + 20 + 5)
 
+        def send_notification(event):
+            self.show_settings.config(state=NORMAL)
+        self.main_window.bind('<FocusOut>', send_notification)
+
     def settings_account(self, lists, button):
+        self.show_settings.config(state=DISABLED)
         self.second = Toplevel()
         self.second.geometry("400x200")
         self.second.resizable(False, False)
