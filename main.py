@@ -1265,7 +1265,7 @@ class main_window(Frame):
             self.sidebar,
             text=f"ONE-PASS",
             compound="top",
-            font=("Segoe UI SemiBold", 15),
+            font=('Segoe Ui', 15, 'italic'),
             fg="white",
             image=main_ic,
             bg="#292A2D",
@@ -1280,7 +1280,7 @@ class main_window(Frame):
             compound=CENTER,
             border=0,
             bd=0,
-            width=132,
+            width=134,
             borderwidth=0,
             activebackground="#292A2D",
             highlightthickness=0,
@@ -1320,7 +1320,7 @@ class main_window(Frame):
             image=new_button,
             text=f"Profile",
             bg="#292A2D",
-            width=132,
+            width=134,
             activebackground="#292A2D",
             compound=CENTER,
             command=lambda: self.temp(),
@@ -1784,7 +1784,7 @@ class Password_display(Frame):
             bg="#994422",
             activebackground="#994422",
             command=lambda: change_object.change_window_creation(
-                lists[button][0], self.button
+                lists[button][0], self.button, self.handler
             ),
         )
         # getting the username and password
@@ -1851,7 +1851,7 @@ class Password_display(Frame):
 
         website_label1 = HTMLLabel(
             new_s,
-            html=f""" 
+            html=f"""
             <body>
                 <a style='color:white;text-align:center;font-family:sans-serif;'  href={website}>{website}</a>
             </body>
@@ -2139,44 +2139,44 @@ class Change_details:
         self.hand = handler
         self.password = password
 
-    def change_window_creation(self, selectaccount, pass_button):
+    def change_window_creation(self, selectaccount, pass_button, main_window_switcher=None):
         self.but = pass_button
-        change_acccount = Toplevel()
-        change_acccount.config(bg="#292A2D")
-        change_acccount.resizable(False, False)
-        change_acccount.focus_force()
-        change_acccount.title("Change Account")
+        self.change_acccount = Toplevel()
+        self.change_acccount.config(bg="#292A2D")
+        self.change_acccount.resizable(False, False)
+        self.change_acccount.focus_force()
+        self.change_acccount.title("Change Account")
 
         # assigning the main value
         self.account_change = selectaccount
         width_window = 450
         height_window = 400
-        screen_width = change_acccount.winfo_screenwidth()
-        screen_height = change_acccount.winfo_screenheight()
+        screen_width = self.change_acccount.winfo_screenwidth()
+        screen_height = self.change_acccount.winfo_screenheight()
         x = screen_width / 2 - width_window / 2
         y = screen_height / 2 - height_window / 2
-        change_acccount.geometry("%dx%d+%d+%d" %
+        self.change_acccount.geometry("%dx%d+%d+%d" %
                                  (width_window, height_window, x, y))
 
         iamge_load = tk_image.PhotoImage(image.open(f"{path}member.png"))
-        iamge = Label(change_acccount, image=iamge_load, bg="#292A2D")
+        iamge = Label(self.change_acccount, image=iamge_load, bg="#292A2D")
         iamge.photo = iamge_load
         new_username_label = Label(
-            change_acccount,
+            self.change_acccount,
             text="New Username:",
             fg="white",
             bg="#292A2D",
             font=("Yu Gothic Ui", 15),
         )
         new_password_label = Label(
-            change_acccount,
+            self.change_acccount,
             text="New Password:",
             fg="white",
             bg="#292A2D",
             font=("Yu Gothic Ui", 15),
         )
         new_account_name_label = Label(
-            change_acccount,
+            self.change_acccount,
             text="New Account Name:",
             fg="white",
             bg="#292A2D",
@@ -2184,7 +2184,7 @@ class Change_details:
         )
 
         new_username = Entry(
-            change_acccount,
+            self.change_acccount,
             width=13,
             bg="#292A2D",
             foreground="white",
@@ -2194,7 +2194,7 @@ class Change_details:
             insertbackground="white",
         )
         new_password = Entry(
-            change_acccount,
+            self.change_acccount,
             width=13,
             bg="#292A2D",
             foreground="white",
@@ -2204,7 +2204,7 @@ class Change_details:
             insertbackground="white",
         )
         new_account_name = Entry(
-            change_acccount,
+            self.change_acccount,
             width=13,
             bg="#292A2D",
             border=0,
@@ -2215,7 +2215,7 @@ class Change_details:
         )
 
         change = Button(
-            change_acccount,
+            self.change_acccount,
             width=20,
             height=2,
             text="C H A N G E",
@@ -2226,7 +2226,7 @@ class Change_details:
             command=lambda: self.change_sub_account(
                 str(new_username.get()),
                 str(new_password.get()),
-                str(new_account_name.get()),
+                str(new_account_name.get()), main_window_switcher
             ),
         )
         change.grid(row=5, column=1)
@@ -2240,47 +2240,68 @@ class Change_details:
         new_username.place(x=250, y=100 + 100 + 15 + 5)
         new_password.place(x=250, y=130 + 100 + 30 + 5)
 
-        Frame(change_acccount, width=150, height=2, bg="white").place(
+        Frame(self.change_acccount, width=150, height=2, bg="white").place(
             x=250, y=70 + 100 + 10 + 16 + 5
         )
-        Frame(change_acccount, width=150, height=2, bg="white").place(
+        Frame(self.change_acccount, width=150, height=2, bg="white").place(
             x=250, y=130 + 100 + 10 + 16 + 30 + 5
         )
-        Frame(change_acccount, width=150, height=2, bg="white").place(
+        Frame(self.change_acccount, width=150, height=2, bg="white").place(
             x=250, y=100 + 100 + 10 + 16 + 15 + 5
         )
 
         iamge.place(x=145, y=10)
 
-    def change_sub_account(self, new_username, new_password, account_name):
-        with open(f"{self.real_username}decrypted.bin", "rb") as f:
-            value1 = pickle.load(f)
-            f.close()
-        for i in value1:
+    def verify(self, account_name):
+        if os.stat(f'{self.real_username}decrypted.bin').st_size != 0:
+            with open(f'{self.real_username}decrypted.bin', "rb") as f:
+                test_values = p.load(f)
+                for user in test_values:
+                    if user[2] == str(account_name):
+                        return True
 
-            if i[0] == str(self.account_change):
-                i[0] = str(new_username)
-                i[1] = str(new_password)
-                i[2] = str(account_name)
-                messagebox.showinfo(
-                    "Success", "The Account details has been changed")
-                os.remove(f"{self.real_username}decrypted.bin")
-                with open(f"{self.real_username}decrypted.bin", "wb") as f:
-                    pickle.dump(value1, f)
-                    f.close()
-                os.remove(f"{self.real_username}.bin.aes")
-                pyAesCrypt.encryptFile(
-                    f"{self.real_username}decrypted.bin",
-                    f"{self.real_username}.bin.aes",
-                    self.hashed_password,
-                    bufferSize,
-                )
-                destroy_all(self.hand)
-                self.hand.switch_frame(
-                    main_window, self.real_username, self.password)
+    def change_sub_account(self, new_username, new_password, account_name, *main_window_switcher):
+        global ind
+        verifying = self.verify(account_name)
+        if verifying:
+            d = Tk()
+            d.withdraw()
+            messagebox.showerror(
+                "Couldn't change account", "The account with the provided account name exists please change it")
+            d.destroy()
+            self.change_acccount.focus_force()
+        else:
+            with open(f"{self.real_username}decrypted.bin", "rb") as f:
+                value1 = pickle.load(f)
+                f.close()
+            for i in value1:
+                if i[0] == str(self.account_change):
+                    ind = value1.index(i)
+                    i[0] = str(new_username)
+                    i[1] = str(new_password)
+                    i[2] = str(account_name)
+                    messagebox.showinfo(
+                        "Success", "The Account details has been changed")
+                    os.remove(f"{self.real_username}decrypted.bin")
+                    with open(f"{self.real_username}decrypted.bin", "wb") as f:
+                        pickle.dump(value1, f)
+                        f.close()
+                    os.remove(f"{self.real_username}.bin.aes")
+                    pyAesCrypt.encryptFile(
+                        f"{self.real_username}decrypted.bin",
+                        f"{self.real_username}.bin.aes",
+                        self.hashed_password,
+                        bufferSize,
+                    )
+                    destroy_all(self.hand)
+                    if main_window_switcher:
+                        main_window_switcher[0].switchframe(
+                            Password_display, self.hand, self.real_username, self.hashed_password, self.object, self.password)
+                    else:
+                        self.hand.switch_frame(
+                            main_window, self.real_username, self.password)
 
     def save_email(self):
-
         email_split = ""
         word = self.new_email_entry.get().split()
         for i in word:
@@ -2814,3 +2835,5 @@ if __name__ == "__main__":
     app.protocol("WM_DELETE_WINDOW", shutdown_ttk_repeat)
     app.mainloop()
     remove_decrypted()
+    running = False
+    al = False
