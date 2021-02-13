@@ -1789,8 +1789,7 @@ class Password_display(Frame):
             font=("Yu Gothic Ui", 15),
         )
 
-        list_val = list(self.account_password)
-        length = len(list_val)
+        length = len(self.account_password)
         password_text = Label(
             new_s,
             text='*'*length,
@@ -1830,8 +1829,7 @@ class Password_display(Frame):
                 password_text.config(text=self.account_password)
                 self.show_pass.config(text='Hide Password')
             else:
-                list_val = list(password_text['text'])
-                length = len(list_val)
+                length = len(password_text['text'])
                 self.show_pass.config(text='Show Password')
                 password_text.config(text='*'*length)
 
@@ -1978,7 +1976,7 @@ class Password_display(Frame):
             activeforeground="#292A2D",
             bg="#994422",
             activebackground="#994422",
-            command=lambda: change_object.change_self.second_creation(
+            command=lambda: change_object.change_window_creation(
                 lists[button][0], self.button, self.handler
             ),
         )
