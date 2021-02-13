@@ -28,6 +28,7 @@ bufferSize = 64 * 1024
 running = True
 
 al = False
+ind = None
 
 if platform.system() == "Windows":
     l = os.path.dirname(os.path.realpath(__file__)).split("\\")
@@ -1322,16 +1323,7 @@ class main_window(Frame):
             width=132,
             activebackground="#292A2D",
             compound=CENTER,
-            command=lambda: self.switchframe(
-                Profile_view,
-                parent,
-                self.username,
-                self.password_new,
-                self.email_id,
-                self.decrypted_pass,
-                self.hash_password,
-                self.object,
-            ),
+            command=lambda: self.temp(),
             border=0,
             bd=0,
             borderwidth=0,
@@ -1402,12 +1394,24 @@ class main_window(Frame):
         self.sidebar_icon.grid(row=0, column=0)
         self._frame = None
 
+    def temp(self):
+        if self.button['state'] == 'disabled':
+            global ind
+        self.switchframe(
+            Profile_view,
+            self.parent,
+            self.username,
+            self.password_new,
+            self.email_id,
+            self.decrypted_pass,
+            self.hash_password,
+            self.object,
+        )
+
     def testing(self, master):
         self.button["state"] = DISABLED
         self.profile_button["state"] = NORMAL
         self.parent.title("Passwords")
-        emptyMenu = Menu(self.parent)
-        self.parent.config(menu=emptyMenu)
         self.parent.iconbitmap(f"{path}password.ico")
         self.switchframe(
             Password_display,
@@ -1441,6 +1445,7 @@ class Password_display(Frame):
         self.config(bg="#292A2D")
         self.style = ttk.Style()
         button.config(state=DISABLED)
+
         profile_button.config(state=NORMAL)
         emptyMenu = Menu(self.main_window)
         self.main_window.config(menu=emptyMenu)
@@ -1454,6 +1459,7 @@ class Password_display(Frame):
         self.password = args[3]
         self.button = button
         bg_img = tk_image.PhotoImage(image.open(f"{path}log.jpg"))
+
         self.subbar = Frame(
             self, bg="black", width=105, height=1057, relief="sunken", borderwidth=2
         )
@@ -1509,6 +1515,12 @@ class Password_display(Frame):
         length_list = len(values)
         self.add_button.grid(row=length_list, column=0)
         self.buttons_blit()
+        global ind
+        if ind != None:
+            with open(f'{self.username}decrypted.bin', 'rb') as f:
+                val = p.load(f)
+            self.account_name = val[ind][2]
+            self.show_account(ind, self.account_name)
 
     def buttons_blit(self):
 
@@ -1705,6 +1717,8 @@ class Password_display(Frame):
         self.root1.mainloop()
 
     def show_account(self, button, account_name):
+        global ind
+        ind = button
         website = ""
         change_object = Change_details(
             self.main_window,
