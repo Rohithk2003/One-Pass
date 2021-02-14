@@ -195,9 +195,9 @@ def login_password(title1, object, *number):
     recover_email_entry.place(x=250, y=100 + 100 + 15 + 5)
 
     main_key = ""
-    alphabets = string.ascii_lowercase
+    alphabets = ascii_lowercase
     for letters in range(7):
-        main_key += random.choice(alphabets)
+        main_key += choice(alphabets)
 
     def pin_save(ent, master, username, main_window):
         if ent.get():
@@ -628,7 +628,7 @@ def login_password(title1, object, *number):
                     digits = "1234567890"
                     OTP = ""
                     for i in range(6):
-                        OTP += random.choice(digits)
+                        OTP += choice(digits)
                     OTP_secure = hashlib.sha512(OTP.encode()).hexdigest()
                     l = list(OTP_secure)
                     with open("otp.bin", "wb") as f:

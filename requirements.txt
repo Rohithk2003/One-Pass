@@ -8,3 +8,4 @@ update_check
 pyperclip
 tkscrolledframe
 mysql-connector-python
+tkhtmlview

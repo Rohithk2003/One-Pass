@@ -345,14 +345,14 @@ def log_out(username, *window):
 
 
 def settings(
-    handler,
-    real_username,
-    master_main,
-    hashed_password,
-    window,
-    password_button,
-    rec_pas,
-    original_password,
+        handler,
+        real_username,
+        master_main,
+        hashed_password,
+        window,
+        password_button,
+        rec_pas,
+        original_password,
 ):
     settings_window = Toplevel()
     settings_window.resizable(False, False)
@@ -509,8 +509,8 @@ class main_class(Tk):
         username = ""
         frame_class = ""
         if (
-            os.path.exists(f"{json_path}settings.json")
-            and os.stat(f"{json_path}settings.json").st_size != 0
+                os.path.exists(f"{json_path}settings.json")
+                and os.stat(f"{json_path}settings.json").st_size != 0
         ):
             with open(f"{json_path}settings.json", "r") as f:
                 values = json.load(f)
@@ -737,7 +737,7 @@ class Login_page(Frame):
             command=lambda: self.login_checking_1(master),
         )
         master.bind("<Return>", lambda event,
-                    a=master: self.login_checking_1(a))
+                                       a=master: self.login_checking_1(a))
         sub_button.place(x=50 + 3, y=300 + 30)
 
         show_both_1.place(x=300, y=200 + 30 - 5)
@@ -1168,7 +1168,7 @@ class Register_page(Frame):
         for i in values_username:
             for usernames in i:
                 if simple_decrypt(usernames) == self.username and os.path.exists(
-                    self.username + ".bin.aes"
+                        self.username + ".bin.aes"
                 ):
                     return (
                         True,
@@ -1438,7 +1438,7 @@ class main_window(Frame):
 # displaying the passwords
 class Password_display(Frame):
     def __init__(
-        self, main_window, button, profile_button, handler, second_frame, *args
+            self, main_window, button, profile_button, handler, second_frame, *args
     ):
         self.main_window = main_window
         Frame.__init__(self, self.main_window)
@@ -1792,7 +1792,7 @@ class Password_display(Frame):
         length = len(self.account_password)
         password_text = Label(
             new_s,
-            text='*'*length,
+            text='*' * length,
             bg="#1E1E1E",
             fg="white",
             font=("Yu Gothic Ui", 15),
@@ -1822,8 +1822,28 @@ class Password_display(Frame):
             width=2000,
             height=2,
         )
+        load_copy = tk_image.PhotoImage(image.open(f'{path}copy.png'))
+
+        def motion(event):
+            x, y = event.x, event.y
+            201, 179
+            238, 182
+            210, 200
+            231, 179
+            if x > 201 and x < 240:
+                if y > 179 and y < 200:
+                    self.new_but = Button(new_s, image=load_copy, bg='#1E1E1E')
+                    self.new_but.place(x=201, y=179)
+            else:
+                try:
+                    self.new_but.destroy()
+                except:
+                    pass
+
+        self.main_window.bind('<Motion>', motion)
 
         # hiding the password
+
         def replace_text():
             if '*' in password_text['text']:
                 password_text.config(text=self.account_password)
@@ -1831,7 +1851,7 @@ class Password_display(Frame):
             else:
                 length = len(password_text['text'])
                 self.show_pass.config(text='Show Password')
-                password_text.config(text='*'*length)
+                password_text.config(text='*' * length)
 
         try:
             tip = tix.Balloon(new_s)
@@ -1868,7 +1888,7 @@ class Password_display(Frame):
                                 width=13,
                                 activebackground="#994422", command=replace_text)
         self.show_settings = Button(
-            new_s, text='Edit', image=edit_text,            bd=0,
+            new_s, text='Edit', image=edit_text, bd=0,
             font=("Yu Gothic Ui", 12),
             fg="white",
             activeforeground="white",
@@ -1879,14 +1899,14 @@ class Password_display(Frame):
         self.show_settings.photo = edit_text
         img_button.photo = img
         img_button.place(x=190, y=30)
-        dot_text.place(x=170 + 20, y=175 + 3)
-        dot_text1.place(x=170 + 20, y=200 + 25 + 3)
-        dot_text2.place(x=170 + 20, y=250 + 25 + 3)
-        dot_text3.place(x=170 + 20, y=300 + 25 + 3)
+        dot_text.place(x=170 + 20, y=175 + 3 + 3)
+        dot_text1.place(x=170 + 20, y=200 + 25 + 3 + 3)
+        dot_text2.place(x=170 + 20, y=250 + 25 + 3 + 3)
+        dot_text3.place(x=170 + 20, y=300 + 25 + 3 + 3)
         self.show_pass.place(x=0 + 25, y=340 + 50)
-        username_label.place(x=30, y=200 + 25)
-        website_text.place(x=30, y=325)
-        password_label.place(x=30, y=250 + 25)
+        username_label.place(x=30, y=200 + 20)
+        website_text.place(x=30, y=320)
+        password_label.place(x=30, y=250 + 20)
         social_account.place(x=30, y=175)
         username_text.place(x=250, y=200 + 25)
         password_text.place(x=250, y=250 + 25)
@@ -1896,6 +1916,7 @@ class Password_display(Frame):
 
         def send_notification(event):
             self.show_settings.config(state=NORMAL)
+
         self.main_window.bind('<FocusOut>', send_notification)
 
     def settings_account(self, lists, button):
@@ -1996,18 +2017,20 @@ class Password_display(Frame):
     def copy(self, value):
         pyperclip.copy(value)
         messagebox.showinfo("Copied", "Copied!!!")
+
+
 # for seeing the profile
 
 
 class Profile_view(Frame):
     def __init__(
-        self,
-        master,
-        password_button,
-        profile_button,
-        handler,
-        window,
-        *args,
+            self,
+            master,
+            password_button,
+            profile_button,
+            handler,
+            window,
+            *args,
     ):
         self.master = master
         Frame.__init__(self, self.master)
@@ -2353,7 +2376,8 @@ class Change_details:
                     destroy_all(self.hand)
                     if main_window_switcher:
                         main_window_switcher[0].switchframe(
-                            Password_display, self.hand, self.real_username, self.hashed_password, self.object, self.password)
+                            Password_display, self.hand, self.real_username, self.hashed_password, self.object,
+                            self.password)
                     else:
                         self.hand.switch_frame(
                             main_window, self.real_username, self.password)
@@ -2654,8 +2678,8 @@ class PinFrame(Frame):
                     )
 
                     if (
-                        os.path.exists(f"{json_path}pin.json")
-                        and os.stat(f"{json_path}pin.json").st_size != 0
+                            os.path.exists(f"{json_path}pin.json")
+                            and os.stat(f"{json_path}pin.json").st_size != 0
                     ):
                         with open(f"{json_path}pin.json", "r") as f:
                             data = json.load(f)
@@ -2677,8 +2701,8 @@ class PinFrame(Frame):
                         (self.username, cipher_text, salt_for_decryption),
                     )
                     if (
-                        os.path.exists(f"{json_path}settings.json")
-                        and os.stat(f"{json_path}settings.json").st_size != 0
+                            os.path.exists(f"{json_path}settings.json")
+                            and os.stat(f"{json_path}settings.json").st_size != 0
                     ):
                         with open(f"{json_path}settings.json", "r") as f:
                             value = json.load(f)
@@ -2724,7 +2748,7 @@ class PinFrame(Frame):
 
 class Deletion:
     def __init__(
-        self, handler, real_username, password, hashed_password, window, object, master
+            self, handler, real_username, password, hashed_password, window, object, master
     ):
         self.real_username = real_username
         self.hashed_password = hashed_password
@@ -2884,12 +2908,6 @@ class Deletion:
 if __name__ == "__main__":
     # initialising the main class
     app = main_class()
-
-    def shutdown_ttk_repeat():
-        app.eval("::ttk::CancelRepeat")
-        app.destroy()
-
-    app.protocol("WM_DELETE_WINDOW", shutdown_ttk_repeat)
     app.mainloop()
     remove_decrypted()
     running = False

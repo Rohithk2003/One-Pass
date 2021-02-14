@@ -2,8 +2,8 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import string
-import random
+from string import *
+from random import *
 import threading
 import base64
 import os
@@ -13,8 +13,8 @@ import pbkdf2
 from tkinter import *
 from tkinter import messagebox
 
-alphabet = string.ascii_lowercase
-upper_alpha = string.ascii_uppercase
+alphabet = ascii_lowercase
+upper_alpha = ascii_uppercase
 key = 6
 
 # password generator
@@ -95,44 +95,33 @@ def pass_generator(entry):
             messagebox.showerror("Error", "Please fill the details")
 
         try:
-            if int(length) > 5:
-                if int(length) <= 15:
-                    try:
-                        a = string.ascii_lowercase
-                        d = string.ascii_uppercase
-                        spec = '@#$%*!_?\/)([]}{'
-                        numbers = "0123456789"
-                        password = ""
-                        if strength == 'HIGH':
-                            letters = a + d + spec + numbers
-                            password = "".join(random.sample(letters, length))
-                        elif strength == "MEDIUM":
-                            letters = a + spec + numbers
-                            password = "".join(random.sample(letters, length))
-                        else:
-                            letters = a + numbers
-                            password = "".join(random.sample(letters, length))
+            if int(length) in range(5, 16):
+                try:
+                    if strength == 'HIGH':
+                        letters = (ascii_uppercase)+(ascii_lowercase) + \
+                            (digits)+(punctuation)
+                        password = "".join(sample(letters, length))
+                    elif strength == "MEDIUM":
+                        letters = (ascii_lowercase) + \
+                            (punctuation) + digits
+                        password = "".join(sample(letters, length))
+                    else:
+                        letters = ascii_lowercase+digits
+                        password = "".join(sample(letters, length))
 
-                        new_label = Entry(
-                            de, foreground='green', font=('Segoe UI', 12))
-                        new_label.place(x=160, y=155)
-                        new_label.insert(0, password)
-                        copy = Button(de, text="Copy", font=(
-                            'Segoe UI', 10), command=lambda: copy_clip(password))
-                        copy.place(x=100, y=153)
-                        ok = Button(de, text='Save', font=(
-                            'Segoe UI', 10), command=lambda: quitting(entry, password))
-                        ok.place(x=350, y=97)
-                    except:
-                        pass
-                else:
-
-                    messagebox.showerror(
-                        "Error", "Password length must be less than 19")
-
-                    de.grab_set()
+                    new_label = Entry(
+                        de, foreground='green', font=('Segoe UI', 12))
+                    new_label.place(x=160, y=155)
+                    new_label.insert(0, password)
+                    copy = Button(de, text="Copy", font=(
+                        'Segoe UI', 10), command=lambda: copy_clip(password))
+                    copy.place(x=100, y=153)
+                    ok = Button(de, text='Save', font=(
+                        'Segoe UI', 10), command=lambda: quitting(entry, password))
+                    ok.place(x=350, y=97)
+                except:
+                    pass
             else:
-
                 messagebox.showerror(
                     "Error", "Password length must be greater than 5")
                 de.focus_set()
