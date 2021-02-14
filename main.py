@@ -1,6 +1,7 @@
 import mysql.connector as m
 import glob
 import json
+import atexit
 import sys
 import pickle as p
 from mysql.connector.constants import CharacterSet
@@ -26,7 +27,7 @@ import atexit
 
 bufferSize = 64 * 1024
 running = True
-
+stop_threads = True
 al = False
 ind = None
 
@@ -135,6 +136,16 @@ def gotologin(master):
         pass
 
 
+def at():
+    running = False
+    al = False
+
+    print("Ds'")
+
+
+atexit.register(at)
+
+
 def write_value(real_username, value, variable):
     if real_username != "Username" and list(real_username) != []:
         values = {}
@@ -158,30 +169,29 @@ def write_value(real_username, value, variable):
 class PinDecryption(Frame):
     def __init__(self, master, username):
         self.master = master
-        global al, running
+        global al, running,stop_threads
+        print(al,running,stop_threads)
 
         Frame.__init__(self, self.master)
         self.username = username
         self.master.title("Pin")
         self.config(bg="#121212")
-        self.running = running
-        self.al = al
         width_window = 1057
 
         def alpha():
             if str(enter_alpha["text"]) == "Enter Alphanumeric pin":
-                self.running = False
-                self.al = True
+                running = False
+                al = True
                 enter_alpha.config(text="Enter Number pin")
                 threading.Thread(target=for_alpha).start()
             elif enter_alpha["text"] == "Enter Number pin":
-                self.running = True
-                self.al = False
+                running = True
+                al = False
                 enter_alpha.config(text="Enter Alphanumeric pin")
                 threading.Thread(target=getting).start()
 
         def for_alpha():
-            while self.al:
+            while al:
 
                 try:
                     if self.ent.get():
@@ -193,27 +203,30 @@ class PinDecryption(Frame):
                     pass
 
         def getting():
+            global running
+            while running:
+                if stop_threads:
+                    try:
+                        print(running)
+                        if self.ent.get():
+                            save.config(state=NORMAL)
+                            int(self.ent.get())
+                            if len(self.ent.get()) >= 4:
+                                a = self.ent.get()[:4]
 
-            while self.running:
-                try:
-                    if self.ent.get():
-                        save.config(state=NORMAL)
-                        int(self.ent.get())
-                        if len(self.ent.get()) >= 4:
-                            a = self.ent.get()[:4]
+                                self.ent.delete(4, END)
 
-                            self.ent.delete(4, END)
-                except ValueError:
-                    a = str(self.ent.get())
-                    d = list(map(str, a))
-                    f = 0
-                    for i in d:
-                        if i.isalpha():
-                            f = d.index(i)
-                    self.ent.delete(f, END)
-                except:
-                    pass
+                    except ValueError:
+                        print("dddd1d")
+                        a = str(self.ent.get())
+                        d = list(map(str, a))
+                        f = 0
+                        for i in d:
+                            if i.isalpha():
+                                f = d.index(i)
+                        self.ent.delete(f, END)
 
+            print("Ddddddddddddddddddddddddddddddddddddd")
         lab = Label(
             self,
             text="Verify the security pin",
@@ -737,7 +750,7 @@ class Login_page(Frame):
             command=lambda: self.login_checking_1(master),
         )
         master.bind("<Return>", lambda event,
-                                       a=master: self.login_checking_1(a))
+                    a=master: self.login_checking_1(a))
         sub_button.place(x=50 + 3, y=300 + 30)
 
         show_both_1.place(x=300, y=200 + 30 - 5)
@@ -2905,10 +2918,15 @@ class Deletion:
             pass
 
 
+def good_bye(event):
+    pass
+
 if __name__ == "__main__":
     # initialising the main class
     app = main_class()
+    app.bind('<Destroy>', good_bye)
     app.mainloop()
     remove_decrypted()
     running = False
     al = False
+    quit()
