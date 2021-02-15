@@ -136,16 +136,6 @@ def gotologin(master):
         pass
 
 
-def at():
-    running = False
-    al = False
-
-    print("Ds'")
-
-
-atexit.register(at)
-
-
 def write_value(real_username, value, variable):
     if real_username != "Username" and list(real_username) != []:
         values = {}
@@ -169,67 +159,15 @@ def write_value(real_username, value, variable):
 class PinDecryption(Frame):
     def __init__(self, master, username):
         self.master = master
-        global al, running,stop_threads
-        print(al,running,stop_threads)
-
         Frame.__init__(self, self.master)
         self.username = username
         self.master.title("Pin")
         self.config(bg="#121212")
         width_window = 1057
 
-        def alpha():
-            if str(enter_alpha["text"]) == "Enter Alphanumeric pin":
-                running = False
-                al = True
-                enter_alpha.config(text="Enter Number pin")
-                threading.Thread(target=for_alpha).start()
-            elif enter_alpha["text"] == "Enter Number pin":
-                running = True
-                al = False
-                enter_alpha.config(text="Enter Alphanumeric pin")
-                threading.Thread(target=getting).start()
-
-        def for_alpha():
-            while al:
-
-                try:
-                    if self.ent.get():
-                        save.config(state=NORMAL)
-                        if len(self.ent.get()) >= 4:
-                            a = self.ent.get()[:4]
-                            self.ent.delete(4, END)
-                except:
-                    pass
-
-        def getting():
-            global running
-            while running:
-                if stop_threads:
-                    try:
-                        print(running)
-                        if self.ent.get():
-                            save.config(state=NORMAL)
-                            int(self.ent.get())
-                            if len(self.ent.get()) >= 4:
-                                a = self.ent.get()[:4]
-
-                                self.ent.delete(4, END)
-
-                    except ValueError:
-                        print("dddd1d")
-                        a = str(self.ent.get())
-                        d = list(map(str, a))
-                        f = 0
-                        for i in d:
-                            if i.isalpha():
-                                f = d.index(i)
-                        self.ent.delete(f, END)
-
-            print("Ddddddddddddddddddddddddddddddddddddd")
         lab = Label(
             self,
-            text="Verify the security pin",
+            text="Verify the 4 digit  security pin",
             bg="#121212",
             fg="white",
             font=("Segoe Ui", 20),
@@ -238,24 +176,7 @@ class PinDecryption(Frame):
 
         self.ent = Entry(self, width=20, font=("Segoe Ui", 15))
         self.ent.place(x=width_window / 2 - 40 - 5 - 5 - 30 - 10, y=250)
-        enter_alpha = Button(
-            self,
-            text="Enter Alphanumeric pin",
-            fg="#2A7BCF",
-            activeforeground="#2A7BCF",
-            bg="#121212",
-            command=alpha,
-            activebackground="#121212",
-            bd=0,
-            borderwidth=0,
-            font=("Consolas", 14, UNDERLINE),
-        )
-        enter_alpha.place(x=width_window / 2 + 200 - 30 - 10, y=250)
         # adding the check box button
-
-        t1 = threading.Thread(target=getting)
-
-        t1.start()
         # adding the save button
 
         forgot_pass = Button(
@@ -315,7 +236,7 @@ class PinDecryption(Frame):
                     messagebox.showinfo("Error", "Please provide a pin")
             else:
                 messagebox.showerror(
-                    "Incorrect Length", "PIN must be equal to 4 characters"
+                    "Incorrect Length", "PIN must be equal to 4 letters"
                 )
 
         # adding the save button
@@ -1254,7 +1175,8 @@ class Register_page(Frame):
 class main_window(Frame):
     def __init__(self, parent, username, password):
         Frame.__init__(self, parent)
-        global var
+        global var, running, al
+        running = False
         status_name = False
         parent.unbind("<Return>")
         parent.title("Password Manager")
@@ -1835,26 +1757,6 @@ class Password_display(Frame):
             width=2000,
             height=2,
         )
-        load_copy = tk_image.PhotoImage(image.open(f'{path}copy.png'))
-
-        def motion(event):
-            x, y = event.x, event.y
-            201, 179
-            238, 182
-            210, 200
-            231, 179
-            if x > 201 and x < 240:
-                if y > 179 and y < 200:
-                    self.new_but = Button(new_s, image=load_copy, bg='#1E1E1E')
-                    self.new_but.place(x=201, y=179)
-            else:
-                try:
-                    self.new_but.destroy()
-                except:
-                    pass
-
-        self.main_window.bind('<Motion>', motion)
-
         # hiding the password
 
         def replace_text():
@@ -2567,52 +2469,6 @@ class PinFrame(Frame):
         self.master.title("PIN")
         self.password = password
         self.config(bg="#121212")
-        global running, al
-        self.running = running
-        self.al = al
-
-        def alpha():
-            if str(enter_alpha["text"]) == "Enter Alphanumeric pin":
-                self.running = False
-                self.al = True
-                enter_alpha.config(text="Enter Number pin")
-                threading.Thread(target=for_alpha).start()
-            elif enter_alpha["text"] == "Enter Number pin":
-                self.running = True
-                self.al = False
-                enter_alpha.config(text="Enter Alphanumeric pin")
-                threading.Thread(target=getting).start()
-
-        def for_alpha():
-            while self.al:
-
-                try:
-                    if self.ent.get():
-                        if len(self.ent.get()) >= 4:
-                            a = self.ent.get()[:4]
-                            self.ent.delete(4, END)
-                except:
-                    pass
-
-        def getting():
-
-            while self.running:
-                try:
-                    if self.ent.get():
-                        int(self.ent.get())
-                        if len(self.ent.get()) >= 4:
-                            a = self.ent.get()[:4]
-
-                            self.ent.delete(4, END)
-                except ValueError:
-                    a = str(self.ent.get())
-                    d = list(map(str, a))
-                    f = 0
-                    for i in d:
-                        if i.isalpha():
-                            f = d.index(i)
-                    self.ent.delete(f, END)
-
         width_window = 1057
         lab = Label(
             self,
@@ -2643,19 +2499,6 @@ class PinFrame(Frame):
 
         self.ent = Entry(self, width=20, font=("Segoe Ui", 15))
         self.ent.place(x=width_window / 2 - 40 - 5 - 5 - 30 - 10 - 10, y=250)
-        enter_alpha = Button(
-            self,
-            text="Enter Alphanumeric pin",
-            fg="#2A7BCF",
-            activeforeground="#2A7BCF",
-            bg="#121212",
-            command=alpha,
-            activebackground="#121212",
-            bd=0,
-            borderwidth=0,
-            font=("Consolas", 14, UNDERLINE),
-        )
-        enter_alpha.place(x=width_window / 2 + 200 - 30 - 10 - 10, y=250)
         # adding the check box button
         self.var = IntVar()
         check = Checkbutton(
@@ -2672,74 +2515,73 @@ class PinFrame(Frame):
         )
         check.place(x=240 - 10, y=300)
 
-        t1 = threading.Thread(target=getting)
-
-        t1.start()
-
         # adding the entry widget
 
         def pin_save():
-            if self.ent.get():
-                if self.var.get() == 1:
-                    self.running, self.al = False, False
-                    self.pin = str(self.ent.get())
-                    values = {}
-                    self.hash_value = hashlib.sha512(
-                        self.pin.encode()).hexdigest()
-                    values[hashlib.sha512(self.username.encode()).hexdigest()] = str(
-                        self.hash_value
-                    )
-
-                    if (
-                            os.path.exists(f"{json_path}pin.json")
-                            and os.stat(f"{json_path}pin.json").st_size != 0
-                    ):
-                        with open(f"{json_path}pin.json", "r") as f:
-                            data = json.load(f)
-                        data[hashlib.sha512(self.username.encode()).hexdigest()] = str(
+            if len(str(self.ent.get())) == 4:
+                if self.ent.get():
+                    if self.var.get() == 1:
+                        self.running, self.al = False, False
+                        self.pin = str(self.ent.get())
+                        values = {}
+                        self.hash_value = hashlib.sha512(
+                            self.pin.encode()).hexdigest()
+                        values[hashlib.sha512(self.username.encode()).hexdigest()] = str(
                             self.hash_value
                         )
-                        with open(f"{json_path}pin.json", "w") as f:
-                            json.dump(data, f)
-                    else:
-                        with open(f"{json_path}pin.json", "w") as f:
-                            json.dump(values, f)
-                    main_pass = self.username + str(self.pin)
-                    static_salt_password = self.password
-                    cipher_text, salt_for_decryption = create_key(
-                        main_pass, static_salt_password
-                    )
-                    my_cursor.execute(
-                        "insert into userspin values(%s,%s,%s)",
-                        (self.username, cipher_text, salt_for_decryption),
-                    )
-                    if (
-                            os.path.exists(f"{json_path}settings.json")
-                            and os.stat(f"{json_path}settings.json").st_size != 0
-                    ):
-                        with open(f"{json_path}settings.json", "r") as f:
-                            value = json.load(f)
-                        values = list(value.keys())
-                        if not self.username in values:
+
+                        if (
+                                os.path.exists(f"{json_path}pin.json")
+                                and os.stat(f"{json_path}pin.json").st_size != 0
+                        ):
+                            with open(f"{json_path}pin.json", "r") as f:
+                                data = json.load(f)
+                            data[hashlib.sha512(self.username.encode()).hexdigest()] = str(
+                                self.hash_value
+                            )
+                            with open(f"{json_path}pin.json", "w") as f:
+                                json.dump(data, f)
+                        else:
+                            with open(f"{json_path}pin.json", "w") as f:
+                                json.dump(values, f)
+                        main_pass = self.username + str(self.pin)
+                        static_salt_password = self.password
+                        cipher_text, salt_for_decryption = create_key(
+                            main_pass, static_salt_password
+                        )
+                        my_cursor.execute(
+                            "insert into userspin values(%s,%s,%s)",
+                            (self.username, cipher_text, salt_for_decryption),
+                        )
+                        if (
+                                os.path.exists(f"{json_path}settings.json")
+                                and os.stat(f"{json_path}settings.json").st_size != 0
+                        ):
+                            with open(f"{json_path}settings.json", "r") as f:
+                                value = json.load(f)
+                            values = list(value.keys())
+                            if not self.username in values:
+                                value[self.username] = 0
+                            with open(f"{json_path}settings.json", "w") as f:
+                                json.dump(value, f)
+                        else:
+                            value = {}
                             value[self.username] = 0
-                        with open(f"{json_path}settings.json", "w") as f:
-                            json.dump(value, f)
+                            with open(f"{json_path}settings.json", "w") as f:
+                                json.dump(value, f)
+                        a = Tk()
+                        a.withdraw()
+                        messagebox.showinfo(
+                            "Saved", "PIN has been successfully registered")
+                        a.destroy()
+                        self.master.switch_frame(
+                            main_window, self.username, self.password)
                     else:
-                        value = {}
-                        value[self.username] = 0
-                        with open(f"{json_path}settings.json", "w") as f:
-                            json.dump(value, f)
-                    a = Tk()
-                    a.withdraw()
-                    messagebox.showinfo(
-                        "Saved", "PIN has been successfully registered")
-                    a.destroy()
-                    self.master.switch_frame(
-                        main_window, self.username, self.password)
+                        messagebox.showinfo("Error", "Checkbox is not ticked")
                 else:
-                    messagebox.showinfo("Error", "Checkbox is not ticked")
+                    messagebox.showinfo("Error", "Please provide a pin")
             else:
-                messagebox.showinfo("Error", "Please provide a pin")
+                messagebox.showinfo("Error", "PIN must be equal to 4 letters")
 
         # adding the save button
         save = Button(
@@ -2918,8 +2760,14 @@ class Deletion:
             pass
 
 
+print(running)
+
+
 def good_bye(event):
-    pass
+    global running, al
+    print(running, al)
+    running = False
+
 
 if __name__ == "__main__":
     # initialising the main class
@@ -2929,4 +2777,3 @@ if __name__ == "__main__":
     remove_decrypted()
     running = False
     al = False
-    quit()
