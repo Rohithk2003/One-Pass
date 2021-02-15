@@ -25,11 +25,6 @@ from tkhtmlview import HTMLLabel
 import time
 import atexit
 
-bufferSize = 64 * 1024
-running = True
-stop_threads = True
-al = False
-ind = None
 
 if platform.system() == "Windows":
     l = os.path.dirname(os.path.realpath(__file__)).split("\\")
@@ -48,6 +43,7 @@ if platform.system() == "Darwin":
     path = dir_path + "/images/"
     json_path = dir_path + "json_files\\"
 if platform.system() == "Linux":
+
     l = os.path.dirname(os.path.realpath(__file__)).split("/")
     dir_path = ""
     for i in l:
@@ -55,9 +51,12 @@ if platform.system() == "Linux":
             dir_path += i + "/"
     path = dir_path + "/images/"
     json_path = dir_path + "json_files\\"
+# initialising the variable
+ind = None
 fa = None
 testing_strng = ""
 var = 0
+bufferSize = 64 * 1024
 
 # database
 
@@ -79,7 +78,6 @@ my_cursor.execute(
 
 
 def remove_decrypted():
-    global running, al
     file_name = ""
     with open(f"{json_path}settings.json", "r") as f:
         value = json.load(f)
@@ -94,9 +92,6 @@ def remove_decrypted():
         os.remove(i)
     if os.path.exists("otp.bin.aes"):
         os.remove("otp.bin.aes")
-    running = False
-    al = False
-
     return
 
 
@@ -107,9 +102,6 @@ def destroy_all(root):
 
 
 def gotologin(master):
-    global running, al
-    running = False
-    al = False
     username = ""
     with open(f"{json_path}settings.json", "r") as f:
         value = json.load(f)
@@ -122,8 +114,7 @@ def gotologin(master):
         json.dump(value, f)
     if username:
         os.remove(f"{username}decrypted.bin")
-    running = False
-    al = False
+
     try:
         master.eval("::ttk::CancelRepeat")
         master.destroy()
@@ -197,7 +188,7 @@ class PinDecryption(Frame):
         def pin_save(event=None):
             if len(str(self.ent.get())) == 4:
                 if self.ent.get():
-                    self.running, self.al = False, False
+                    self.save.config(state=DISABLED)
                     self.pin = str(self.ent.get())
                     self.hash_value = hashlib.sha512(
                         self.pin.encode()).hexdigest()
@@ -229,25 +220,28 @@ class PinDecryption(Frame):
                                     main_window, self.username, self.password
                                 )
                             else:
+                                self.save.config(state=NORMAL)
                                 messagebox.showinfo(
                                     "Incorrect", "Incorrect Pin")
 
                 else:
+                    self.save.config(state=NORMAL)
+
                     messagebox.showinfo("Error", "Please provide a pin")
             else:
+                self.save.config(state=NORMAL)
                 messagebox.showerror(
                     "Incorrect Length", "PIN must be equal to 4 letters"
                 )
 
         # adding the save button
-        save = Button(
+        self.save = Button(
             self,
             text="Confirm",
             fg="white",
             activeforeground="white",
             bg="#994422",
             command=pin_save,
-            state=DISABLED,
             activebackground="#994422",
             height=1,
             width=10,
@@ -255,7 +249,7 @@ class PinDecryption(Frame):
             borderwidth=0,
             font=("Consolas", 14),
         )
-        save.place(x=width_window / 2 - 30 - 5, y=300 + 30)
+        self.save.place(x=width_window / 2 - 30 - 5, y=300 + 30)
         self.master.bind("<Return>", lambda event: pin_save())
 
 
@@ -482,8 +476,6 @@ class Login_page(Frame):
         Frame.__init__(self, master)
         master.title("Login")
         self.config(bg="grey")
-        global running, al
-        running, al = False, False
         fa = Login_page
 
         # canvas for showing lines
@@ -1175,8 +1167,7 @@ class Register_page(Frame):
 class main_window(Frame):
     def __init__(self, parent, username, password):
         Frame.__init__(self, parent)
-        global var, running, al
-        running = False
+        global var
         status_name = False
         parent.unbind("<Return>")
         parent.title("Password Manager")
@@ -1665,13 +1656,13 @@ class Password_display(Frame):
         background = Label(new_frame, bd=0, borderwidth=0, image=bg_img)
         background.place(x=0, y=0)
         background.image = bg_img
-        new_s = Frame(new_frame, bg="#1E1E1E", width=500, height=460, bd=0)
+        new_s = Frame(new_frame, bg="#171717", width=500, height=460, bd=0)
         new_s.place(x=150, y=120)
 
-        dot_text = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
-        dot_text1 = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
-        dot_text2 = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
-        dot_text3 = Label(new_s, text=":", bg="#1E1E1E", fg="white", font=(20))
+        dot_text = Label(new_s, text=":", bg="#171717", fg="white", font=(20))
+        dot_text1 = Label(new_s, text=":", bg="#171717", fg="white", font=(20))
+        dot_text2 = Label(new_s, text=":", bg="#171717", fg="white", font=(20))
+        dot_text3 = Label(new_s, text=":", bg="#171717", fg="white", font=(20))
 
         with open(f"{self.username}decrypted.bin", "rb") as f:
             lists = pickle.load(f)
@@ -1690,28 +1681,28 @@ class Password_display(Frame):
         username_label = Label(
             new_s,
             text="Username",
-            bg="#1E1E1E",
+            bg="#171717",
             fg="white",
             font=("Yu Gothic Ui", 15),
         )
         password_label = Label(
             new_s,
             text="Password",
-            bg="#1E1E1E",
+            bg="#171717",
             fg="white",
             font=("Yu Gothic Ui", 15),
         )
         website_text = Label(
             new_s,
             text="Website",
-            bg="#1E1E1E",
+            bg="#171717",
             fg="white",
             font=("Yu Gothic Ui", 15),
         )
         social_account = Label(
             new_s,
             text="Account Name",
-            bg="#1E1E1E",
+            bg="#171717",
             fg="white",
             font=("Yu Gothic Ui", 15),
         )
@@ -1719,7 +1710,7 @@ class Password_display(Frame):
         username_text = Label(
             new_s,
             text=self.account_username,
-            bg="#1E1E1E",
+            bg="#171717",
             fg="white",
             font=("Yu Gothic Ui", 15),
         )
@@ -1728,14 +1719,14 @@ class Password_display(Frame):
         password_text = Label(
             new_s,
             text='*' * length,
-            bg="#1E1E1E",
+            bg="#171717",
             fg="white",
             font=("Yu Gothic Ui", 15),
         )
         social_account_text = Label(
             new_s,
             text=account_name,
-            bg="#1E1E1E",
+            bg="#171717",
             fg="white",
             font=("Yu Gothic Ui", 15),
         )
@@ -1743,17 +1734,17 @@ class Password_display(Frame):
         website_label1 = HTMLLabel(
             new_s,
             html=f"""
-            <body>
-                <a style='color:white;text-align:center;font-family:sans-serif;'  href={self.website}>{self.website}</a>
-            </body>
-            """,
-            background="#1E1E1E",
+                <body>
+                    <a style='color:white;text-align:center;font-family:sans-serif;'  href={self.website}>{self.website}</a>
+                </body>
+                """,
+            background="#171717",
             fg="white",
             foreground="white",
-            highlightbackground="#1E1E1E",
+            highlightbackground="#171717",
             highlightcolor="white",
             selectforeground="white",
-            inactiveselectbackground="#1E1E1E",
+            inactiveselectbackground="#171717",
             width=2000,
             height=2,
         )
@@ -1792,8 +1783,8 @@ class Password_display(Frame):
             new_s,
             image=img,
             border="0",
-            bg="#1E1E1E",
-            activebackground="#1E1E1E",
+            bg="#171717",
+            activebackground="#171717",
         )
         self.show_pass = Button(new_s, text='Show Password', bd=0,
                                 font=("Yu Gothic Ui", 12),
@@ -1984,7 +1975,7 @@ class Profile_view(Frame):
         new_canvas.create_image(0, 0, image=profileimg, anchor="nw")
         new_s = Frame(
             new_canvas,
-            bg="#292A2D",
+            bg="#171717",
             highlightcolor="black",
             highlightbackground="black",
             width=500,
@@ -1999,36 +1990,36 @@ class Profile_view(Frame):
             text="Username",
             font="consolas 15",
             fg="white",
-            bg="#292A2D",
-            highlightcolor="#292A2D",
-            activebackground="#292A2D",
+            bg="#171717",
+            highlightcolor="#171717",
+            activebackground="#171717",
         )
         password_label = Label(
             new_s,
             text="Password",
             font="consolas 15",
             fg="white",
-            bg="#292A2D",
-            highlightcolor="#292A2D",
-            activebackground="#292A2D",
+            bg="#171717",
+            highlightcolor="#171717",
+            activebackground="#171717",
         )
         email_id_label = Label(
             new_s,
             text="Email",
             font="consolas 15",
             fg="white",
-            bg="#292A2D",
-            highlightcolor="#292A2D",
-            activebackground="#292A2D",
+            bg="#171717",
+            highlightcolor="#171717",
+            activebackground="#171717",
         )
         email_password_label = Label(
             new_s,
             text="Email Password",
             font="consolas 15",
             fg="white",
-            bg="#292A2D",
-            highlightcolor="#292A2D",
-            activebackground="#292A2D",
+            bg="#171717",
+            highlightcolor="#171717",
+            activebackground="#171717",
         )
 
         # details label
@@ -2037,9 +2028,9 @@ class Profile_view(Frame):
             text=self.username,
             font="consolas 15",
             fg="white",
-            bg="#292A2D",
-            highlightcolor="#292A2D",
-            activebackground="#292A2D",
+            bg="#171717",
+            highlightcolor="#171717",
+            activebackground="#171717",
         )
 
         password_label_right = Label(
@@ -2047,8 +2038,8 @@ class Profile_view(Frame):
             text=self.password,
             font="consolas 15",
             fg="white",
-            bg="#292A2D",
-            highlightcolor="#292A2D",
+            bg="#171717",
+            highlightcolor="#171717",
         )
 
         email_id_label_right = Label(
@@ -2056,31 +2047,31 @@ class Profile_view(Frame):
             text=self.email_id,
             font="consolas 15",
             fg="white",
-            bg="#292A2D",
-            highlightcolor="#292A2D",
-            activebackground="#292A2D",
+            bg="#171717",
+            highlightcolor="#171717",
+            activebackground="#171717",
         )
         email_password_label_right = Label(
             new_s,
             text=self.email_password,
             font="consolas 15",
             fg="white",
-            bg="#292A2D",
-            highlightcolor="#292A2D",
-            activebackground="#292A2D",
+            bg="#171717",
+            highlightcolor="#171717",
+            activebackground="#171717",
         )
 
         # dot label
-        dot = Label(new_s, font=(200), bg="#292A2D", text=":", fg="white")
-        dot1 = Label(new_s, font=(200), bg="#292A2D", text=":", fg="white")
-        dot2 = Label(new_s, font=(200), bg="#292A2D", text=":", fg="white")
-        dot3 = Label(new_s, font=(200), bg="#292A2D", text=":", fg="white")
+        dot = Label(new_s, font=(200), bg="#171717", text=":", fg="white")
+        dot1 = Label(new_s, font=(200), bg="#171717", text=":", fg="white")
+        dot2 = Label(new_s, font=(200), bg="#171717", text=":", fg="white")
+        dot3 = Label(new_s, font=(200), bg="#171717", text=":", fg="white")
 
         # profile image
 
         profile_photo = Label(
             new_s,
-            bg="#292A2D",
+            bg="#171717",
             image=member,
             activebackground="black",
             activeforeground="white",
@@ -2098,11 +2089,11 @@ class Profile_view(Frame):
         delete_this_account = Button(
             new_s,
             text="Delete Account",
-            fg="white",
-            bg="black",
-            activebackground="black",
-            activeforeground="white",
-            font="Helvetiva 10",
+            font=("consolas"),
+            fg="#171717",
+            activeforeground="#171717",
+            bg="#994422",
+            activebackground="#994422",
             command=lambda: delete_object.delete_main_account(self.master),
         )
 
@@ -2111,7 +2102,7 @@ class Profile_view(Frame):
         email_id_label.place(x=5, y=200 + 100)
         email_password_label.place(x=5, y=250 + 100)
         profile_photo.place(x=150, y=50)
-        delete_this_account.place(x=0 + 2, y=400)
+        delete_this_account.place(x=0 + 10, y=390)
 
         username_label_right.place(x=300 - 70, y=100 + 100)
         password_label_right.place(x=300 - 70, y=150 + 100)
@@ -2521,7 +2512,6 @@ class PinFrame(Frame):
             if len(str(self.ent.get())) == 4:
                 if self.ent.get():
                     if self.var.get() == 1:
-                        self.running, self.al = False, False
                         self.pin = str(self.ent.get())
                         values = {}
                         self.hash_value = hashlib.sha512(
@@ -2760,20 +2750,8 @@ class Deletion:
             pass
 
 
-print(running)
-
-
-def good_bye(event):
-    global running, al
-    print(running, al)
-    running = False
-
-
 if __name__ == "__main__":
     # initialising the main class
     app = main_class()
-    app.bind('<Destroy>', good_bye)
     app.mainloop()
     remove_decrypted()
-    running = False
-    al = False
