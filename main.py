@@ -1821,17 +1821,22 @@ class Password_display(Frame):
         website_label1.place(x=250, y=300 + 20 + 5)
 
         def send_notification(event):
-            self.show_settings.config(state=NORMAL)
-
+            try:
+                self.show_settings.config(state=NORMAL)
+            except:
+                pass
         self.main_window.bind('<FocusOut>', send_notification)
 
     def settings_account(self, lists, button):
         self.show_settings.config(state=DISABLED)
-        self.second = Toplevel()
+        self.second = Tk()
         self.second.geometry("400x200")
         self.second.resizable(False, False)
         self.second.config(bg='black')
         self.second.title("Config")
+        self.second.focus_force()
+        self.second.focus_set()
+
         width_window = 400
         height_window = 200
         screen_width = self.second.winfo_screenwidth()
@@ -1923,7 +1928,7 @@ class Password_display(Frame):
     def copy(self, value):
         pyperclip.copy(value)
         messagebox.showinfo("Copied", "Copied!!!")
-
+        self.second.focus_force()
 
 # for seeing the profile
 
