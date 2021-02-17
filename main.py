@@ -57,7 +57,8 @@ fa = None
 testing_strng = ""
 var = 0
 bufferSize = 64 * 1024
-
+buttons_list = []
+from_delete = False
 # database
 
 connection = m.connect(
@@ -77,21 +78,32 @@ my_cursor.execute(
 )
 
 
+def atexit_function():
+    for i in glob.glob("*decrypted.bin"):
+        try:
+            os.remove(i)
+        except:
+            pass
+
+
 def remove_decrypted():
     file_name = ""
-    with open(f"{json_path}settings.json", "r") as f:
-        value = json.load(f)
-    for i in value:
-        if value[i] == 1:
-            file_name = f"{i}decrypted.bin"
-            break
-    ls = glob.glob("*decrypted.bin")
-    if file_name in ls:
-        ls.remove(file_name)
-    for i in ls:
-        os.remove(i)
-    if os.path.exists("otp.bin.aes"):
-        os.remove("otp.bin.aes")
+    try:
+        with open(f"{json_path}settings.json", "r") as f:
+            value = json.load(f)
+        for i in value:
+            if value[i] == 1:
+                file_name = f"{i}decrypted.bin"
+                break
+        ls = glob.glob("*decrypted.bin")
+        if file_name in ls:
+            ls.remove(file_name)
+        for i in ls:
+            os.remove(i)
+        if os.path.exists("otp.bin.aes"):
+            os.remove("otp.bin.aes")
+    except:
+        pass
     return
 
 
@@ -215,7 +227,8 @@ class PinDecryption(Frame):
                                 messagebox.showinfo(
                                     "Success", "Your pin has been verified"
                                 )
-
+                                pyAesCrypt.decryptFile(
+                                    f'{self.username}_decrypted.bin.aes', f'{self.username}decrypted.bin', str(self.pin), bufferSize)
                                 self.master.switch_frame(
                                     main_window, self.username, self.password
                                 )
@@ -422,7 +435,7 @@ def settings(
 class main_class(Tk):
     def __init__(self):
         tix.Tk.__init__(self)
-        # self.resizable(False, False)
+        self.resizable(False, False)
         self.title("Password Manager")
         width_window = 1057
         height_window = 661
@@ -447,13 +460,17 @@ class main_class(Tk):
                     username = str(i)
                     break
             if username:
-                if os.path.exists(f"{username}decrypted.bin"):
-                    self.switch_frame(PinDecryption, username)
-                else:
-                    values[username] = 0
-                    with open("settings.json", "w") as f:
-                        json.dump(values, f)
-                    self.switch_frame(Login_page)
+                with open(f'{json_path}settings.json', 'r') as file:
+                    values = json.load(file)
+                    for i in values:
+                        if i == username:
+                            if values[i] == 1:
+                                self.switch_frame(PinDecryption, username)
+                            else:
+                                values[username] = 0
+                                with open(f"{json_path}settings.json", "w") as f:
+                                    json.dump(values, f)
+                                self.switch_frame(Login_page)
             else:
                 self.switch_frame(Login_page)
 
@@ -802,7 +819,7 @@ class Register_page(Frame):
         iconimage = tk_image.PhotoImage(image.open(f"{path}member.png"))
         self.labelframe1 = LabelFrame(
             self,
-            bg="#292A2D",
+            bg="#171717",
             width=550,
             height=550,
             borderwidth=2,
@@ -810,7 +827,7 @@ class Register_page(Frame):
         )
         self.labelframe1.place(x=270, y=75)
 
-        icon_label = Label(self.labelframe1, image=iconimage, bg="#292A2D")
+        icon_label = Label(self.labelframe1, image=iconimage, bg="#171717")
         icon_label.image = iconimage
         icon_label.place(x=180, y=20 + 30)
 
@@ -820,22 +837,23 @@ class Register_page(Frame):
             fg="#ebebeb",
             text="Username",
             bd=5,
-            bg="#292A2D",
+            bg="#171717",
             font=("Yu Gothic Ui", 15),
         )
+
         password = Label(
             self.labelframe1,
             fg="#ebebeb",
             text="Master Password",
             bd=5,
-            bg="#292A2D",
+            bg="#171717",
             font=("Yu Gothic Ui", 15),
         )
         email_id = Label(
             self.labelframe1,
             fg="#ebebeb",
             text="Recovery Email",
-            bg="#292A2D",
+            bg="#171717",
             bd=5,
             font=("Yu Gothic Ui", 15),
         )
@@ -843,7 +861,7 @@ class Register_page(Frame):
             self.labelframe1,
             fg="#ebebeb",
             text="Recovery Password",
-            bg="#292A2D",
+            bg="#171717",
             bd=5,
             font=("Yu Gothic Ui", 15),
         )
@@ -859,7 +877,7 @@ class Register_page(Frame):
             width=20,
             borderwidth=0,
             fg="#ebebeb",
-            bg="#292A2D",
+            bg="#171717",
             relief=SUNKEN,
             insertbackground="white",
             font=("segoe ui", 15, "normal"),
@@ -868,7 +886,7 @@ class Register_page(Frame):
             self.labelframe1,
             show="*",
             fg="#ebebeb",
-            bg="#292A2D",
+            bg="#171717",
             borderwidth=0,
             width=17,
             insertbackground="white",
@@ -878,7 +896,7 @@ class Register_page(Frame):
             self.labelframe1,
             borderwidth=0,
             fg="#ebebeb",
-            bg="#292A2D",
+            bg="#171717",
             width=20,
             insertbackground="white",
             font=("segoe ui", 15, "normal"),
@@ -887,7 +905,7 @@ class Register_page(Frame):
             self.labelframe1,
             borderwidth=0,
             fg="#ebebeb",
-            bg="#292A2D",
+            bg="#171717",
             width=17,
             show="*",
             insertbackground="white",
@@ -902,12 +920,12 @@ class Register_page(Frame):
         # keep me logged in
         self.keepmeloggedin = Checkbutton(
             self.labelframe1,
-            bg="#292A2D",
+            bg="#171717",
             foreground="green",
             fg="white",
             selectcolor="black",
             font=("Segoe Ui", 13),
-            activebackground="#292A2D",
+            activebackground="#171717",
             activeforeground="white",
             highlightcolor="white",
             text="Keep Me Logged In",
@@ -938,9 +956,9 @@ class Register_page(Frame):
             width=20,
             height=2,
             text="R E G I S T E R",
-            font=("consolas"),
-            fg="#292A2D",
-            activeforeground="#292A2D",
+            font=("Segoe Ui", 13),
+            fg="#171717",
+            activeforeground="#171717",
             bg="#994422",
             activebackground="#994422",
             command=lambda: self.register_saving(),
@@ -953,12 +971,12 @@ class Register_page(Frame):
             self.labelframe1,
             image=unhide_img,
             command=lambda: password_sec(self.password_entry, show_both_1),
-            fg="#292A2D",
-            bg="#292A2D",
+            fg="#171717",
+            bg="#171717",
             bd=0,
-            highlightcolor="#292A2D",
-            activebackground="#292A2D",
-            activeforeground="#292A2D",
+            highlightcolor="#171717",
+            activebackground="#171717",
+            activeforeground="#171717",
             relief=RAISED,
         )
         show_both_1.image = unhide_img
@@ -967,12 +985,12 @@ class Register_page(Frame):
             image=unhide_img,
             command=lambda: password_sec(
                 self.email_password_entry, show_both_12),
-            fg="#292A2D",
-            bg="#292A2D",
+            fg="#171717",
+            bg="#171717",
             bd=0,
-            highlightcolor="#292A2D",
-            activebackground="#292A2D",
-            activeforeground="#292A2D",
+            highlightcolor="#171717",
+            activebackground="#171717",
+            activeforeground="#171717",
             relief=RAISED,
         )
         show_both_12.image = unhide_img
@@ -985,8 +1003,8 @@ class Register_page(Frame):
             text="B A C K",
             width=20,
             height=2,
-            font=("consolas"),
-            fg="#292A2D",
+            font=("Segoe Ui", 13),
+            fg="#171717",
             bg="#994422",
             activebackground="#994422",
             bd=0,
@@ -1000,9 +1018,9 @@ class Register_page(Frame):
         generate = Button(
             self.labelframe1,
             text="Generate",
-            fg="#292A2D",
+            fg="#171717",
             bg="#994422",
-            font=("consolas"),
+            font=("Segoe Ui", 13),
             activebackground="#994422",
             bd=0,
             relief=SUNKEN,
@@ -1012,9 +1030,9 @@ class Register_page(Frame):
         generate1 = Button(
             self.labelframe1,
             text="Generate",
-            fg="#292A2D",
+            fg="#171717",
             bg="#994422",
-            font=("consolas"),
+            font=("Segoe Ui", 13),
             activebackground="#994422",
             bd=0,
             relief=SUNKEN,
@@ -1366,6 +1384,7 @@ class Password_display(Frame):
     def __init__(
             self, main_window, button, profile_button, handler, second_frame, *args
     ):
+        global buttons_list
         self.main_window = main_window
         Frame.__init__(self, self.main_window)
         self.config(bg="#292A2D")
@@ -1440,16 +1459,21 @@ class Password_display(Frame):
 
         length_list = len(values)
         self.add_button.grid(row=length_list, column=0)
+        buttons_list.clear()
+
         self.buttons_blit()
-        global ind
-        if ind != None:
+        global ind, from_delete
+        if ind != None and not from_delete:
             with open(f'{self.username}decrypted.bin', 'rb') as f:
                 val = p.load(f)
             self.account_name = val[ind][2]
-            self.show_account(ind, self.account_name)
+            for i in buttons_list:
+                if i.winfo_exists():
+                    buttons_list[ind].config(state=DISABLED)
+            self.show_account(ind, self.account_name, buttons_list[ind])
 
     def buttons_blit(self):
-
+        global buttons_list
         new = []
         if os.stat(f"{self.username}decrypted.bin").st_size != 0:
             with open(f"{self.username}decrypted.bin", "rb") as f:
@@ -1460,25 +1484,26 @@ class Password_display(Frame):
                 for i in range(len(new)):
                     button_img = tk_image.PhotoImage(
                         image.open(f"{path}a.png"))
-                    d[
-                        Button(
-                            self.second_frame,
-                            text=f"{new[i]}",
-                            bg="#1E1E1E",
-                            fg="white",
-                            height=60,
-                            activeforeground="white",
-                            activebackground="#1E1E1E",
-                            width=120,
-                            font=("Segoe UI Semibold", 9),
-                            image=button_img,
-                            compound="top",
-                            command=lambda a=i, value=new[i]: self.show_account(
-                                a, value
-                            ),
-                        )
-                    ] = [i, button_img]
 
+                    button_name = Button(
+                        self.second_frame,
+                        text=f"{new[i]}",
+                        bg="#1E1E1E",
+                        fg="white",
+                        height=60,
+                        activeforeground="white",
+                        activebackground="#1E1E1E",
+                        width=120,
+                        font=("Segoe UI Semibold", 9),
+                        image=button_img,
+                        compound="top")
+                    button_name.config(
+                        command=lambda a=i, name=button_name, value=new[i]: self.show_account(
+                            a, value, name
+                        ),
+                    )
+                    buttons_list.append(button_name)
+                    d[button_name] = [i, button_img]
                 for i in d:
                     i.image = d[i][1]
                     i.grid(row=d[i][0], column=0)
@@ -1499,7 +1524,7 @@ class Password_display(Frame):
                         return True
 
     def save(self):
-
+        global buttons_list
         list_account = [
             str(self.username_window_entry.get()),
             str(self.password_entry.get()),
@@ -1549,7 +1574,8 @@ class Password_display(Frame):
                     self.add_button.grid(row=len(val) + 1, column=0)
                 self.root1.destroy()
                 self.buttons_blit()
-                self.show_account(index_value, list_account[2])
+                self.show_account(
+                    index_value, list_account[2], buttons_list[len(buttons_list)-1])
 
     def addaccount(self):
         self.root1 = Toplevel()
@@ -1642,11 +1668,15 @@ class Password_display(Frame):
         self.add_icon_button.place(x=150, y=50)
         self.root1.mainloop()
 
-    def show_account(self, button, account_name):
-        global ind
+    def show_account(self, button, account_name, name):
+        global ind, buttons_list, from_delete
+        from_delete = False
         ind = button
         website = ""
-
+        for i in buttons_list:
+            if i['state'] == 'disabled':
+                i.config(state=NORMAL)
+        name.config(state=DISABLED)
         self.config(bg="#1E1E1E")
         bg_img = tk_image.PhotoImage(image.open(f"{path}log.jpg"))
         new_frame = Frame(
@@ -2569,6 +2599,14 @@ class PinFrame(Frame):
                         messagebox.showinfo(
                             "Saved", "PIN has been successfully registered")
                         a.destroy()
+                        with open(f"{json_path}settings.json", 'r') as file:
+                            values = json.load(file)
+                            for i in values:
+                                if i == self.username:
+                                    if values[i] == 1:
+                                        pyAesCrypt.encryptFile(
+                                            f'{self.username}decrypted.bin', f'{self.username}_decrypted.bin.aes', str(self.pin), bufferSize)
+
                         self.master.switch_frame(
                             main_window, self.username, self.password)
                     else:
@@ -2610,7 +2648,6 @@ class Deletion:
         self.master = master
 
     def delete_social_media_account(self, password_button, Value, *account_name):
-
         if Value:
             self.delete_med_account = Tk()
             width_window = 440
@@ -2668,11 +2705,14 @@ class Deletion:
                 "Delete Account", "Are you sure you want to delete your account?"
             )
             a.destroy()
+
             if result:
                 self.change_account_name(
                     account_name[0], password_button, False)
 
     def change_account_name(self, account_name, button, val):
+        global from_delete
+
         if val:
             result = messagebox.askyesno(
                 "Confirm", "Are you sure that you want to delete your account"
@@ -2706,6 +2746,8 @@ class Deletion:
             a.withdraw()
             messagebox.showinfo("Success", f"The account  has been  deleted")
             a.destroy()
+            from_delete = True
+
             destroy_all(self.master)
             self.master.switch_frame(
                 main_window, self.real_username, self.password)
@@ -2730,25 +2772,33 @@ class Deletion:
                 f"Please type {self.real_username}-CONFIRM to delete your account",
             )
             if result == f"{self.real_username}-CONFIRM":
+                # try:
+                os.remove(self.real_username + "decrypted.bin")
+                os.remove(self.real_username + ".bin.aes")
+                with open(f'{json_path}settings.json', 'r') as file:
+                    with open(f'{json_path}pin.json', 'r') as file1:
+                        sett = json.load(file)
+                        pins = json.load(file1)
+                        del sett[self.real_username]
+                        del pins[hashlib.sha512(
+                            self.real_username.encode()).hexdigest()]
+                self.object.execute(
+                    "delete from usersdata where username = (%s)",
+                    (simple_encrypt(self.real_username),),
+                )
+                messagebox.showinfo(
+                    "Account deletion",
+                    "Success your account has been deleted. See you!!",
+                )
+                window.destroy()
                 try:
-                    os.remove(self.real_username + "decrypted.bin")
-                    os.remove(self.real_username + ".bin.aes")
-
-                    self.object.execute(
-                        "delete from usersdata where username = (%s)",
-                        (simple_encrypt(self.real_username),),
-                    )
-                    messagebox.showinfo(
-                        "Account deletion",
-                        "Success your account has been deleted. See you!!",
-                    )
-                    window.destroy()
                     for i in another_window:
                         i.destroy()
-                    if not os.path.exists(f"{self.real_username}.bin.aes"):
-                        quit()
                 except:
                     pass
+                if not os.path.exists(f"{self.real_username}.bin.aes"):
+                    quit()
+
             else:
                 messagebox.showwarning("Error", "Please try again")
         else:
@@ -2756,6 +2806,7 @@ class Deletion:
 
 
 if __name__ == "__main__":
+    atexit.register(atexit_function)
     # initialising the main class
     app = main_class()
     app.mainloop()
