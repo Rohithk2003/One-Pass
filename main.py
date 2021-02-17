@@ -79,32 +79,15 @@ my_cursor.execute(
 
 
 def atexit_function():
-    for i in glob.glob("*decrypted.bin"):
-        try:
-            os.remove(i)
-        except:
-            pass
-
-
-def remove_decrypted():
-    file_name = ""
-    try:
-        with open(f"{json_path}settings.json", "r") as f:
-            value = json.load(f)
-        for i in value:
-            if value[i] == 1:
-                file_name = f"{i}decrypted.bin"
-                break
-        ls = glob.glob("*decrypted.bin")
-        if file_name in ls:
-            ls.remove(file_name)
-        for i in ls:
-            os.remove(i)
-        if os.path.exists("otp.bin.aes"):
-            os.remove("otp.bin.aes")
-    except:
-        pass
-    return
+    with open(f'{json_path}settings.json') as file:
+        values = json.load(file)
+        names = values.keys()
+        for i in names:
+            for d in glob.glob(f"{i}/*decrypted.bin"):
+                try:
+                    os.remove(d)
+                except:
+                    pass
 
 
 def destroy_all(root):
@@ -125,7 +108,7 @@ def gotologin(master):
     with open(f"{json_path}settings.json", "w") as f:
         json.dump(value, f)
     if username:
-        os.remove(f"{username}decrypted.bin")
+        os.remove(f"{username}/{username}decrypted.bin")
 
     try:
         master.eval("::ttk::CancelRepeat")
@@ -228,7 +211,7 @@ class PinDecryption(Frame):
                                     "Success", "Your pin has been verified"
                                 )
                                 pyAesCrypt.decryptFile(
-                                    f'{self.username}_decrypted.bin.aes', f'{self.username}decrypted.bin', str(self.pin), bufferSize)
+                                    f'{self.username}/{self.username}_decrypted.bin.aes', f'{self.username}/{self.username}decrypted.bin', str(self.pin), bufferSize)
                                 self.master.switch_frame(
                                     main_window, self.username, self.password
                                 )
@@ -279,7 +262,7 @@ def log_out(username, *window):
     a.withdraw()
     messagebox.showinfo("Logged Out", "You have  successfully logged out")
     a.destroy()
-    for file in glob.glob("*decrypted.bin"):
+    for file in glob.glob(f"{username}/*decrypted.bin"):
         os.remove(file)
     new_app = main_class()
     new_app.mainloop()
@@ -771,12 +754,12 @@ class Login_page(Frame):
             return False
         else:
             for_hashing_both = self.password + self.username
-            if os.path.exists(f"{self.username}.bin.aes"):
+            if os.path.exists(f"{self.username}/{self.username}.bin.aes"):
                 try:
                     # trying to decrypt the users file to check whether the password entered is valid
                     pyAesCrypt.decryptFile(
-                        self.username + ".bin.aes",
-                        self.username + "decrypted.bin",
+                        f'{self.username}/{self.username}' + ".bin.aes",
+                        f'{self.username}/{self.username}' + "decrypted.bin",
                         main_password,
                         bufferSize,
                     )
@@ -1162,11 +1145,11 @@ class Register_page(Frame):
         for_hashing = self.password + self.username
         """for encrypting the file"""
         hash_pass = hashlib.sha3_512(for_hashing.encode()).hexdigest()
-
-        file_name = self.username + ".bin"
-        with open(file_name, "wb"):
+        os.mkdir(self.username)
+        file_name = f'{self.username}/{self.username}' + ".bin"
+        with open(f'{self.username}/{file_name}', "wb"):
             pyAesCrypt.encryptFile(
-                file_name, file_name + ".aes", hash_pass, bufferSize)
+                file_name, f"{self.username}/{file_name}.aes", hash_pass, bufferSize)
         os.remove(file_name)
         # to display that his account has been created
         windows = Tk()
@@ -1453,8 +1436,8 @@ class Password_display(Frame):
         )
         self.add_button.photo = image_new
         values = []
-        if os.stat(f"{self.username}decrypted.bin").st_size != 0:
-            with open(f"{self.username}decrypted.bin", "rb") as f:
+        if os.stat(f'{self.username}/{self.username}decrypted.bin').st_size != 0:
+            with open(f'{self.username}/{self.username}decrypted.bin', "rb") as f:
                 values = p.load(f)
 
         length_list = len(values)
@@ -1464,7 +1447,7 @@ class Password_display(Frame):
         self.buttons_blit()
         global ind, from_delete
         if ind != None and not from_delete:
-            with open(f'{self.username}decrypted.bin', 'rb') as f:
+            with open(f'{self.username}/{self.username}decrypted.bin', 'rb') as f:
                 val = p.load(f)
             self.account_name = val[ind][2]
             for i in buttons_list:
@@ -1475,8 +1458,8 @@ class Password_display(Frame):
     def buttons_blit(self):
         global buttons_list
         new = []
-        if os.stat(f"{self.username}decrypted.bin").st_size != 0:
-            with open(f"{self.username}decrypted.bin", "rb") as f:
+        if os.stat(f"{self.username}/{self.username}decrypted.bin").st_size != 0:
+            with open(f"{self.username}/{self.username}decrypted.bin", "rb") as f:
                 val = p.load(f)
                 for i in val:
                     new.append(i[2])
@@ -1508,14 +1491,14 @@ class Password_display(Frame):
                     i.image = d[i][1]
                     i.grid(row=d[i][0], column=0)
                 values = []
-                if os.stat(f"{self.username}decrypted.bin").st_size != 0:
-                    with open(f"{self.username}decrypted.bin", "rb") as f:
+                if os.stat(f"{self.username}/{self.username}decrypted.bin").st_size != 0:
+                    with open(f"{self.username}/{self.username}decrypted.bin", "rb") as f:
                         values = p.load(f)
                 length_list = len(values)
                 self.add_button.grid(row=length_list + 1, column=0)
 
     def verify(self):
-        file_name = f"{self.username}decrypted.bin"
+        file_name = f"{self.username}/{self.username}decrypted.bin"
         if os.stat(file_name).st_size != 0:
             with open(file_name, "rb") as f:
                 test_values = p.load(f)
@@ -1546,21 +1529,23 @@ class Password_display(Frame):
             else:
                 line = []
 
-                name_file = self.username + "decrypted.bin"
-                if os.stat(f"{self.username}decrypted.bin").st_size != 0:
-                    with open(f"{self.username}decrypted.bin", "rb") as f:
+                name_file = f"{self.username}/{self.username}" + \
+                    "decrypted.bin"
+                if os.stat(f"{self.username}/{self.username}decrypted.bin").st_size != 0:
+                    with open(f"{self.username}/{self.username}decrypted.bin", "rb") as f:
                         line = p.load(f)
                         line.append(list_account)
                     with open(name_file, "wb") as f1:
                         p.dump(line, f1)
                         f.close()
                 else:
-                    with open(f"{self.username}decrypted.bin", "wb") as f:
+                    with open(f"{self.username}/{self.username}decrypted.bin", "wb") as f:
                         line.append(list_account)
                         pickle.dump(line, f)
 
                 index_value = line.index(list_account)
-                os.remove(self.username + ".bin.aes")
+                os.remove(
+                    f"{self.username}/{self.username}self.username" + ".bin.aes")
                 pyAesCrypt.encryptFile(
                     name_file,
                     f"{self.username}.bin.aes",
@@ -1568,8 +1553,8 @@ class Password_display(Frame):
                     bufferSize,
                 )
                 messagebox.showinfo("Success", "Your account has been saved")
-                if os.stat(f"{self.username}decrypted.bin").st_size != 0:
-                    with open(f"{self.username}decrypted.bin", "rb") as f:
+                if os.stat(f"{self.username}/{self.username}decrypted.bin").st_size != 0:
+                    with open(f"{self.username}/{self.username}decrypted.bin", "rb") as f:
                         val = p.load(f)
                     self.add_button.grid(row=len(val) + 1, column=0)
                 self.root1.destroy()
@@ -1694,14 +1679,14 @@ class Password_display(Frame):
         dot_text2 = Label(new_s, text=":", bg="#171717", fg="white", font=(20))
         dot_text3 = Label(new_s, text=":", bg="#171717", fg="white", font=(20))
 
-        with open(f"{self.username}decrypted.bin", "rb") as f:
+        with open(f"{self.username}/{self.username}decrypted.bin", "rb") as f:
             lists = pickle.load(f)
 
         # getting the username and password
         self.account_username = ""
         self.account_password = ""
-        if os.stat(f"{self.username}decrypted.bin").st_size != 0:
-            with open(f"{self.username}decrypted.bin", "rb") as f:
+        if os.stat(f"{self.username}/{self.username}decrypted.bin").st_size != 0:
+            with open(f"{self.username}/{self.username}decrypted.bin", "rb") as f:
                 values = p.load(f)
                 for i in values:
                     if i[2] == account_name:
@@ -2274,8 +2259,9 @@ class Change_details:
         iamge.place(x=145, y=10)
 
     def verify(self, account_name):
-        if os.stat(f'{self.real_username}decrypted.bin').st_size != 0:
-            with open(f'{self.real_username}decrypted.bin', "rb") as f:
+        file_name = f"{self.real_username}/{self.real_username}"
+        if os.stat(file_name + 'decrypted.bin').st_size != 0:
+            with open(file_name + 'decrypted.bin', "rb") as f:
                 test_values = p.load(f)
                 for user in test_values:
                     if user[2] == str(account_name):
@@ -2292,7 +2278,7 @@ class Change_details:
             d.destroy()
             self.change_acccount.focus_force()
         else:
-            with open(f"{self.real_username}decrypted.bin", "rb") as f:
+            with open(f"{self.real_username}/{self.real_username}decrypted.bin", "rb") as f:
                 value1 = pickle.load(f)
                 f.close()
             for i in value1:
@@ -2303,8 +2289,9 @@ class Change_details:
                     i[2] = str(account_name)
                     messagebox.showinfo(
                         "Success", "The Account details has been changed")
-                    os.remove(f"{self.real_username}decrypted.bin")
-                    with open(f"{self.real_username}decrypted.bin", "wb") as f:
+                    os.remove(
+                        f"{self.real_username}/{self.real_username}decrypted.bin")
+                    with open(f"{self.real_username}/{self.real_username}decrypted.bin", "wb") as f:
                         pickle.dump(value1, f)
                         f.close()
                     os.remove(f"{self.real_username}.bin.aes")
@@ -2351,7 +2338,7 @@ class Change_details:
         # aes is mode of encryption for encrypting the password
         encrypted_pass = aes.encrypt(self.new_email_password_entry.get())
 
-        os.remove(f"{self.real_username}.bin.aes")
+        os.remove(f"{self.real_username}/{self.real_username}.bin.aes")
         query = "update usersdata set password = (%s), email_id = (%s), salt_recovery = (%s), salt = (%s), recovery_password = (%s) where username = (%s)"
         self.object.execute(
             query,
@@ -2605,7 +2592,7 @@ class PinFrame(Frame):
                                 if i == self.username:
                                     if values[i] == 1:
                                         pyAesCrypt.encryptFile(
-                                            f'{self.username}decrypted.bin', f'{self.username}_decrypted.bin.aes', str(self.pin), bufferSize)
+                                            f'{self.username}/{self.username}decrypted.bin', f'{self.username}/{self.username}_decrypted.bin.aes', str(self.pin), bufferSize)
 
                         self.master.switch_frame(
                             main_window, self.username, self.password)
@@ -2667,7 +2654,7 @@ class Deletion:
                 self.delete_med_account, width=27, state="#292A2D")
             # Adding combobox drop down list
             values = ()
-            with open(f"{self.real_username}decrypted.bin", "rb") as selectfile:
+            with open(f"{self.real_username}/{self.real_username}decrypted.bin", "rb") as selectfile:
                 try:
                     ac = pickle.load(selectfile)
                     for i in ac:
@@ -2720,7 +2707,7 @@ class Deletion:
         else:
             result = True
         if result == True:
-            with open(f"{self.real_username}decrypted.bin", "rb") as f:
+            with open(f"{self.real_username}/{self.real_username}decrypted.bin", "rb") as f:
                 values = pickle.load(f)
                 for i in values:
                     if i[2] == account_name:
@@ -2729,10 +2716,10 @@ class Deletion:
 
                 f.close()
             try:
-                os.remove(f"{self.real_username}.bin.aes")
+                os.remove(f"{self.real_username}/{self.real_username}.bin.aes")
             except:
                 pass
-            with open(f"{self.real_username}decrypted.bin", "wb") as f:
+            with open(f"{self.real_username}/{self.real_username}decrypted.bin", "wb") as f:
                 pickle.dump(values, f)
                 f.close()
 
@@ -2773,8 +2760,10 @@ class Deletion:
             )
             if result == f"{self.real_username}-CONFIRM":
                 # try:
-                os.remove(self.real_username + "decrypted.bin")
-                os.remove(self.real_username + ".bin.aes")
+                os.remove(
+                    f"{self.real_username}/{self.real_username}" + "decrypted.bin")
+                os.remove(
+                    f"{self.real_username}/{self.real_username}" + ".bin.aes")
                 with open(f'{json_path}settings.json', 'r') as file:
                     with open(f'{json_path}pin.json', 'r') as file1:
                         sett = json.load(file)
@@ -2810,4 +2799,3 @@ if __name__ == "__main__":
     # initialising the main class
     app = main_class()
     app.mainloop()
-    remove_decrypted()
