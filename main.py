@@ -107,8 +107,6 @@ def gotologin(master):
                 break
     with open(f"{json_path}settings.json", "w") as f:
         json.dump(value, f)
-    if username:
-        os.remove(f"{username}/{username}decrypted.bin")
 
     try:
         master.eval("::ttk::CancelRepeat")
@@ -1146,11 +1144,11 @@ class Register_page(Frame):
         """for encrypting the file"""
         hash_pass = hashlib.sha3_512(for_hashing.encode()).hexdigest()
         os.mkdir(self.username)
-        file_name = f'{self.username}/{self.username}' + ".bin"
+        file_name = f'{self.username}' + ".bin"
         with open(f'{self.username}/{file_name}', "wb"):
             pyAesCrypt.encryptFile(
-                file_name, f"{self.username}/{file_name}.aes", hash_pass, bufferSize)
-        os.remove(file_name)
+                f"{self.username}/{self.username}.bin", f"{self.username}/{file_name}.aes", hash_pass, bufferSize)
+        os.remove(f'{self.username}/{self.username}.bin')
         # to display that his account has been created
         windows = Tk()
         windows.withdraw()
@@ -1158,8 +1156,8 @@ class Register_page(Frame):
         windows.destroy()
         # for opening the main section where he can store his passwords and use notepad so the file has to be decrypted
         pyAesCrypt.decryptFile(
-            file_name +
-            ".aes", f"{self.username}decrypted.bin", hash_pass, bufferSize
+            f"{self.username}/{self.username}.bin" +
+            ".aes", f"{self.username}/{self.username}decrypted.bin", hash_pass, bufferSize
         )
         self.master.switch_frame(PinFrame, self.username, self.password)
 
@@ -1545,7 +1543,7 @@ class Password_display(Frame):
 
                 index_value = line.index(list_account)
                 os.remove(
-                    f"{self.username}/{self.username}self.username" + ".bin.aes")
+                    f"{self.username}/{self.username}" + ".bin.aes")
                 pyAesCrypt.encryptFile(
                     name_file,
                     f"{self.username}.bin.aes",
